@@ -2,8 +2,7 @@ package project;
 
 import javafx.application.*;
 import javafx.stage.Stage;
-
-
+import com.huskerdev.openglfx.canvas.GLCanvas;
 
 public class Main extends Application {
 
