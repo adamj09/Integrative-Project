@@ -55,7 +55,7 @@
 
         <dependency>
             <groupId>com.huskerdev</groupId>
-            <artifactId>openglfx-jogl</artifactId>
+            <artifactId>openglfx-lwjgl</artifactId>
             <version>4.2.3</version>
         </dependency>
     </dependencies>

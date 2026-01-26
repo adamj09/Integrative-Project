@@ -3,7 +3,7 @@ module project {
     requires javafx.fxml;
     requires javafx.graphics;
     requires java.desktop;
-    requires openglfx.jogl;
+    requires openglfx.lwjgl;
 
     opens project to javafx.fxml;
     exports project;
