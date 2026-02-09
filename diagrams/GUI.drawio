@@ -1,0 +1,58 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/25.0.2 Chrome/128.0.6613.186 Electron/32.2.5 Safari/537.36" version="25.0.2">
+  <diagram name="Page-1" id="g8G3sBvK31Fbx2V86p7_">
+    <mxGraphModel dx="842" dy="568" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="XPoyhsbhQGwE__ewARhe-2" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="680" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="XPoyhsbhQGwE__ewARhe-3" value="Name of application" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="XPoyhsbhQGwE__ewARhe-4" value="Side bar" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="130" height="370" as="geometry" />
+        </mxCell>
+        <mxCell id="XPoyhsbhQGwE__ewARhe-6" value="Live values" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="170" y="380" width="550" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="XPoyhsbhQGwE__ewARhe-8" value="Time scaling stuff" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="170" y="350" width="550" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="XPoyhsbhQGwE__ewARhe-9" value="Live visualisation" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="170" y="70" width="550" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="XPoyhsbhQGwE__ewARhe-10" value="Top bar menu" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="170" y="40" width="550" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="XPoyhsbhQGwE__ewARhe-26" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="530" width="680" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="XPoyhsbhQGwE__ewARhe-27" value="Name of application" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="530" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="XPoyhsbhQGwE__ewARhe-28" value="Side bar" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="40" y="560" width="120" height="370" as="geometry" />
+        </mxCell>
+        <mxCell id="XPoyhsbhQGwE__ewARhe-29" value="Live values" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="160" y="870" width="560" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="XPoyhsbhQGwE__ewARhe-30" value="Time scaling stuff" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="840" width="560" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="XPoyhsbhQGwE__ewARhe-31" value="Live visualisation" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="160" y="560" width="560" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="XPoyhsbhQGwE__ewARhe-32" value="Top bar menu" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="160" y="530" width="560" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="XPoyhsbhQGwE__ewARhe-33" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="560" width="60" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="XPoyhsbhQGwE__ewARhe-34" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="560" width="60" height="20" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
