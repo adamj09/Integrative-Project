@@ -521,10 +521,6 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.15.0</version>
                 <configuration>
-                    <compilerArgs>
-                        <arg>--module-path Integrative-Project/project/lib</arg>
-                        <arg>--add-modules javafx.controls,javafx.base,javafx.graphics,javafx.fxml</arg>
-                    </compilerArgs>
                     <release>${maven.compiler.source}</release>
                 </configuration>
             </plugin>
