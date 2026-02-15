@@ -4,20 +4,13 @@ import javafx.application.*;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import com.huskerdev.openglfx.GLExecutor;
+import com.huskerdev.openglfx.lwjgl.LWJGLExecutor;
 import com.huskerdev.openglfx.canvas.GLCanvas;
 
 public class Main extends Application {
 
     public void start(Stage stage) {
-        GLCanvas.Builder builder = new GLCanvas.Builder();
-        builder.setExecutor(new GLExecutor());
-        builder.setFlipY(true);
-        builder.setMSAA(4);
-        builder.setFps(60.0);
-        builder.setSwapBuffers(2);
-        
-        GLCanvas canvas = new GLCanvas(builder);
+        var canvas = new GLCanvas.Builder().setExecutor(LWJGLExecutor.LWJGL_MODULE).build();
 
         Scene scene = new Scene(canvas, 1280, 720);
         stage.setScene(scene);
