@@ -1,1 +1,1 @@
-Need java 23 or higher. 
+Need java 25 or higher. 
