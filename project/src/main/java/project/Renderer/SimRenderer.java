@@ -1,6 +1,6 @@
 package project.Renderer;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL46.*;
 
 public class SimRenderer extends Renderer {
     public SimRenderer(double fps, int msaa, int swapBuffers) {
@@ -9,7 +9,12 @@ public class SimRenderer extends Renderer {
 
     @Override
     public void init() {
-        
+        //TODO: load shader code from file
+        //TODO: should probably create class to manage loading and compilation of shaders
+
+        int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertexShader, "");
+        glCompileShader(vertexShader);
     }
 
     @Override
