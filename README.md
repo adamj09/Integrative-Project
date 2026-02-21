@@ -11,5 +11,6 @@ This program does not use Java modules. To run, add the following VM arguments:
 --add-exports=javafx.graphics/com.sun.scenario=ALL-UNNAMED
 --add-exports=javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
 --add-exports=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
---enable-native-access=ALL-UNNAMED --enable-native-access=javafx.graphics
+--enable-native-access=ALL-UNNAMED
+--enable-native-access=javafx.graphics
 ```
