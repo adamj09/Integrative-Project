@@ -6,33 +6,33 @@ import com.huskerdev.openglfx.lwjgl.LWJGLExecutor;
 public abstract class Renderer {
     private GLCanvas canvas;
 
-    public Renderer() {
-        canvas = createGLCanvas();
+    public Renderer(double fps, int msaa, int swapBuffers) {
+        canvas = createGLCanvas(fps, msaa, swapBuffers);
         initOpenGLRenderEventHandlers();
     }
 
-    public abstract void initialize();
+    public abstract void init();
 
-    public abstract void renderLoop();
+    public abstract void loop();
 
     private void initOpenGLRenderEventHandlers() {
         canvas.addOnInitEvent(_ -> {
-            this.initialize();
+            this.init();
         });
 
         canvas.addOnRenderEvent(_ -> {
-            this.renderLoop();
+            this.loop();
         });
     }
 
-    private GLCanvas createGLCanvas() {
+    private GLCanvas createGLCanvas(double fps, int msaa, int swapBuffers) {
 
         GLCanvas.Builder glCanvasBuilder = new GLCanvas.Builder();
         glCanvasBuilder.setFlipY(true);
         glCanvasBuilder.setExecutor(LWJGLExecutor.LWJGL_MODULE);
-        glCanvasBuilder.setFps(60);
-        glCanvasBuilder.setMSAA(4);
-        glCanvasBuilder.setSwapBuffers(2);
+        glCanvasBuilder.setFps(fps);
+        glCanvasBuilder.setMSAA(msaa);
+        glCanvasBuilder.setSwapBuffers(swapBuffers);
 
         var canvas = glCanvasBuilder.build();
 
