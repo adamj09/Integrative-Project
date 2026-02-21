@@ -20,12 +20,15 @@
         <kotlin.version>2.3.10</kotlin.version>
     </properties>
 
+    <!-- LWJGL Profiles -->
     <profiles>
+        <!-- Linux x86_64-->
         <profile>
             <id>lwjgl-natives-linux-amd64</id>
             <activation>
                 <os>
                     <family>unix</family>
+                    <name>linux</name>
                     <arch>amd64</arch>
                 </os>
             </activation>
@@ -36,11 +39,13 @@
             </properties>
         </profile>
 
+        <!-- Linux ARM64 -->
         <profile>
             <id>lwjgl-natives-linux-aarch64</id>
             <activation>
                 <os>
                     <family>unix</family>
+                    <name>linux</name>
                     <arch>aarch64</arch>
                 </os>
             </activation>
@@ -51,53 +56,9 @@
             </properties>
         </profile>
 
+        <!-- MacOS x86_64-->
         <profile>
-            <id>lwjgl-natives-linux-arm</id>
-            <activation>
-                <os>
-                    <family>unix</family>
-                    <arch>arm</arch>
-                </os>
-            </activation>
-            <properties>
-                <lwjgl.natives>natives-linux-arm32</lwjgl.natives>
-                <javafx.platform>linux</javafx.platform>
-                <openjfx.es2>OpenGLFX-Ext</openjfx.es2>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>lwjgl-natives-linux-arm32</id>
-            <activation>
-                <os>
-                    <family>unix</family>
-                    <arch>arm32</arch>
-                </os>
-            </activation>
-            <properties>
-                <lwjgl.natives>natives-linux-arm32</lwjgl.natives>
-                <javafx.platform>linux</javafx.platform>
-                <openjfx.es2>OpenGLFX-Ext</openjfx.es2>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>lwjgl-natives-macos-amd64</id>
-            <activation>
-                <os>
-                    <family>mac</family>
-                    <arch>amd64</arch>
-                </os>
-            </activation>
-            <properties>
-                <lwjgl.natives>natives-macos</lwjgl.natives>
-                <javafx.platform>mac</javafx.platform>
-                <openjfx.es2>OpenGLFX-Ext</openjfx.es2>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>lwjgl-natives-macos-intel64</id>
+            <id>lwjgl-natives-macos-x86_64</id>
             <activation>
                 <os>
                     <family>mac</family>
@@ -111,6 +72,7 @@
             </properties>
         </profile>
 
+        <!-- MacOS ARM64 -->
         <profile>
             <id>lwjgl-natives-macos-aarch64</id>
             <activation>
@@ -126,6 +88,7 @@
             </properties>
         </profile>
 
+        <!-- Window x86_64-->
         <profile>
             <id>lwjgl-natives-windows-amd64</id>
             <activation>
@@ -141,36 +104,7 @@
             </properties>
         </profile>
 
-        <profile>
-            <id>lwjgl-natives-windows-intelx86</id>
-            <activation>
-                <os>
-                    <family>windows</family>
-                    <arch>x86_64</arch>
-                </os>
-            </activation>
-            <properties>
-                <lwjgl.natives>natives-windows-x86</lwjgl.natives>
-                <javafx.platform>win</javafx.platform>
-                <openjfx.es2>jfx-es2</openjfx.es2>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>lwjgl-natives-windows-x86</id>
-            <activation>
-                <os>
-                    <family>windows</family>
-                    <arch>x86</arch>
-                </os>
-            </activation>
-            <properties>
-                <lwjgl.natives>natives-windows-x86</lwjgl.natives>
-                <javafx.platform>win</javafx.platform>
-                <openjfx.es2>jfx-es2</openjfx.es2>
-            </properties>
-        </profile>
-
+        <!-- Windows ARM64-->
         <profile>
             <id>lwjgl-natives-windows-aarch64</id>
             <activation>
@@ -187,8 +121,10 @@
         </profile>
     </profiles>
 
+    <!-- This makes sure there aren't any version conflicts -->
     <dependencyManagement>
         <dependencies>
+            <!-- LWJGL -->
             <dependency>
                 <groupId>org.lwjgl</groupId>
                 <artifactId>lwjgl-bom</artifactId>
@@ -197,6 +133,7 @@
                 <type>pom</type>
             </dependency>
 
+            <!-- Kotlin JDK8-->
             <dependency>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-stdlib-jdk8</artifactId>
@@ -266,67 +203,7 @@
 
         <dependency>
             <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-jemalloc</artifactId>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-libdivide</artifactId>
-            <version>3.3.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-llvm</artifactId>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-lmdb</artifactId>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-lz4</artifactId>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-meshoptimizer</artifactId>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-nanovg</artifactId>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-nfd</artifactId>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-nuklear</artifactId>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-openal</artifactId>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-opencl</artifactId>
             <version>${lwjgl.version}</version>
         </dependency>
 
@@ -338,158 +215,50 @@
 
         <dependency>
             <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-opengles</artifactId>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-par</artifactId>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-sse</artifactId>
-            <version>3.3.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-stb</artifactId>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-tinyfd</artifactId>
             <version>${lwjgl.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
             <version>${lwjgl.version}</version>
+            <classifier>${lwjgl.natives}</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-assimp</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
             <version>${lwjgl.version}</version>
+            <classifier>${lwjgl.natives}</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-glfw</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
             <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-jemalloc</artifactId>
             <classifier>${lwjgl.natives}</classifier>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-libdivide</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
-            <version>3.3.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-llvm</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-lmdb</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-lz4</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-meshoptimizer</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-nanovg</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-nfd</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-nuklear</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
-            <version>${lwjgl.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-openal</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
             <version>${lwjgl.version}</version>
+            <classifier>${lwjgl.natives}</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-opengl</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
             <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-opengles</artifactId>
             <classifier>${lwjgl.natives}</classifier>
-            <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-par</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
-            <version>${lwjgl.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-stb</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
             <version>${lwjgl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-tinyfd</artifactId>
             <classifier>${lwjgl.natives}</classifier>
-            <version>${lwjgl.version}</version>
         </dependency>
 
         <!-- Kotlin -->
