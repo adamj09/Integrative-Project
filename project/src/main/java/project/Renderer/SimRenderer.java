@@ -19,8 +19,9 @@ public class SimRenderer extends Renderer {
     @Override
     public void init() {
         shaderProgram = new ShaderProgram(
-                "Integrative-Project/project/shaders/main.vert",
-                "Integrative-Project/project/shaders/main.frag");
+                "project/shaders/main.vert",
+                "project/shaders/main.frag"
+            );
 
         float[] vertices = {
                 0.5f,  0.5f, 0.0f,
