@@ -3,7 +3,6 @@ package project.Renderer;
 import static org.lwjgl.opengl.GL46.*;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,7 +14,7 @@ import java.util.concurrent.Executors;
 public class ShaderProgram {
     private int ID;
 
-    ShaderProgram(String vertFilepath, String fragFilepath) throws IOException {
+    ShaderProgram(String vertFilepath, String fragFilepath) {
         ExecutorService executor = Executors.newFixedThreadPool(2);
 
         var vertexShaderSourceFuture = executor.submit(new ShaderLoaderTask(vertFilepath));
@@ -29,6 +28,7 @@ public class ShaderProgram {
             vertexShaderSource = vertexShaderSourceFuture.get();
             fragmentShaderSource = fragmentShaderSourceFuture.get();
         } catch (InterruptedException | ExecutionException ex) {
+            // TODO: handle exceptions
         }
 
         // Create and compile shaders.
@@ -40,14 +40,14 @@ public class ShaderProgram {
         glShaderSource(fragmentShader, fragmentShaderSource);
         glCompileShader(fragmentShader);
 
-        if (glGetShaderi(vertexShader, GL_COMPILE_STATUS) == 0) { // 0 means unsuccessful compilation; print shader info log.
+        // Check for failed compilation, print errors, and exit.
+        if (glGetShaderi(vertexShader, GL_COMPILE_STATUS) == 0) {
             System.err.println("Vertex shader compilation failed: " + glGetShaderInfoLog(vertexShader));
-            return;
+            System.exit(1);
         }
-
-        if (glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) { // 0 means unsuccessful compilation; print shader info log.
+        if (glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) {
             System.err.println("Vertex shader compilation failed: " + glGetShaderInfoLog(fragmentShader));
-            return;
+            System.exit(1);
         }
 
         // Create the shader program using the two shaders.
@@ -55,13 +55,15 @@ public class ShaderProgram {
         glAttachShader(ID, vertexShader);
         glAttachShader(ID, fragmentShader);
         glLinkProgram(ID);
- 
+
+        // Check for failed linking, print errors, and exit.
         if (glGetProgrami(ID, GL_LINK_STATUS) == 0) {
             System.err.println("Linking shader program failed: " + glGetProgramInfoLog(ID));
-            return;
+            System.exit(1);
         }
 
-        // Delete shaders as they are no longer needed after program creation and linking.
+        // Delete shaders as they are no longer needed after program creation and
+        // linking.
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
     }
@@ -78,20 +80,21 @@ public class ShaderProgram {
         }
 
         @Override
-        public String call() throws IOException {
+        public String call() {
             // Create new file for shader and check if exists.
             File file = new File(filepath);
             if (!file.exists()) {
                 System.err.println("Shader specified at " + filepath + " could not be found!");
-                throw new FileNotFoundException("Shader specified at " + filepath + " could not be found!");
+                System.exit(1);
             }
 
             // Read shader file.
-            String source;
+            String source = "";
             try {
                 source = Files.readString(Path.of(file.getPath()));
             } catch (IOException ex) {
-                throw ex;
+                System.err.println(ex.getMessage());
+                System.exit(1);
             }
 
             return source;
