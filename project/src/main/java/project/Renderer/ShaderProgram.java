@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 public class ShaderProgram {
     private int ID;
 
-    ShaderProgram(String vertFilepath, String fragFilepath) {
+    public ShaderProgram(String vertFilepath, String fragFilepath) {
         ExecutorService executor = Executors.newFixedThreadPool(2);
 
         var vertexShaderSourceFuture = executor.submit(new ShaderLoaderTask(vertFilepath));
