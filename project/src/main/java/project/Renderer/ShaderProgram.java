@@ -1,5 +1,21 @@
 package project.Renderer;
 
+import static org.lwjgl.opengl.GL20.GL_COMPILE_STATUS;
+import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
+import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
+import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
+import static org.lwjgl.opengl.GL20.glAttachShader;
+import static org.lwjgl.opengl.GL20.glCompileShader;
+import static org.lwjgl.opengl.GL20.glCreateProgram;
+import static org.lwjgl.opengl.GL20.glCreateShader;
+import static org.lwjgl.opengl.GL20.glDeleteShader;
+import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
+import static org.lwjgl.opengl.GL20.glGetProgrami;
+import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
+import static org.lwjgl.opengl.GL20.glGetShaderi;
+import static org.lwjgl.opengl.GL20.glLinkProgram;
+import static org.lwjgl.opengl.GL20.glShaderSource;
+import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL46.*;
 
 import java.io.File;
@@ -10,6 +26,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class ShaderProgram {
     private int ID;
@@ -20,11 +37,13 @@ public class ShaderProgram {
         var vertexShaderSourceFuture = executor.submit(new ShaderLoaderTask(vertFilepath));
         var fragmentShaderSourceFuture = executor.submit(new ShaderLoaderTask(fragFilepath));
 
-        executor.shutdown();
-
         String vertexShaderSource = "", fragmentShaderSource = "";
 
         try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            executor.shutdown();
+
+
             vertexShaderSource = vertexShaderSourceFuture.get();
             fragmentShaderSource = fragmentShaderSourceFuture.get();
         } catch (InterruptedException | ExecutionException ex) {
