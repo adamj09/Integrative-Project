@@ -1,5 +1,7 @@
 package project.Renderer.Model;
 
+import org.lwjgl.opencl.CL30.*;
+
 public class Mesh {
     private float[] vertices, colors, texCoords, faces;
     private int[] indices;
