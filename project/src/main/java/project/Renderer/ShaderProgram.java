@@ -1,6 +1,6 @@
 package project.Renderer;
 
-import static org.lwjgl.opengl.GL46.*;
+import static org.lwjgl.opengl.GL41.*;
 
 import java.io.File;
 import java.io.IOException;
