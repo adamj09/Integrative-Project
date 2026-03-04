@@ -8,6 +8,7 @@ import project.Renderer.Controls;
 import project.Renderer.SimRenderer;
 import project.Renderer.Camera.Camera;
 
+import org.joml.Vector3f;
 import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
@@ -52,7 +53,8 @@ public class Main extends Application {
         StackPane rootPane = new StackPane();
 
         Camera camera = new Camera();
-        camera.setPerspectiveProjection(45.f, 16.f / 9.f, 0.001f, 1.0f);
+        camera.setViewYXZ(new Vector3f(0.0f, 0.0f, -2.5f), new Vector3f(0.0f, 0.0f, 0.0f));
+        camera.setPerspectiveProjection((float)Math.toRadians(45.0f), 1280.0f/720.0f, 0.001f, 1.0f);
 
         SimRenderer renderer = new SimRenderer(fps, msaa, swapBuffers, camera);
         rootPane.getChildren().add(renderer.getCanvas());

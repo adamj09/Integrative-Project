@@ -25,6 +25,7 @@ public class Camera {
     }
 
     public void setViewYXZ(Vector3f position, Vector3f rotation) {
+        viewMatrix.setTranslation(position);
         viewMatrix.setRotationYXZ(rotation.y, rotation.x, rotation.z);
 
         inverseViewMatrix = viewMatrix.invert();
