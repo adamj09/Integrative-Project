@@ -1,6 +1,6 @@
 package project.Renderer;
 
-import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.*;
 
 public class Controls {
     private Renderer renderer;
@@ -8,109 +8,124 @@ public class Controls {
     /**
      * Camera Controls
      */
-    private int forwardKey = GLFW.GLFW_KEY_W;
-    private int leftKey = GLFW.GLFW_KEY_A;
-    private int backwardKey = GLFW.GLFW_KEY_S;
-    private int rightKey = GLFW.GLFW_KEY_D;
-    private int downKey = GLFW.GLFW_KEY_LEFT_SHIFT;
-    private int upKey = GLFW.GLFW_KEY_SPACE;
+    public int forwardKeyCode = GLFW.GLFW_KEY_W;
+    public int leftKeyCode = GLFW.GLFW_KEY_A;
+    public int backwardKeyCode = GLFW.GLFW_KEY_S;
+    public int rightKeyCode = GLFW.GLFW_KEY_D;
+    public int upKeyCode = GLFW.GLFW_KEY_SPACE;
+    public int downKeyCode = GLFW.GLFW_KEY_LEFT_SHIFT;
 
     private boolean forwardKeyPressed = false;
     private boolean leftKeyPressed = false;
     private boolean backwardKeyPressed = false;
     private boolean rightKeyPressed = false;
-    private boolean downKeyPressed = false;
     private boolean upKeyPressed = false;
-
+    private boolean downKeyPressed = false;
 
     public Controls(Renderer renderer) {
+        this.renderer = renderer;
         setUpKeyboardControls();
     }
 
+    /**
+     * Reset control scheme to defaults.
+     */
+    private void defaultControlScheme() {
+        this.forwardKeyCode = GLFW.GLFW_KEY_W;
+        this.leftKeyCode = GLFW.GLFW_KEY_A;
+        this.backwardKeyCode = GLFW.GLFW_KEY_S;
+        this.rightKeyCode = GLFW.GLFW_KEY_D;
+        this.upKeyCode = GLFW.GLFW_KEY_SPACE;
+        this.downKeyCode = GLFW.GLFW_KEY_LEFT_SHIFT;
+    }
+
+    /**
+     * Set up keyboard controls callback
+     */
     private void setUpKeyboardControls() {
         renderer.getCanvas().getWindow().getKeyPressedListeners().add(event -> {
-            if(event.getKey().getCode() == forwardKey) {
+            int keyCode = event.getKey().getCode();
+
+            if(keyCode == forwardKeyCode) {
                 forwardKeyPressed = true;
-            }
-        });
-
-        renderer.getCanvas().getWindow().getKeyPressedListeners().add(event -> {
-            if(event.getKey().getCode() == leftKey) {
+            } else if (keyCode == leftKeyCode) {
                 leftKeyPressed = true;
-            }
-        });
-
-        renderer.getCanvas().getWindow().getKeyPressedListeners().add(event -> {
-            if(event.getKey().getCode() == backwardKey) {
+            } else if (keyCode == backwardKeyCode) {
                 backwardKeyPressed = true;
-            }
-        });
-
-        renderer.getCanvas().getWindow().getKeyPressedListeners().add(event -> {
-            if(event.getKey().getCode() == rightKey) {
+            } else if (keyCode == rightKeyCode) {
                 rightKeyPressed = true;
-            }
-        });
-
-        renderer.getCanvas().getWindow().getKeyPressedListeners().add(event -> {
-            if(event.getKey().getCode() == downKey) {
+            } else if (keyCode == upKeyCode) {
+                upKeyPressed = true;
+            } else if (keyCode == downKeyCode) {
                 downKeyPressed = true;
             }
         });
 
-        renderer.getCanvas().getWindow().getKeyPressedListeners().add(event -> {
-            if(event.getKey().getCode() == upKey) {
-                upKeyPressed = true;
+        renderer.getCanvas().getWindow().getKeyReleasedListeners().add(event -> {
+            int keyCode = event.getKey().getCode();
+
+            if(keyCode == forwardKeyCode) {
+                forwardKeyPressed = false;
+            } else if (keyCode == leftKeyCode) {
+                leftKeyPressed = false;
+            } else if (keyCode == backwardKeyCode) {
+                backwardKeyPressed = false;
+            } else if (keyCode == rightKeyCode) {
+                rightKeyPressed = false;
+            } else if (keyCode == upKeyCode) {
+                upKeyPressed = false;
+            } else if (keyCode == downKeyCode) {
+                downKeyPressed = false;
             }
         });
     }
 
-    public int getForwardKey() {
-        return this.forwardKey;
+    public int getForwardKeyCode() {
+        return this.forwardKeyCode;
     }
 
-    public void setForwardKey(int forwardKey) {
-        this.forwardKey = forwardKey;
+    public void setForwardKeyCode(int forwardKeyCode) {
+        this.forwardKeyCode = forwardKeyCode;
     }
 
-    public int getLeftKey() {
-        return this.leftKey;
+    public int getLeftKeyCode() {
+        return this.leftKeyCode;
     }
 
-    public void setLeftKey(int leftKey) {
-        this.leftKey = leftKey;
+    public void setLeftKeyCode(int leftKeyCode) {
+        this.leftKeyCode = leftKeyCode;
     }
 
-    public int getBackwardKey() {
-        return this.backwardKey;
+    public int getBackwardKeyCode() {
+        return this.backwardKeyCode;
     }
 
-    public void setBackwardKey(int backwardKey) {
-        this.backwardKey = backwardKey;
+    public void setBackwardKeyCode(int backwardKeyCode) {
+        this.backwardKeyCode = backwardKeyCode;
     }
 
-    public int getRightKey() {
-        return this.rightKey;
+    public int getRightKeyCode() {
+        return this.rightKeyCode;
     }
 
-    public void setRightKey(int rightKey) {
-        this.rightKey = rightKey;
+    public void setRightKeyCode(int rightKeyCode) {
+        this.rightKeyCode = rightKeyCode;
     }
 
-    public int getDownKey() {
-        return this.downKey;
+    public int getDownKeyCode() {
+        return this.downKeyCode;
     }
 
-    public void setDownKey(int downKey) {
-        this.downKey = downKey;
+    public void setDownKeyCode(int downKeyCode) {
+        this.downKeyCode = downKeyCode;
     }
 
-    public int getUpKey() {
-        return this.upKey;
+    public int getUpKeyCode() {
+        return this.upKeyCode;
     }
 
-    public void setUpKey(int upKey) {
-        this.upKey = upKey;
+    public void setUpKeyCode(int upKeyCode) {
+        this.upKeyCode = upKeyCode;
     }
 
     public boolean isForwardKeyPressed() {

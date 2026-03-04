@@ -100,4 +100,8 @@ public class ShaderProgram {
             return source;
         }
     }
+
+    public int getID() {
+        return ID;
+    }
 }

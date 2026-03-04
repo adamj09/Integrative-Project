@@ -5,15 +5,21 @@ import static org.lwjgl.opengl.GL41.*;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
+
+import project.Renderer.Camera.Camera;
 
 public class SimRenderer extends Renderer {
     private ShaderProgram shaderProgram;
+    private Camera camera;
     private int VAO, EBO;
     private int[] VBO = new int[2];
 
-    public SimRenderer(double fps, int msaa, int swapBuffers) {
+    public SimRenderer(double fps, int msaa, int swapBuffers, Camera camera) {
         super(fps, msaa, swapBuffers);
+        this.camera = camera;
     }
 
     @Override
@@ -36,7 +42,7 @@ public class SimRenderer extends Renderer {
             0.0f, 0.0f, 1.0f,
             1.0f, 1.0f, 0.0f
         };
-
+  
         int[] indices = {
             0, 1, 3,
             1, 2, 3
@@ -76,6 +82,14 @@ public class SimRenderer extends Renderer {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW);
 
+        glEnable(GL_DEPTH_TEST);
+
+        FloatBuffer projectionMatrixBuffer = BufferUtils.createFloatBuffer(16);
+        camera.getProjectionMatrix().get(projectionMatrixBuffer);
+
+        int transformLocation = glGetUniformLocation(shaderProgram.getID(), "transform");
+        glUniformMatrix4fv(transformLocation, false, projectionMatrixBuffer);
+
         shaderProgram.use();
     }
 
@@ -84,7 +98,11 @@ public class SimRenderer extends Renderer {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Bind VAO and draw
+        for(int i = 0; i < 3; i++) {
+
+        }
+
+        // Bind EBO and draw
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     }

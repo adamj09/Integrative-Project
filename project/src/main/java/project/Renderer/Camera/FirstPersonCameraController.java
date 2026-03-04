@@ -1,7 +1,5 @@
 package project.Renderer.Camera;
 
-import javafx.geometry.Point3D;
-import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import project.Renderer.Controls;
 

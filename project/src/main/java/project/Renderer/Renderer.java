@@ -33,8 +33,8 @@ public abstract class Renderer {
         glCanvasBuilder.setMSAA(msaa);
         glCanvasBuilder.setSwapBuffers(swapBuffers);
 
-        var canvas = glCanvasBuilder.build();
-
+        GLCanvas canvas = glCanvasBuilder.build();
+        
         return canvas;
     }
 

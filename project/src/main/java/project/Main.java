@@ -6,6 +6,20 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import project.Renderer.Controls;
 import project.Renderer.SimRenderer;
+import project.Renderer.Camera.Camera;
+
+import org.lwjgl.*;
+import org.lwjgl.glfw.*;
+import org.lwjgl.opengl.*;
+import org.lwjgl.system.*;
+
+import java.nio.*;
+
+import static org.lwjgl.glfw.Callbacks.*;
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.system.MemoryStack.*;
+import static org.lwjgl.system.MemoryUtil.*;
 
 public class Main extends Application {
     // TODO: should probably make a class to hold these values (not Renderer since
@@ -15,19 +29,39 @@ public class Main extends Application {
     public static int msaa = 4;
     public static int swapBuffers = 2;
 
+    private long window;
+
     public void start(Stage stage) {
+        GLFWErrorCallback.createPrint(System.err).set();
+
+        if (!glfwInit()) {
+            throw new IllegalStateException("Unable to initialize GLFW");
+        }
+
+        glfwDefaultWindowHints();
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
+        window = glfwCreateWindow(300, 300, "Window", NULL, NULL);
+        if(window == NULL) {
+            throw new RuntimeException("Failed to create GLFW window.");
+        }
+
         setSystemProperties();
 
         StackPane rootPane = new StackPane();
 
-        SimRenderer renderer = new SimRenderer(fps, msaa, swapBuffers);
-        rootPane.getChildren().add(renderer.getCanvas());
+        Camera camera = new Camera();
+        camera.setPerspectiveProjection(45.f, 16.f / 9.f, 0.001f, 1.0f);
 
-        Controls controls = new Controls(renderer);
+        SimRenderer renderer = new SimRenderer(fps, msaa, swapBuffers, camera);
+        rootPane.getChildren().add(renderer.getCanvas());
 
         stage.setScene(new Scene(rootPane, 1280, 720));
         stage.setTitle("Orbital Motion Simulator");
         stage.show();
+
+        //Controls controls = new Controls(renderer);
     }
 
     private void setSystemProperties() {
