@@ -26,7 +26,6 @@ public abstract class Renderer {
     }
 
     private GLCanvas createGLCanvas(double fps, int msaa, int swapBuffers) {
-
         GLCanvas.Builder glCanvasBuilder = new GLCanvas.Builder();
         glCanvasBuilder.setFlipY(false);
         glCanvasBuilder.setExecutor(LWJGLExecutor.LWJGL_MODULE);

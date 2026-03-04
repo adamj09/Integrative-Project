@@ -4,6 +4,7 @@ import javafx.application.*;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import project.Renderer.Controls;
 import project.Renderer.SimRenderer;
 
 public class Main extends Application {
@@ -21,6 +22,8 @@ public class Main extends Application {
 
         SimRenderer renderer = new SimRenderer(fps, msaa, swapBuffers);
         rootPane.getChildren().add(renderer.getCanvas());
+
+        Controls controls = new Controls(renderer);
 
         stage.setScene(new Scene(rootPane, 1280, 720));
         stage.setTitle("Orbital Motion Simulator");

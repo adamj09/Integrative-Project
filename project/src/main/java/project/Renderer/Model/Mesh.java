@@ -6,13 +6,13 @@ public class Mesh {
     private float[] vertices;
     private int[] indices;
 
-    public Mesh() {
-
+    public Mesh(float[] vertices) {
+        this.vertices = vertices;
     }
 
     public static Mesh uvsphere() {
 
-        return new Mesh();
+        return new Mesh(new float[] {});
     }
 
     public static Mesh icosphere(float radius) {
@@ -75,6 +75,6 @@ public class Mesh {
         vertices[34] = -a;
         vertices[35] = -b;
 
-        return new Mesh();
+        return new Mesh(vertices);
     }
 }
