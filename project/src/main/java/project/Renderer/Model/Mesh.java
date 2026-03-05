@@ -77,4 +77,8 @@ public class Mesh {
 
         return new Mesh(vertices);
     }
+
+    public float[] getVertices() {
+        return vertices;
+    }
 }
