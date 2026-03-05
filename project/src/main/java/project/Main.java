@@ -1,13 +1,11 @@
 package project;
 
-import org.joml.Vector3f;
-
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import project.Renderer.SimRenderer;
-import project.Renderer.Camera.Camera;
+import project.Renderer.ControlManager;
+import project.Renderer.Renderer;
 
 public class Main extends Application {
         // TODO: should probably make a class to hold these values (not Renderer since
@@ -22,14 +20,14 @@ public class Main extends Application {
 
         StackPane rootPane = new StackPane();
 
-        Camera camera = new Camera();
-        camera.setViewYXZ(new Vector3f(0.0f, 0.0f, 2.5f), new Vector3f(0.0f, 0.0f, 0.0f));
-        camera.setPerspectiveProjection((float)Math.toRadians(45.0f), 1280.0f/720.0f, 0.001f, 1000.0f);
+        Scene scene = new Scene(rootPane, 1280, 720);
 
-        SimRenderer renderer = new SimRenderer(fps, msaa, swapBuffers, camera);
+        ControlManager controlManager = new ControlManager(scene);
+
+        Renderer renderer = new Renderer(fps, msaa, swapBuffers, controlManager);
         rootPane.getChildren().add(renderer.getCanvas());
 
-        stage.setScene(new Scene(rootPane, 1280, 720));
+        stage.setScene(scene);
         stage.setTitle("Orbital Motion Simulator");
         stage.show();
 

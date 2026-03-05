@@ -10,20 +10,23 @@ import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
 import project.Renderer.Camera.Camera;
+import project.Renderer.Camera.FirstPersonCameraController;
 import project.Renderer.Model.Mesh;
 
-public class SimRenderer extends Renderer {
+public class SimRenderer {
     private ShaderProgram shaderProgram;
+
     private Camera camera;
+    private FirstPersonCameraController cameraController;
+
     private int VAO, EBO;
     private int[] VBO = new int[2];
 
-    public SimRenderer(double fps, int msaa, int swapBuffers, Camera camera) {
-        super(fps, msaa, swapBuffers);
+    public SimRenderer(Camera camera, ControlManager controlManager) {
         this.camera = camera;
+        cameraController = new FirstPersonCameraController(camera, controlManager);
     }
 
-    @Override
     public void init() {
         shaderProgram = new ShaderProgram(
                 "project/shaders/main.vert",
@@ -66,22 +69,8 @@ public class SimRenderer extends Renderer {
 
         shaderProgram.bindElementBuffer(EBO, indicesBuffer, GL_STATIC_DRAW);
 
-        shaderProgram.use();
-
-        FloatBuffer projectionMatrixBuffer = BufferUtils.createFloatBuffer(16);
-        camera.getProjectionMatrix().get(projectionMatrixBuffer).flip();
-        shaderProgram.addFloatUniform("projection", projectionMatrixBuffer);
-
-        FloatBuffer viewMatrixBuffer = BufferUtils.createFloatBuffer(16);
-        camera.getViewMatrix().get(viewMatrixBuffer).flip();
-        shaderProgram.addFloatUniform("view", viewMatrixBuffer);
-
-        // FloatBuffer modelMatrixBuffer = BufferUtils.createFloatBuffer(16);
-        // test.get(modelMatrixBuffer).flip();
-       // shaderProgram.addFloatUniform("model", modelMatrixBuffer);
-
         Matrix4f test = new Matrix4f().identity();
-        test.rotate((float)Math.toRadians(45), new Vector3f(0.5f, 0.5f, 0.5f));
+        test.translate(new Vector3f(0.f,0.f, -10.f));
 
         shaderProgram.use();
 
@@ -89,11 +78,18 @@ public class SimRenderer extends Renderer {
         shaderProgram.addFloatUniform("model", test.get(modelMatrixBuffer));
     }
 
-    @Override
-    public void loop() {
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    public void loop(float deltaTime) {
+        updateCamera(deltaTime);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
+
+    private void updateCamera(float deltaTime) {
+        cameraController.updateCameraTransform(deltaTime);
+
+        FloatBuffer viewMatrixBuffer = BufferUtils.createFloatBuffer(16);
+        shaderProgram.addFloatUniform("view", camera.getView().get(viewMatrixBuffer));
+
+        FloatBuffer projectionMatrixBuffer = BufferUtils.createFloatBuffer(16);
+        shaderProgram.addFloatUniform("projection", camera.getProjection().get(projectionMatrixBuffer));
     }
 }

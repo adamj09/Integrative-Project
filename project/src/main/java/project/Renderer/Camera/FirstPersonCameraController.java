@@ -1,7 +1,9 @@
 package project.Renderer.Camera;
 
-import javafx.stage.Stage;
-import project.Renderer.Controls;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
+
+import project.Renderer.ControlManager;
 
 /**
  * @author @adamj09
@@ -18,17 +20,17 @@ public class FirstPersonCameraController {
     /**
      * Controls
      */
-    private Controls controls;
+    private ControlManager controls;
 
     /**
      * Scalar dictating speed at which the camera translates.
      */
-    private double translateSpeed = 70;
+    private float translateSpeed = 10.0f;
 
     /**
      * Scalar dictating speed at which the camera rotates.
      */
-    private double rotateSpeed = 10000;
+    private float rotateSpeed = 100;
 
     /**
      * Camera pitch angle in degrees.
@@ -45,13 +47,15 @@ public class FirstPersonCameraController {
      */
     private double pitchLimit = 89;
 
+    private Vector3f translation = new Vector3f();
+
     /**
      * Default constructor.
      * 
      * @param scene  Scene viewed by the camera.
      * @param camera Camera managed by this camera controller.
      */
-    public FirstPersonCameraController(Camera camera, Controls controls) {
+    public FirstPersonCameraController(Camera camera, ControlManager controls) {
         this.camera = camera;
         this.controls = controls;
     }
@@ -59,12 +63,51 @@ public class FirstPersonCameraController {
     /**
      * Applies translation to the camera depending on the key pressed.
      * 
-     * @param frameTime The time in milliseconds between the last and current frame
+     * @param deltaTime The time in seconds between the last and current frame
      *                  (used to keep movement speed framerate independent).
      */
-    private void translate(double deltaTime, Controls controls) {
-        double speed = translateSpeed * deltaTime / 1000;
+    private void translate(float deltaTime) {
+        float speed = translateSpeed * deltaTime;
 
+        Vector3f position = camera.getPosition(), direction = camera.getDirection(), up = camera.getUp();
+        Vector3f newPosition = new Vector3f(), displacement = new Vector3f();
+    
+        if (controls.isForwardPressed()) { // Move forward
+            direction.mul(speed, displacement);
+            position.add(displacement, newPosition);
+            camera.setView(newPosition, direction);
+        }
+        if (controls.isBackwardPressed()) { // Move backward
+            direction.mul(speed, displacement);
+            position.sub(displacement, newPosition);
+            camera.setView(newPosition, direction);
+        }  
+        if (controls.isLeftPressed()) {
+            Vector3f frontCrossUp = new Vector3f();
+            direction.cross(up, frontCrossUp);
+            frontCrossUp.normalize().mul(speed, displacement);
+
+            position.sub(displacement, newPosition);
+            camera.setView(newPosition, direction);
+        }  
+        if (controls.isRightPressed()) {
+            Vector3f frontCrossUp = new Vector3f();
+            direction.cross(up, frontCrossUp);
+            frontCrossUp.normalize().mul(speed, displacement);
+
+            position.add(displacement, newPosition);
+            camera.setView(newPosition, direction);
+        }
+        if (controls.isUpPressed()) { // Move Up
+            up.mul(speed, displacement);
+            position.add(displacement, newPosition);
+            camera.setView(newPosition, direction);
+        }
+        if (controls.isDownPressed()) { // Move Up
+            up.mul(speed, displacement);
+            position.sub(displacement, newPosition);
+            camera.setView(newPosition, direction);
+        }  
     }
 
     /**
@@ -80,49 +123,36 @@ public class FirstPersonCameraController {
      *                    is recommended to keep feel consistent across window
      *                    sizes)
      */
-    private void rotate(double frameTime, double mouseDeltaX, double mouseDeltaY) {
+    private void rotate(float deltaTime) {
+        float pitchDegrees = -(float)Math.clamp(controls.getMouseDeltaY() * rotateSpeed * deltaTime, -90, 90), 
+            yawDegrees = -controls.getMouseDeltaX() * rotateSpeed * deltaTime; 
 
+        Vector3f pitchAxis = new Vector3f();
+        camera.getDirection().cross(camera.getUp(), pitchAxis);
+
+        Quaternionf pitchQuaternion = new Quaternionf();
+        pitchQuaternion.setAngleAxis(Math.toRadians(pitchDegrees), pitchAxis.x, pitchAxis.y, pitchAxis.z);
+
+        Vector3f yawAxis = new Vector3f();
+        yawAxis.set(camera.getUp());
+
+        Quaternionf yawQuaternion = new Quaternionf();
+        yawQuaternion.setAngleAxis(Math.toRadians(yawDegrees), yawAxis.x, yawAxis.y, yawAxis.z);
+
+        Quaternionf rotation = new Quaternionf();
+        pitchQuaternion.mul(yawQuaternion, rotation);
+        rotation.normalize();
+
+        Vector3f newDirection = new Vector3f();
+        camera.getDirection().rotate(rotation, newDirection);
+
+        camera.setView(camera.getPosition(), newDirection);
     }
 
-    /**
-     * Rotates the camera around the x-axis by a given number of degrees.
-     * 
-     * @param degrees Number of degrees to rotate by.
-     */
-    public void pitch(double degrees) {
 
-    }
-
-    /**
-     * Rotates the camera around its relative y-axis by a given number of degrees.
-     * 
-     * @param degrees Number of degrees to rotate by.
-     */
-    public void yaw(double degrees) {
-
-    }
-
-    /**
-     * Updates the camera's translation and rotation.
-     * 
-     * @param stage       The stage containing the camera (used for the mouse
-     *                    robot).
-     * @param frameTime   The time in milliseconds between the last and current
-     *                    frame.
-     *                    (used to keep movement speed framerate independent).
-     * @param mouseDeltaX The change in the cursor's x-position (normalized change
-     *                    is recommended to keep feel consistent across window
-     *                    sizes).
-     * @param mouseDeltaY The change in the cursor's y-position (normalized change
-     *                    is recommended to keep feel consistent across window
-     *                    sizes).
-     */
-    public void updateCameraTransform(Stage stage, double frameTime, double mouseDeltaX, double mouseDeltaY, Controls controls) {
-        // Apply translation to the camera.
-        translate(frameTime, controls);
-
-        // Apply rotation to the camera.
-        rotate(frameTime, mouseDeltaX, mouseDeltaY);
+    public void updateCameraTransform(float deltaTime) {
+        rotate(deltaTime);
+        translate(deltaTime);
     }
 
     /**
@@ -135,7 +165,7 @@ public class FirstPersonCameraController {
     /**
      * @return Camera's translation speed.
      */
-    public double getTranslateSpeed() {
+    public float getTranslateSpeed() {
         return this.translateSpeed;
     }
 
@@ -144,14 +174,14 @@ public class FirstPersonCameraController {
      * 
      * @param translateSpeed New translate speed.
      */
-    public void setTranslateSpeed(double translateSpeed) {
+    public void setTranslateSpeed(float translateSpeed) {
         this.translateSpeed = translateSpeed;
     }
 
     /**
      * @return Camera's rotation speed.
      */
-    public double getRotateSpeed() {
+    public float getRotateSpeed() {
         return this.rotateSpeed;
     }
 
@@ -160,7 +190,7 @@ public class FirstPersonCameraController {
      * 
      * @param rotateSpeed New rotate speed.
      */
-    public void setRotateSpeed(double rotateSpeed) {
+    public void setRotateSpeed(float rotateSpeed) {
         this.rotateSpeed = rotateSpeed;
     }
 
