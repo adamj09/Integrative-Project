@@ -44,13 +44,6 @@ public class SimRenderer extends Renderer {
 
         Mesh mesh = Mesh.icosphere(1.0f);
 
-        // float[] vertices = {
-        //         0.5f,  0.5f, 0.5f,
-        //         0.5f, -0.5f, 0.5f,
-        //         -0.5f, -0.5f, 0.5f,
-        //         -0.5f,  0.5f, 0.5f
-        // };
-
         float[] colors = {
             1.0f, 0.0f, 0.0f,
             0.0f, 1.0f, 0.0f,
@@ -80,7 +73,6 @@ public class SimRenderer extends Renderer {
         indicesBuffer.put(indices).flip();
 
         // --- Vertex Attributes ---
-
         shaderProgram.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 0, 3, 3 * Float.BYTES, VBO[0], verticesBuffer);
         shaderProgram.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 1, 3, 3 * Float.BYTES, VBO[1], colorsBuffer);
 
@@ -99,19 +91,20 @@ public class SimRenderer extends Renderer {
         // FloatBuffer modelMatrixBuffer = BufferUtils.createFloatBuffer(16);
         // test.get(modelMatrixBuffer).flip();
        // shaderProgram.addFloatUniform("model", modelMatrixBuffer);
+
+        Matrix4f test = new Matrix4f().identity();
+        test.rotate((float)Math.toRadians(45), new Vector3f(0.5f, 0.5f, 0.5f));
+
+        shaderProgram.use();
+
+        FloatBuffer modelMatrixBuffer = BufferUtils.createFloatBuffer(16);
+        shaderProgram.addFloatUniform("model", test.get(modelMatrixBuffer));
     }
 
     @Override
     public void loop() {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        Matrix4f test = new Matrix4f().identity();
-        test.rotate((float)Math.toRadians(45), new Vector3f(0.5f, 0.5f, 0.5f));
-
-        shaderProgram.use();
-        FloatBuffer modelMatrixBuffer = BufferUtils.createFloatBuffer(16);
-        shaderProgram.addFloatUniform("model", test.get(modelMatrixBuffer));
 
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }

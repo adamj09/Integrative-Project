@@ -4,11 +4,15 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import project.Renderer.Model.Mesh;
+
 public class RenderObject {
     public TransformComponent transform = new TransformComponent();
+    private Mesh mesh;
 
-    public RenderObject() {
-
+    public RenderObject(Mesh mesh, TransformComponent transform) {
+        this.mesh = mesh;
+        this.transform = transform;
     }
 
     private class TransformComponent {
