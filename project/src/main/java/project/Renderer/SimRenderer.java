@@ -76,6 +76,8 @@ public class SimRenderer {
 
         FloatBuffer modelMatrixBuffer = BufferUtils.createFloatBuffer(16);
         shaderProgram.addFloatUniform("model", test.get(modelMatrixBuffer));
+
+        glEnable(GL_DEPTH_TEST);
     }
 
     public void loop(float deltaTime) {
