@@ -30,7 +30,7 @@ public class FirstPersonCameraController {
     /**
      * Scalar dictating speed at which the camera rotates.
      */
-    private float rotateSpeed = 100;
+    private float rotateSpeed = 10000;
 
     /**
      * Camera pitch angle in degrees.
@@ -124,8 +124,8 @@ public class FirstPersonCameraController {
      *                    sizes)
      */
     private void rotate(float deltaTime) {
-        float pitchDegrees = -(float)Math.clamp(controls.getMouseDeltaY() * rotateSpeed * deltaTime, -90, 90), 
-            yawDegrees = -controls.getMouseDeltaX() * rotateSpeed * deltaTime; 
+        float pitchDegrees = -(float)Math.clamp(controls.getMouseDeltaYNormalized() * rotateSpeed * deltaTime, -90, 90), 
+            yawDegrees = -controls.getMouseDeltaXNormalized() * rotateSpeed * deltaTime; 
 
         Vector3f pitchAxis = new Vector3f();
         camera.getDirection().cross(camera.getUp(), pitchAxis);
