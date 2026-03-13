@@ -3,22 +3,24 @@ package project.Renderer.Model;
 public class Mesh {
     private static final float GOLDEN_RATIO = 1.618034f;
 
+    // TODO: should make these dynamic arrays of Vector types?
     private float[] vertices;
     private int[] indices;
 
-    public Mesh(float[] vertices) {
+    public Mesh(float[] vertices, int[] indices) {
         this.vertices = vertices;
     }
 
     public static Mesh uvsphere() {
 
-        return new Mesh(new float[] {});
+        return new Mesh(new float[] {}, new int[] {});
     }
 
     public static Mesh icosphere(float radius) {
         float a = (float)Math.sqrt(Math.pow(radius, 2) / (1 + Math.pow(GOLDEN_RATIO, 2)));
         float b = a * GOLDEN_RATIO;
 
+        // There are 12 vertices to an icosahedron (36 values)
         float[] vertices = new float[36];
 
         // XZ Plane (Y = 0)
@@ -75,7 +77,10 @@ public class Mesh {
         vertices[34] = -a;
         vertices[35] = -b;
 
-        return new Mesh(vertices);
+        // There are 20 faces to an icosahedron (60 values)
+        int[] indices = new int[60];
+
+        return new Mesh(vertices, indices);
     }
 
     public float[] getVertices() {
