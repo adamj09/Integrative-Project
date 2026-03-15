@@ -11,7 +11,6 @@ import org.lwjgl.BufferUtils;
 public class Mesh {
     private static final float GOLDEN_RATIO = 1.618034f;
 
-<<<<<<< HEAD
     private ArrayList<Vector3f> vertices = new ArrayList<>();
     private ArrayList<Vector3i> indices = new ArrayList<>();
 
@@ -19,33 +18,15 @@ public class Mesh {
     private IntBuffer indexBuffer;
 
     public Mesh(ArrayList<Vector3f> vertices, ArrayList<Vector3i> indices) {
-=======
-    // TODO: should make these dynamic arrays of Vector types?
-    private float[] vertices;
-    private int[] indices;
-
-    public Mesh(float[] vertices, int[] indices) {
->>>>>>> a57bdc589ead2edcfa573f4863506bc965f675e8
         this.vertices = vertices;
         this.indices = indices;
     }
 
-<<<<<<< HEAD
     public static Mesh icosphere(float radius, int depth) {
         float a = (float) Math.sqrt(Math.pow(radius, 2) / (1 + Math.pow(GOLDEN_RATIO, 2)));
-=======
-    public static Mesh uvsphere() {
-
-        return new Mesh(new float[] {}, new int[] {});
-    }
-
-    public static Mesh icosphere(float radius) {
-        float a = (float)Math.sqrt(Math.pow(radius, 2) / (1 + Math.pow(GOLDEN_RATIO, 2)));
->>>>>>> a57bdc589ead2edcfa573f4863506bc965f675e8
         float b = a * GOLDEN_RATIO;
         // Note: for radius = 1, a = 0.525731112119134; b = 0.85065080835157
 
-<<<<<<< HEAD
         // Vertices
         ArrayList<Vector3f> vertices = new ArrayList<>();
         vertices.add(new Vector3f(b, a, 0)); // 0
@@ -60,10 +41,6 @@ public class Mesh {
         vertices.add(new Vector3f(0, -b, -a)); // 9
         vertices.add(new Vector3f(0, -b, a)); // 10
         vertices.add(new Vector3f(-b, -a, 0)); // 11
-=======
-        // There are 12 vertices to an icosahedron (36 values)
-        float[] vertices = new float[36];
->>>>>>> a57bdc589ead2edcfa573f4863506bc965f675e8
 
         // Indices (or faces)
         ArrayList<Vector3i> indices = new ArrayList<>();
@@ -94,12 +71,6 @@ public class Mesh {
         }
 
 
-<<<<<<< HEAD
-=======
-        // There are 20 faces to an icosahedron (60 values)
-        int[] indices = new int[60];
-
->>>>>>> a57bdc589ead2edcfa573f4863506bc965f675e8
         return new Mesh(vertices, indices);
     }
 
