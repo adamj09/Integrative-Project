@@ -51,7 +51,7 @@ public class ShaderProgram {
             System.exit(1);
         }
         if (glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) {
-            System.err.println("Vertex shader compilation failed: " + glGetShaderInfoLog(fragmentShader));
+            System.err.println("Fragment shader compilation failed: " + glGetShaderInfoLog(fragmentShader));
             System.exit(1);
         }
 

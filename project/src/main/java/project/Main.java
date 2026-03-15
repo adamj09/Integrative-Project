@@ -27,8 +27,6 @@ public class Main extends Application {
         stage.setScene(scene);
         stage.setTitle("Orbital Motion Simulator");
         stage.show();
-
-        //Controls controls = new Controls(renderer);
     }
 
     private void setSystemProperties() {
