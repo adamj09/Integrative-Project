@@ -1,34 +1,46 @@
 package project.Renderer;
 
-import static org.lwjgl.opengl.GL46.*;
+import static org.lwjgl.opengl.GL41.*;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
-public class SimRenderer extends Renderer {
+import project.Renderer.Camera.Camera;
+import project.Renderer.Camera.FirstPersonCameraController;
+import project.Renderer.Model.Mesh;
+import project.Renderer.Model.SphereGenerator;
+
+public class SimRenderer {
     private ShaderProgram shaderProgram;
+
+    private Camera camera;
+    private FirstPersonCameraController cameraController;
+
     private int VAO, EBO;
     private int[] VBO = new int[2];
 
-    public SimRenderer(double fps, int msaa, int swapBuffers) {
-        super(fps, msaa, swapBuffers);
+    private Mesh mesh;
+
+    public SimRenderer(Camera camera, ControlManager controlManager) {
+        this.camera = camera;
+        cameraController = new FirstPersonCameraController(camera, controlManager);
     }
 
-    @Override
     public void init() {
         shaderProgram = new ShaderProgram(
                 "project/shaders/main.vert",
                 "project/shaders/main.frag"
             );
 
-        float[] vertices = {
-                0.5f,  0.5f, 0.0f,
-                0.5f, -0.5f, 0.0f,
-                -0.5f, -0.5f, 0.0f,
-                -0.5f,  0.5f, 0.0f
-        };
+        SphereGenerator generator = new SphereGenerator();
+
+        mesh = generator.create(1);
+        mesh.packVerticesIntoBuffer();
+        mesh.packIndicesIntoBuffer();
 
         float[] colors = {
             1.0f, 0.0f, 0.0f,
@@ -37,55 +49,47 @@ public class SimRenderer extends Renderer {
             1.0f, 1.0f, 0.0f
         };
 
-        int[] indices = {
-            0, 1, 3,
-            1, 2, 3
-        };
-
-        FloatBuffer verticesBuffer = BufferUtils.createFloatBuffer(vertices.length);
-        verticesBuffer.put(vertices).flip();
-
-        FloatBuffer colorsBuffer = BufferUtils.createFloatBuffer(colors.length);
-        colorsBuffer.put(colors).flip();
-
-        IntBuffer indicesBuffer = BufferUtils.createIntBuffer(indices.length);
-        indicesBuffer.put(indices).flip();
-
         VAO = glGenVertexArrays();        
         VBO[0] = glGenBuffers();
         VBO[1] = glGenBuffers();
         EBO = glGenBuffers();
 
-        // Bind VAO FIRRSSTT then do everything else
         glBindVertexArray(VAO);
 
+        FloatBuffer colorsBuffer = BufferUtils.createFloatBuffer(colors.length);
+        colorsBuffer.put(colors).flip();
+
         // --- Vertex Attributes ---
+        shaderProgram.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 0, 3, 3 * Float.BYTES, VBO[0], mesh.getVertexBuffer());
+        shaderProgram.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 1, 3, 3 * Float.BYTES, VBO[1], colorsBuffer);
 
-        // Note: order matters here: whatever buffer is binded must immediately be given
-        // an attribute pointer BEFORE binding the next buffer.
-        glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-        glBufferData(GL_ARRAY_BUFFER, verticesBuffer, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * Float.BYTES, 0);
-        glEnableVertexAttribArray(0);
+        shaderProgram.bindElementBuffer(EBO, mesh.getIndexBuffer(), GL_STATIC_DRAW);
 
-        glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-        glBufferData(GL_ARRAY_BUFFER, colorsBuffer, GL_STATIC_DRAW);
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, 3 * Float.BYTES, 0);
-        glEnableVertexAttribArray(1);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW);
+        Matrix4f test = new Matrix4f().identity();
+        test.translate(new Vector3f(0.f,0.f, -10.f));
 
         shaderProgram.use();
+
+        FloatBuffer modelMatrixBuffer = BufferUtils.createFloatBuffer(16);
+        shaderProgram.addFloatUniform("model", test.get(modelMatrixBuffer));
+
+        glEnable(GL_DEPTH_TEST);
     }
 
-    @Override
-    public void loop() {
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    public void loop(float deltaTime) {
+        updateCamera(deltaTime);
 
-        // Bind VAO and draw
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, mesh.getIndices().size() * 3, GL_UNSIGNED_INT, 0);
+    }
+
+    private void updateCamera(float deltaTime) {
+        cameraController.updateCameraTransform(deltaTime);
+
+        FloatBuffer viewMatrixBuffer = BufferUtils.createFloatBuffer(16);
+        shaderProgram.addFloatUniform("view", camera.getView().get(viewMatrixBuffer));
+
+        FloatBuffer projectionMatrixBuffer = BufferUtils.createFloatBuffer(16);
+        shaderProgram.addFloatUniform("projection", camera.getProjection().get(projectionMatrixBuffer));
     }
 }

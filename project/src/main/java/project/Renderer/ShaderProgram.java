@@ -1,25 +1,11 @@
 package project.Renderer;
 
-import static org.lwjgl.opengl.GL20.GL_COMPILE_STATUS;
-import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
-import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
-import static org.lwjgl.opengl.GL20.glAttachShader;
-import static org.lwjgl.opengl.GL20.glCompileShader;
-import static org.lwjgl.opengl.GL20.glCreateProgram;
-import static org.lwjgl.opengl.GL20.glCreateShader;
-import static org.lwjgl.opengl.GL20.glDeleteShader;
-import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
-import static org.lwjgl.opengl.GL20.glGetProgrami;
-import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
-import static org.lwjgl.opengl.GL20.glGetShaderi;
-import static org.lwjgl.opengl.GL20.glLinkProgram;
-import static org.lwjgl.opengl.GL20.glShaderSource;
-import static org.lwjgl.opengl.GL20.glUseProgram;
-import static org.lwjgl.opengl.GL46.*;
+import static org.lwjgl.opengl.GL41.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
@@ -31,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 public class ShaderProgram {
     private int ID;
 
-    ShaderProgram(String vertFilepath, String fragFilepath) {
+    public ShaderProgram(String vertFilepath, String fragFilepath) {
         ExecutorService executor = Executors.newFixedThreadPool(2);
 
         var vertexShaderSourceFuture = executor.submit(new ShaderLoaderTask(vertFilepath));
@@ -91,6 +77,22 @@ public class ShaderProgram {
         glUseProgram(ID);
     }
 
+    public void addFloatUniform(String name, FloatBuffer buffer) {
+        glUniformMatrix4fv(glGetUniformLocation(ID, name), false, buffer);
+    }
+
+    public void bindVertexBuffer(int bufferType, int usage, int location, int valueCount, int stride, int glBuffer, FloatBuffer data) {
+        glBindBuffer(bufferType, glBuffer);
+        glBufferData(bufferType, data, usage);
+        glVertexAttribPointer(location, valueCount, GL_FLOAT, false, valueCount * Float.BYTES, 0);
+        glEnableVertexAttribArray(location);
+    }
+
+    public void bindElementBuffer(int glBuffer, IntBuffer data, int usage) {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glBuffer);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, data, usage);
+    }
+
     private class ShaderLoaderTask implements Callable<String> {
         String filepath;
 
@@ -118,5 +120,9 @@ public class ShaderProgram {
 
             return source;
         }
+    }
+
+    public int getID() {
+        return ID;
     }
 }

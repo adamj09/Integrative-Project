@@ -1,13 +1,14 @@
 package project;
 
-import javafx.application.*;
+import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import project.Renderer.SimRenderer;
+import project.Renderer.ControlManager;
+import project.Renderer.Renderer;
 
 public class Main extends Application {
-    // TODO: should probably make a class to hold these values (not Renderer since
+        // TODO: should probably make a class to hold these values (not Renderer since
     // that object will have to be recreated if the user decides to changes mssa or
     // swapbuffers variables)
     public static double fps = 60;
@@ -19,12 +20,18 @@ public class Main extends Application {
 
         StackPane rootPane = new StackPane();
 
-        SimRenderer renderer = new SimRenderer(fps, msaa, swapBuffers);
+        Scene scene = new Scene(rootPane, 1280, 720);
+
+        ControlManager controlManager = new ControlManager(scene);
+
+        Renderer renderer = new Renderer(fps, msaa, swapBuffers, controlManager);
         rootPane.getChildren().add(renderer.getCanvas());
 
-        stage.setScene(new Scene(rootPane, 1280, 720));
+        stage.setScene(scene);
         stage.setTitle("Orbital Motion Simulator");
         stage.show();
+
+        //Controls controls = new Controls(renderer);
     }
 
     private void setSystemProperties() {
@@ -32,6 +39,6 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
-        launch(args);
+        launch(args);;
     }
 }
