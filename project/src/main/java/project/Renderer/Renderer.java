@@ -15,11 +15,13 @@ public class Renderer {
     private SimRenderer simRenderer;
     private ControlManager controlManager;
 
-    public Renderer(double fps, int msaa, int swapBuffers, ControlManager controlManager) {
+    public Renderer(double fps, int msaa, int swapBuffers) {
         canvas = createGLCanvas(fps, msaa, swapBuffers);
+        canvas.setFocusTraversable(true);
+        
         initOpenGLRenderEventHandlers();
 
-        this.controlManager = controlManager;
+        controlManager = new ControlManager(canvas);
 
         simCamera.setView(new Vector3f(0.f, 0.f, -5.f), new Vector3f(0.f, 0.f, -1.f));
         simCamera.setPerspectiveProjection((float) Math.toRadians(90.0f), 1280.0f / 720.0f, 0.001f, 1000.0f);

@@ -22,9 +22,7 @@ public class Main extends Application {
 
         Scene scene = new Scene(rootPane, 1280, 720);
 
-        ControlManager controlManager = new ControlManager(scene);
-
-        Renderer renderer = new Renderer(fps, msaa, swapBuffers, controlManager);
+        Renderer renderer = new Renderer(fps, msaa, swapBuffers);
         rootPane.getChildren().add(renderer.getCanvas());
 
         stage.setScene(scene);

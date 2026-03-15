@@ -1,13 +1,13 @@
 package project.Renderer;
 
-import javafx.scene.Scene;
+import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
 import java.awt.MouseInfo;
 
 public class ControlManager {
-    private Scene scene;
+    private Node focusNode;
 
     /**
      * Camera Controls
@@ -26,22 +26,25 @@ public class ControlManager {
             upPressed = false,
             downPressed = false;
 
+    private boolean focusButtonPressed = false;
+
     private float mouseDeltaX, mouseDeltaY;
     private float mouseDeltaXNormalized, mouseDeltaYNormalized;
 
     private float mouseCurrentX = (float) MouseInfo.getPointerInfo().getLocation().getX(),
             mouseCurrentY = (float) MouseInfo.getPointerInfo().getLocation().getY();
 
-    public ControlManager(Scene scene) {
-        this.scene = scene;
+    public ControlManager(Node focusNode) {
+        this.focusNode = focusNode;
         setUpKeyboardControls();
+        setUpMouseControls();
     }
 
     /**
      * Set up keyboard controls callback
      */
     private void setUpKeyboardControls() {
-        scene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+        focusNode.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             KeyCode keyCode = event.getCode();
 
             if (keyCode == KeyCode.getKeyCode(forwardKey)) {
@@ -59,7 +62,7 @@ public class ControlManager {
             }
         });
 
-        scene.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
+        focusNode.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
             KeyCode keyCode = event.getCode();
 
             if (keyCode == KeyCode.getKeyCode(forwardKey)) {
@@ -78,6 +81,20 @@ public class ControlManager {
         });
     }
 
+    private void setUpMouseControls() {
+        focusNode.setOnMousePressed(event -> {
+            if(event.isPrimaryButtonDown()) {
+                focusButtonPressed = true;
+            }
+        });
+
+        focusNode.setOnMouseReleased(event -> {
+            if(!event.isPrimaryButtonDown()) {
+                focusButtonPressed = false;
+            }
+        });
+    }
+
     public void updateMousePosition() {
         float mouseNewX = (float) MouseInfo.getPointerInfo().getLocation().getX(),
                 mouseNewY = (float) MouseInfo.getPointerInfo().getLocation().getY();
@@ -88,8 +105,8 @@ public class ControlManager {
         mouseCurrentX = mouseNewX;
         mouseCurrentY = mouseNewY;
 
-        mouseDeltaXNormalized = mouseDeltaX / (float)scene.getWidth();
-        mouseDeltaYNormalized = mouseDeltaY / (float)scene.getHeight();
+        mouseDeltaXNormalized = mouseDeltaX / (float)focusNode.getScaleX();
+        mouseDeltaYNormalized = mouseDeltaY / (float)focusNode.getScaleY();
     }
 
     public float getMouseDeltaX() {
@@ -186,5 +203,13 @@ public class ControlManager {
 
     public boolean isUpPressed() {
         return this.upPressed;
+    }
+
+    public boolean isFocusButtonPressed() {
+        return this.focusButtonPressed;
+    }
+
+    public Node getFocusNode() {
+        return focusNode;
     }
 }
