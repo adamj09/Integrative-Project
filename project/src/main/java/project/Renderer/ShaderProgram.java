@@ -8,11 +8,13 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Future;
 
 public class ShaderProgram {
     private int ID;
@@ -20,20 +22,18 @@ public class ShaderProgram {
     public ShaderProgram(String vertFilepath, String fragFilepath) {
         ExecutorService executor = Executors.newFixedThreadPool(2);
 
-        var vertexShaderSourceFuture = executor.submit(new ShaderLoaderTask(vertFilepath));
-        var fragmentShaderSourceFuture = executor.submit(new ShaderLoaderTask(fragFilepath));
-
         String vertexShaderSource = "", fragmentShaderSource = "";
 
         try {
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            List<Future<String>> futures = executor.invokeAll(Arrays.asList(new ShaderLoaderTask(vertFilepath), new ShaderLoaderTask(fragFilepath)));
+            vertexShaderSource = futures.get(0).get();
+            fragmentShaderSource = futures.get(1).get();
+
             executor.shutdown();
 
-
-            vertexShaderSource = vertexShaderSourceFuture.get();
-            fragmentShaderSource = fragmentShaderSourceFuture.get();
         } catch (InterruptedException | ExecutionException ex) {
-            // TODO: handle exceptions
+            System.err.println(ex.getMessage());
+            System.exit(1);
         }
 
         // Create and compile shaders.

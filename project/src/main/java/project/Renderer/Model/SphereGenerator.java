@@ -7,12 +7,12 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 /**
- * @author Adam Johnston
- * 
  * Class used to generate an icosphere. Based on Andreas Kahler's C#
  * implementation
  * (http://blog.andreaskahler.com/2009/06/creating-icosphere-mesh-in-code.html)
  * and modified for use in this project.
+ * 
+ * @author Adam Johnston
  */
 public class SphereGenerator {
     private ArrayList<Vector3f> vertices = new ArrayList<>();
