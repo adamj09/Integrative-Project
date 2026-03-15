@@ -12,6 +12,7 @@ import org.lwjgl.BufferUtils;
 import project.Renderer.Camera.Camera;
 import project.Renderer.Camera.FirstPersonCameraController;
 import project.Renderer.Model.Mesh;
+import project.Renderer.Model.SphereGenerator;
 
 public class SimRenderer {
     private ShaderProgram shaderProgram;
@@ -21,6 +22,8 @@ public class SimRenderer {
 
     private int VAO, EBO;
     private int[] VBO = new int[2];
+
+    private Mesh mesh;
 
     public SimRenderer(Camera camera, ControlManager controlManager) {
         this.camera = camera;
@@ -33,18 +36,17 @@ public class SimRenderer {
                 "project/shaders/main.frag"
             );
 
-        Mesh mesh = Mesh.icosphere(1.0f);
+        SphereGenerator generator = new SphereGenerator();
+
+        mesh = generator.create(1);
+        mesh.packVerticesIntoBuffer();
+        mesh.packIndicesIntoBuffer();
 
         float[] colors = {
             1.0f, 0.0f, 0.0f,
             0.0f, 1.0f, 0.0f,
             0.0f, 0.0f, 1.0f,
             1.0f, 1.0f, 0.0f
-        };
-  
-        int[] indices = {
-            0, 1, 3,
-            1, 2, 3
         };
 
         VAO = glGenVertexArrays();        
@@ -54,20 +56,14 @@ public class SimRenderer {
 
         glBindVertexArray(VAO);
 
-        FloatBuffer verticesBuffer = BufferUtils.createFloatBuffer(mesh.getVertices().length);
-        verticesBuffer.put(mesh.getVertices()).flip();
-
         FloatBuffer colorsBuffer = BufferUtils.createFloatBuffer(colors.length);
         colorsBuffer.put(colors).flip();
 
-        IntBuffer indicesBuffer = BufferUtils.createIntBuffer(indices.length);
-        indicesBuffer.put(indices).flip();
-
         // --- Vertex Attributes ---
-        shaderProgram.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 0, 3, 3 * Float.BYTES, VBO[0], verticesBuffer);
+        shaderProgram.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 0, 3, 3 * Float.BYTES, VBO[0], mesh.getVertexBuffer());
         shaderProgram.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 1, 3, 3 * Float.BYTES, VBO[1], colorsBuffer);
 
-        shaderProgram.bindElementBuffer(EBO, indicesBuffer, GL_STATIC_DRAW);
+        shaderProgram.bindElementBuffer(EBO, mesh.getIndexBuffer(), GL_STATIC_DRAW);
 
         Matrix4f test = new Matrix4f().identity();
         test.translate(new Vector3f(0.f,0.f, -10.f));
@@ -82,7 +78,9 @@ public class SimRenderer {
 
     public void loop(float deltaTime) {
         updateCamera(deltaTime);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glDrawElements(GL_TRIANGLES, mesh.getIndices().size() * 3, GL_UNSIGNED_INT, 0);
     }
 
     private void updateCamera(float deltaTime) {
