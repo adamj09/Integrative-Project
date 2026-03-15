@@ -9,9 +9,6 @@ import org.joml.Vector3i;
 import org.lwjgl.BufferUtils;
 
 public class Mesh {
-    private static final float GOLDEN_RATIO = 1.618034f;
-
-<<<<<<< HEAD
     private ArrayList<Vector3f> vertices = new ArrayList<>();
     private ArrayList<Vector3i> indices = new ArrayList<>();
 
@@ -19,90 +16,9 @@ public class Mesh {
     private IntBuffer indexBuffer;
 
     public Mesh(ArrayList<Vector3f> vertices, ArrayList<Vector3i> indices) {
-=======
-    // TODO: should make these dynamic arrays of Vector types?
-    private float[] vertices;
-    private int[] indices;
-
-    public Mesh(float[] vertices, int[] indices) {
->>>>>>> a57bdc589ead2edcfa573f4863506bc965f675e8
         this.vertices = vertices;
         this.indices = indices;
     }
-
-<<<<<<< HEAD
-    public static Mesh icosphere(float radius, int depth) {
-        float a = (float) Math.sqrt(Math.pow(radius, 2) / (1 + Math.pow(GOLDEN_RATIO, 2)));
-=======
-    public static Mesh uvsphere() {
-
-        return new Mesh(new float[] {}, new int[] {});
-    }
-
-    public static Mesh icosphere(float radius) {
-        float a = (float)Math.sqrt(Math.pow(radius, 2) / (1 + Math.pow(GOLDEN_RATIO, 2)));
->>>>>>> a57bdc589ead2edcfa573f4863506bc965f675e8
-        float b = a * GOLDEN_RATIO;
-        // Note: for radius = 1, a = 0.525731112119134; b = 0.85065080835157
-
-<<<<<<< HEAD
-        // Vertices
-        ArrayList<Vector3f> vertices = new ArrayList<>();
-        vertices.add(new Vector3f(b, a, 0)); // 0
-        vertices.add(new Vector3f(0, b, -a)); // 1
-        vertices.add(new Vector3f(0, b, a)); // 2
-        vertices.add(new Vector3f(a, 0, -b)); // 3
-        vertices.add(new Vector3f(a, 0, b)); // 4
-        vertices.add(new Vector3f(b, -a, 0)); // 5
-        vertices.add(new Vector3f(-a, 0, -b)); // 6
-        vertices.add(new Vector3f(-b, a, 0)); // 7
-        vertices.add(new Vector3f(-a, 0, b)); // 8
-        vertices.add(new Vector3f(0, -b, -a)); // 9
-        vertices.add(new Vector3f(0, -b, a)); // 10
-        vertices.add(new Vector3f(-b, -a, 0)); // 11
-=======
-        // There are 12 vertices to an icosahedron (36 values)
-        float[] vertices = new float[36];
->>>>>>> a57bdc589ead2edcfa573f4863506bc965f675e8
-
-        // Indices (or faces)
-        ArrayList<Vector3i> indices = new ArrayList<>();
-        indices.add(new Vector3i(0, 1, 2)); // 0
-        indices.add(new Vector3i(0, 3, 1)); // 1
-        indices.add(new Vector3i(0, 2, 4)); // 2
-        indices.add(new Vector3i(3, 0, 5)); // 3
-        indices.add(new Vector3i(0, 4, 5)); // 4
-        indices.add(new Vector3i(1, 3, 6)); // 5
-        indices.add(new Vector3i(1, 7, 2)); // 6
-        indices.add(new Vector3i(7, 1, 6)); // 7
-        indices.add(new Vector3i(4, 2, 8)); // 8
-        indices.add(new Vector3i(7, 8, 2)); // 9
-        indices.add(new Vector3i(9, 3, 5)); // 10
-        indices.add(new Vector3i(6, 3, 9)); // 11
-        indices.add(new Vector3i(5, 4, 10)); // 12
-        indices.add(new Vector3i(4, 8, 10)); // 13
-        indices.add(new Vector3i(9, 5, 10)); // 14
-        indices.add(new Vector3i(7, 6, 11)); // 15
-        indices.add(new Vector3i(7, 11, 8)); // 16
-        indices.add(new Vector3i(11, 6, 9)); // 17
-        indices.add(new Vector3i(8, 11, 10)); // 18
-        indices.add(new Vector3i(10, 11, 9)); // 19
-
-        for(int i = 0; i < depth; i++) {
-            ArrayList<Vector3i> newIndices = new ArrayList<>();
-        
-        }
-
-
-<<<<<<< HEAD
-=======
-        // There are 20 faces to an icosahedron (60 values)
-        int[] indices = new int[60];
-
->>>>>>> a57bdc589ead2edcfa573f4863506bc965f675e8
-        return new Mesh(vertices, indices);
-    }
-
 
     public void packVerticesIntoBuffer() {
         vertexBuffer = BufferUtils.createFloatBuffer(this.vertices.size() * 3);
