@@ -3,14 +3,12 @@ package project.Renderer;
 import static org.lwjgl.opengl.GL41.*;
 
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
 import project.Renderer.Camera.Camera;
-import project.Renderer.Camera.FirstPersonCameraController;
 import project.Renderer.Model.Mesh;
 import project.Renderer.Model.SphereGenerator;
 
@@ -18,16 +16,14 @@ public class SimRenderer {
     private ShaderProgram shaderProgram;
 
     private Camera camera;
-    private FirstPersonCameraController cameraController;
 
     private int VAO, EBO;
     private int[] VBO = new int[2];
 
     private Mesh mesh;
 
-    public SimRenderer(Camera camera, ControlManager controlManager) {
+    public SimRenderer(Camera camera) {
         this.camera = camera;
-        cameraController = new FirstPersonCameraController(camera, controlManager);
     }
 
     public void init() {
@@ -38,7 +34,7 @@ public class SimRenderer {
 
         SphereGenerator generator = new SphereGenerator();
 
-        mesh = generator.create(1);
+        mesh = generator.create(4);
         mesh.packVerticesIntoBuffer();
         mesh.packIndicesIntoBuffer();
 
@@ -77,19 +73,13 @@ public class SimRenderer {
     }
 
     public void loop(float deltaTime) {
-        updateCamera(deltaTime);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glDrawElements(GL_TRIANGLES, mesh.getIndices().size() * 3, GL_UNSIGNED_INT, 0);
-    }
-
-    private void updateCamera(float deltaTime) {
-        cameraController.updateCameraTransform(deltaTime);
-
         FloatBuffer viewMatrixBuffer = BufferUtils.createFloatBuffer(16);
         shaderProgram.addFloatUniform("view", camera.getView().get(viewMatrixBuffer));
 
         FloatBuffer projectionMatrixBuffer = BufferUtils.createFloatBuffer(16);
         shaderProgram.addFloatUniform("projection", camera.getProjection().get(projectionMatrixBuffer));
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glDrawElements(GL_TRIANGLES, mesh.getIndices().size() * 3, GL_UNSIGNED_INT, 0);
     }
 }

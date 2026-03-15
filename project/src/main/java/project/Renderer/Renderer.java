@@ -8,28 +8,34 @@ import com.huskerdev.openglfx.canvas.GLCanvas;
 import com.huskerdev.openglfx.lwjgl.LWJGLExecutor;
 
 import project.Renderer.Camera.Camera;
+import project.Renderer.Camera.FirstPersonCameraController;
 
 public class Renderer {
     private GLCanvas canvas;
     private Camera simCamera = new Camera();
     private SimRenderer simRenderer;
     private ControlManager controlManager;
+    private FirstPersonCameraController cameraController;
+    private float viewportWidth, viewportHeight;
 
     public Renderer(double fps, int msaa, int swapBuffers) {
         canvas = createGLCanvas(fps, msaa, swapBuffers);
         canvas.setFocusTraversable(true);
-        
+
         initOpenGLRenderEventHandlers();
 
         controlManager = new ControlManager(canvas);
-
-        simCamera.setView(new Vector3f(0.f, 0.f, -5.f), new Vector3f(0.f, 0.f, -1.f));
-        simCamera.setPerspectiveProjection((float) Math.toRadians(90.0f), 1280.0f / 720.0f, 0.001f, 1000.0f);
-
-        simRenderer = new SimRenderer(simCamera, controlManager);
+        cameraController = new FirstPersonCameraController(simCamera, controlManager);
+        simRenderer = new SimRenderer(simCamera);
     }
 
     public void init() {
+        viewportWidth = (float)canvas.getWidth();
+        viewportHeight = (float)canvas.getHeight();
+
+        simCamera.setView(new Vector3f(0.f, 0.f, -5.f), new Vector3f(0.f, 0.f, -1.f));
+        simCamera.setPerspectiveProjection((float) Math.toRadians(90.0f), viewportWidth / viewportHeight, 0.001f, 1000.0f);
+
         simRenderer.init();
     }
 
@@ -39,6 +45,7 @@ public class Renderer {
 
         controlManager.updateMousePosition();
 
+        updateCamera(deltaTime);
         simRenderer.loop(deltaTime);
     }
 
@@ -63,6 +70,16 @@ public class Renderer {
         GLCanvas canvas = glCanvasBuilder.build();
 
         return canvas;
+    }
+
+    private void updateCamera(float deltaTime) {
+        cameraController.updateCameraTransform(deltaTime);
+
+        if(viewportWidth != canvas.getWidth() || viewportHeight != canvas.getHeight()) {
+            simCamera.setPerspectiveProjection((float) Math.toRadians(90.0f), (float)canvas.getWidth() / (float)canvas.getHeight(), 0.001f, 1000.0f);
+            viewportHeight = (float)canvas.getWidth();
+            viewportHeight = (float)canvas.getHeight();
+        }
     }
 
     public GLCanvas getCanvas() {
