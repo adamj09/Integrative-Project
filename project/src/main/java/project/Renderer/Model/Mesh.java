@@ -9,6 +9,8 @@ import org.joml.Vector3i;
 import org.lwjgl.BufferUtils;
 
 public class Mesh {
+    private static float GOLDEN_RATIO = 1.618034f;
+
     private ArrayList<Vector3f> vertices = new ArrayList<>();
     private ArrayList<Vector3i> indices = new ArrayList<>();
 
