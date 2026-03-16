@@ -33,7 +33,6 @@ public class Main extends Application {
         menuBar.getNewSatelliteButton().setOnAction(e -> sidebar.openNewSatellitePopup(stage));
 
         BorderPane root = new BorderPane();
-        root.setFocusTraversable(true);
         root.setStyle("-fx-background-color: #1a1a2e;");
         root.setTop(menuBar);
         root.setLeft(sidebar);
@@ -43,11 +42,7 @@ public class Main extends Application {
         Scene scene = new Scene(root, 1280, 720);
 
         stage.setScene(scene);
-
-        stage.setScene(scene);
         stage.setTitle("Orbital Motion Simulator");
-        stage.setMaxWidth(1280);
-        stage.setMaxHeight(720);
         stage.setResizable(true);
         stage.show();
     }
