@@ -14,6 +14,7 @@ import project.Renderer.Model.SphereGenerator;
 
 public class SimRenderer {
     private ShaderProgram shaderProgram;
+    private String vertexShaderPath = "project/shaders/main.vert", fragmentShaderPath = "project/shaders/main.frag";
 
     private Camera camera;
 
@@ -24,17 +25,10 @@ public class SimRenderer {
 
     public SimRenderer(Camera camera) {
         this.camera = camera;
+        shaderProgram = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
     }
 
     public void init() {
-        shaderProgram = new ShaderProgram(
-                "project/shaders/main.vert",
-                "project/shaders/main.frag"
-            );
-
-        SphereGenerator generator = new SphereGenerator();
-
-        mesh = generator.create(4);
         mesh.packVerticesIntoBuffer();
         mesh.packIndicesIntoBuffer();
 
