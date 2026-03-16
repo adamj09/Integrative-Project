@@ -30,11 +30,12 @@ public class Renderer {
     }
 
     public void init() {
-        viewportWidth = (float)canvas.getWidth();
-        viewportHeight = (float)canvas.getHeight();
+        viewportWidth = (float) canvas.getWidth();
+        viewportHeight = (float) canvas.getHeight();
 
         simCamera.setView(new Vector3f(0.f, 0.f, -5.f), new Vector3f(0.f, 0.f, -1.f));
-        simCamera.setPerspectiveProjection((float) Math.toRadians(90.0f), viewportWidth / viewportHeight, 0.001f, 1000.0f);
+        simCamera.setPerspectiveProjection((float) Math.toRadians(90.0f), viewportWidth / viewportHeight, 0.001f,
+                1000.0f);
 
         simRenderer.init();
     }
@@ -75,10 +76,11 @@ public class Renderer {
     private void updateCamera(float deltaTime) {
         cameraController.updateCameraTransform(deltaTime);
 
-        if(viewportWidth != canvas.getWidth() || viewportHeight != canvas.getHeight()) {
-            simCamera.setPerspectiveProjection((float) Math.toRadians(90.0f), (float)canvas.getWidth() / (float)canvas.getHeight(), 0.001f, 1000.0f);
-            viewportHeight = (float)canvas.getWidth();
-            viewportHeight = (float)canvas.getHeight();
+        if (viewportWidth != canvas.getWidth() || viewportHeight != canvas.getHeight()) {
+            simCamera.setPerspectiveProjection((float) Math.toRadians(90.0f),
+                    (float) canvas.getWidth() / (float) canvas.getHeight(), 0.001f, 1000.0f);
+            viewportHeight = (float) canvas.getWidth();
+            viewportHeight = (float) canvas.getHeight();
         }
     }
 
