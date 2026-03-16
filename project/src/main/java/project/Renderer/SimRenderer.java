@@ -20,14 +20,22 @@ public class SimRenderer {
     private int VAO, EBO;
     private int[] VBO = new int[2];
 
+    private World world = new World();
+
     private Mesh mesh;
 
     public SimRenderer(Camera camera) {
         this.camera = camera;
-        shaderProgram = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
+    }
+
+    public void setUpBuffers() {
+        
     }
 
     public void init() {
+        shaderProgram = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
+
+        mesh = world.getObjects().get("name").getMesh();
         mesh.packVerticesIntoBuffer();
         mesh.packIndicesIntoBuffer();
 
