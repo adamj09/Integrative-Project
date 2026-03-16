@@ -10,7 +10,6 @@ import org.lwjgl.BufferUtils;
 
 import project.Renderer.Camera.Camera;
 import project.Renderer.Model.Mesh;
-import project.Renderer.Model.SphereGenerator;
 
 public class SimRenderer {
     private ShaderProgram shaderProgram;

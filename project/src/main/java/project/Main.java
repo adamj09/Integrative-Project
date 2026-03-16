@@ -3,6 +3,7 @@ package project;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import project.Renderer.Renderer;
 import project.UI.BottomPane;
@@ -20,8 +21,8 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) {
         setSystemProperties();
- 
-        SimRenderer renderer = new SimRenderer(fps, msaa, swapBuffers);
+
+        Renderer renderer = new Renderer(fps, msaa, swapBuffers);
  
         BottomPane  bottom    = new BottomPane();
         MainMenuBar menuBar   = new MainMenuBar();
@@ -44,7 +45,6 @@ public class Main extends Application {
 
         Scene scene = new Scene(rootPane, 1280, 720);
 
-        Renderer renderer = new Renderer(fps, msaa, swapBuffers);
         rootPane.getChildren().add(renderer.getCanvas());
 
         stage.setScene(scene);
