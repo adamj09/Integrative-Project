@@ -47,6 +47,8 @@ public class App extends Application {
 
         Scene scene = new Scene(top, 1280, 720);
 
+        scene.getStylesheets().add(new StyleSheet().styleSheet);
+
         stage.setScene(scene);
         stage.setTitle("Orbital Motion Simulator");
         stage.setResizable(true);

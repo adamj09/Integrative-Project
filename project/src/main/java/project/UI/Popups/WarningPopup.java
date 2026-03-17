@@ -17,24 +17,21 @@ public class WarningPopup extends Stage {
         setResizable(false);
 
         Label title = new Label("Warning");
-        title.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #c0c0e0;");
+        title.getStyleClass().add("subheading");
 
         Label content = new Label(warningText);
-        content.setStyle("-fx-font-size: 12px; -fx-text-fill: #8888bb; -fx-padding: 8 0 8 0;");
+        content.getStyleClass().add("body");
         content.setWrapText(true);
         content.setMaxWidth(280);
 
         Button closeBtn = new Button("CLOSE");
-        closeBtn.setStyle(
-            "-fx-background-color: #4a4a6a; -fx-text-fill: #c0c0e0; -fx-font-size: 12px; " +
-            "-fx-padding: 4 16 4 16; -fx-background-radius: 3; -fx-cursor: hand;"
-        );
+        closeBtn.getStyleClass().add("style-button");
         closeBtn.setOnAction(e -> close());
 
         VBox root = new VBox(10, title, content, closeBtn);
         root.setPadding(new Insets(16));
         root.setAlignment(Pos.CENTER_LEFT);
-        root.setStyle("-fx-background-color: #1a1a2e; -fx-border-color: #444466; -fx-border-width: 1;");
+        root.getStyleClass().add("small-pane");;
         root.setPrefWidth(300);
 
         setScene(new Scene(root));

@@ -15,6 +15,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import project.StyleSheet;
 
 public class SatelliteCreatorPopup extends Stage {
 
@@ -32,69 +33,94 @@ public class SatelliteCreatorPopup extends Stage {
         setTitle("Create new satellite");
         setResizable(false);
 
+        // vvv TEMPORARY vvv
+
+        // TODO: make actual 3D preview
         // --- 3D Preview ---
-        Circle planet    = new Circle(35, Color.TOMATO);
+        Circle planet = new Circle(35, Color.TOMATO);
         Circle satellite = new Circle(6, Color.CORNFLOWERBLUE);
         satellite.setTranslateX(60);
         StackPane previewPane = new StackPane(planet, satellite);
         previewPane.setStyle("-fx-background-color: #12121f; -fx-border-color: #444466; -fx-border-width: 1;");
         previewPane.setPrefSize(420, 150);
 
+        // ^^^ TEMPORARY ^^^
+
         Label scaleLabel = new Label("Scale (km)");
-        scaleLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #8888bb;");
+        scaleLabel.getStyleClass().add("key-label");
+        ;
 
         VBox previewBox = new VBox(4, previewPane, scaleLabel);
         previewBox.setAlignment(Pos.BOTTOM_RIGHT);
         previewBox.setPadding(new Insets(10, 10, 0, 10));
 
         // --- Left: name, mass, color, speed ---
-        nameField         = entryField("e.g. Sat-01");
-        massField         = entryField("e.g. 1000");
+        nameField = entryField("e.g. Sat-01");
+        massField = entryField("e.g. 1000");
         initialSpeedField = entryField("m/s");
 
         colorDropdown = new ComboBox<>();
         colorDropdown.getItems().addAll("Blue", "Red", "Green", "Orange", "Purple", "White");
         colorDropdown.setValue("Blue");
-        colorDropdown.setStyle("-fx-background-color: #4a4a6a; -fx-text-fill: #c0c0e0; -fx-font-size: 12px;");
+        colorDropdown.getStyleClass().add("combo-box");
 
         GridPane leftForm = new GridPane();
-        leftForm.setHgap(10); leftForm.setVgap(8);
-        leftForm.add(formLabel("Name :"),         0, 0); leftForm.add(nameField,         1, 0);
-        leftForm.add(formLabel("Mass (kg) :"),    0, 1); leftForm.add(massField,         1, 1);
-        leftForm.add(formLabel("Color :"),        0, 2); leftForm.add(colorDropdown,     1, 2);
-        leftForm.add(formLabel("Initial speed:"), 0, 3); leftForm.add(initialSpeedField, 1, 3);
+        leftForm.setHgap(10);
+        leftForm.setVgap(8);
+        leftForm.add(formLabel("Name :"), 0, 0);
+        leftForm.add(nameField, 1, 0);
+        leftForm.add(formLabel("Mass (kg) :"), 0, 1);
+        leftForm.add(massField, 1, 1);
+        leftForm.add(formLabel("Color :"), 0, 2);
+        leftForm.add(colorDropdown, 1, 2);
+        leftForm.add(formLabel("Initial speed:"), 0, 3);
+        leftForm.add(initialSpeedField, 1, 3);
 
         // --- Middle: Position ---
-        posXField = entryField("0"); posYField = entryField("0"); posZField = entryField("0");
+        posXField = entryField("0");
+        posYField = entryField("0");
+        posZField = entryField("0");
         GridPane posForm = new GridPane();
-        posForm.setHgap(10); posForm.setVgap(8);
+        posForm.setHgap(10);
+        posForm.setVgap(8);
         posForm.add(formLabel("Position (x,y,z) (m):"), 0, 0, 2, 1);
-        posForm.add(formLabel("x :"), 0, 1); posForm.add(posXField, 1, 1);
-        posForm.add(formLabel("y :"), 0, 2); posForm.add(posYField, 1, 2);
-        posForm.add(formLabel("z :"), 0, 3); posForm.add(posZField, 1, 3);
+        posForm.add(formLabel("x :"), 0, 1);
+        posForm.add(posXField, 1, 1);
+        posForm.add(formLabel("y :"), 0, 2);
+        posForm.add(posYField, 1, 2);
+        posForm.add(formLabel("z :"), 0, 3);
+        posForm.add(posZField, 1, 3);
 
         // --- Right: Rotation ---
-        rotIField = entryField("0"); rotLField = entryField("0"); rotWField = entryField("0");
+        rotIField = entryField("0");
+        rotLField = entryField("0");
+        rotWField = entryField("0");
         GridPane rotForm = new GridPane();
-        rotForm.setHgap(10); rotForm.setVgap(8);
+        rotForm.setHgap(10);
+        rotForm.setVgap(8);
         rotForm.add(formLabel("Rotation (degrees):"), 0, 0, 2, 1);
-        rotForm.add(formLabel("i :"), 0, 1); rotForm.add(rotIField, 1, 1);
-        rotForm.add(formLabel("I :"), 0, 2); rotForm.add(rotLField, 1, 2);
-        rotForm.add(formLabel("w :"), 0, 3); rotForm.add(rotWField, 1, 3);
+        rotForm.add(formLabel("i :"), 0, 1);
+        rotForm.add(rotIField, 1, 1);
+        rotForm.add(formLabel("I :"), 0, 2);
+        rotForm.add(rotLField, 1, 2);
+        rotForm.add(formLabel("w :"), 0, 3);
+        rotForm.add(rotWField, 1, 3);
 
         HBox formRow = new HBox(20, leftForm, posForm, rotForm);
         formRow.setPadding(new Insets(12, 14, 0, 14));
 
         Label errorLabel = new Label("");
-        errorLabel.setStyle("-fx-text-fill: #ff6666; -fx-font-size: 11px; -fx-padding: 0 14 0 14;");
+        errorLabel.getStyleClass().add("error-label");
+        ;
 
         Button cancelBtn = new Button("CANCEL");
         Button createBtn = new Button("CREATE");
-        cancelBtn.setStyle(btnStyle());
-        createBtn.setStyle(btnStyle());
+        cancelBtn.getStyleClass().add("style-button");
+        createBtn.getStyleClass().add("style-button");
         cancelBtn.setOnAction(e -> close());
         createBtn.setOnAction(e -> {
-            if (!validate(errorLabel)) return;
+            if (!validate(errorLabel))
+                return;
             confirmed = true;
             close();
         });
@@ -104,80 +130,96 @@ public class SatelliteCreatorPopup extends Stage {
         buttons.setPadding(new Insets(8, 14, 14, 14));
 
         Label titleLabel = new Label("Create new satellite");
-        titleLabel.setStyle(
-            "-fx-font-size: 13px; -fx-font-weight: bold; " +
-            "-fx-padding: 10 14 6 14; -fx-text-fill: #c0c0e0;"
-        );
+        titleLabel.getStyleClass().add("subheading");
 
         VBox root = new VBox(titleLabel, previewBox, formRow, errorLabel, buttons);
-        root.setStyle("-fx-background-color: #1a1a2e;");
+        root.getStyleClass().add("small-pane");
+        ;
 
-        setScene(new Scene(root));
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(new StyleSheet().styleSheet);
+
+        setScene(scene);
     }
 
     private boolean validate(Label errorLabel) {
-        if (nameField.getText().isBlank()) { errorLabel.setText("Name is required."); return false; }
-        try { Double.parseDouble(massField.getText()); }
-        catch (NumberFormatException e) { errorLabel.setText("Mass must be a number."); return false; }
-        try { Double.parseDouble(initialSpeedField.getText()); }
-        catch (NumberFormatException e) { errorLabel.setText("Initial speed must be a number."); return false; }
+        if (nameField.getText().isBlank()) {
+            errorLabel.setText("Name is required.");
+            return false;
+        }
+        try {
+            Double.parseDouble(massField.getText());
+        } catch (NumberFormatException e) {
+            errorLabel.setText("Mass must be a number.");
+            return false;
+        }
+        try {
+            Double.parseDouble(initialSpeedField.getText());
+        } catch (NumberFormatException e) {
+            errorLabel.setText("Initial speed must be a number.");
+            return false;
+        }
         errorLabel.setText("");
         return true;
     }
 
-    public boolean wasConfirmed() { return confirmed; }
+    public boolean wasConfirmed() {
+        return confirmed;
+    }
 
     public String getSatelliteName() {
         String n = nameField.getText().trim();
         return n.isEmpty() ? "Sat-" + colorDropdown.getValue() : n;
     }
 
-    public double getSatelliteMass() { return Double.parseDouble(massField.getText()); }
-    public double getInitialSpeed()  { return Double.parseDouble(initialSpeedField.getText()); }
+    public double getSatelliteMass() {
+        return Double.parseDouble(massField.getText());
+    }
+
+    public double getInitialSpeed() {
+        return Double.parseDouble(initialSpeedField.getText());
+    }
 
     public Color getSatelliteColor() {
         return switch (colorDropdown.getValue()) {
-            case "Red"    -> Color.TOMATO;
-            case "Green"  -> Color.MEDIUMSEAGREEN;
+            case "Red" -> Color.TOMATO;
+            case "Green" -> Color.MEDIUMSEAGREEN;
             case "Orange" -> Color.DARKORANGE;
             case "Purple" -> Color.MEDIUMPURPLE;
-            case "White"  -> Color.LIGHTGRAY;
-            default       -> Color.CORNFLOWERBLUE;
+            case "White" -> Color.LIGHTGRAY;
+            default -> Color.CORNFLOWERBLUE;
         };
     }
 
     public double[] getPosition() {
-        return new double[]{ p(posXField), p(posYField), p(posZField) };
+        return new double[] { p(posXField), p(posYField), p(posZField) };
     }
+
     public double[] getRotation() {
-        return new double[]{ p(rotIField), p(rotLField), p(rotWField) };
+        return new double[] { p(rotIField), p(rotLField), p(rotWField) };
     }
 
     private double p(TextField tf) {
-        try { return Double.parseDouble(tf.getText()); } catch (NumberFormatException e) { return 0; }
+        try {
+            return Double.parseDouble(tf.getText());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private TextField entryField(String prompt) {
         TextField tf = new TextField();
         tf.setPromptText(prompt);
         tf.setPrefWidth(100);
-        tf.setStyle(
-            "-fx-background-color: #12121f; -fx-text-fill: #c0c0e0; " +
-            "-fx-prompt-text-fill: #555577; -fx-border-color: #444466; " +
-            "-fx-border-radius: 3; -fx-background-radius: 3; -fx-font-size: 12px;"
-        );
+        tf.getStyleClass().add("field");
+        ;
         return tf;
     }
 
     private Label formLabel(String text) {
         Label l = new Label(text);
-        l.setStyle("-fx-font-size: 12px; -fx-text-fill: #8888bb;");
+        l.getStyleClass().add("key");
+        ;
         return l;
     }
-
-    private String btnStyle() {
-        return "-fx-background-color: #4a4a6a; -fx-text-fill: #c0c0e0; -fx-font-size: 12px; " +
-               "-fx-padding: 4 14 4 14; -fx-background-radius: 3; -fx-cursor: hand;";
-    }
 }
- 

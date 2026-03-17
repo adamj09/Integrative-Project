@@ -29,7 +29,7 @@ public class SimRenderer {
     }
 
     public void setUpBuffers() {
-        
+
     }
 
     public void init() {
@@ -40,13 +40,13 @@ public class SimRenderer {
         mesh.packIndicesIntoBuffer();
 
         float[] colors = {
-            1.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 1.0f,
-            1.0f, 1.0f, 0.0f
+                1.0f, 0.0f, 0.0f,
+                0.0f, 1.0f, 0.0f,
+                0.0f, 0.0f, 1.0f,
+                1.0f, 1.0f, 0.0f
         };
 
-        VAO = glGenVertexArrays();        
+        VAO = glGenVertexArrays();
         VBO[0] = glGenBuffers();
         VBO[1] = glGenBuffers();
         EBO = glGenBuffers();
@@ -57,13 +57,14 @@ public class SimRenderer {
         colorsBuffer.put(colors).flip();
 
         // --- Vertex Attributes ---
-        shaderProgram.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 0, 3, 3 * Float.BYTES, VBO[0], mesh.getVertexBuffer());
+        shaderProgram.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 0, 3, 3 * Float.BYTES, VBO[0],
+                mesh.getVertexBuffer());
         shaderProgram.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 1, 3, 3 * Float.BYTES, VBO[1], colorsBuffer);
 
         shaderProgram.bindElementBuffer(EBO, mesh.getIndexBuffer(), GL_STATIC_DRAW);
 
         Matrix4f test = new Matrix4f().identity();
-        test.translate(new Vector3f(0.f,0.f, -10.f));
+        test.translate(new Vector3f(0.f, 0.f, -10.f));
 
         shaderProgram.use();
 

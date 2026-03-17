@@ -43,40 +43,41 @@ public class BottomPane extends VBox {
     };
 
     public BottomPane() {
-        setStyle("-fx-background-color: #1a1a2e; -fx-border-color: #444466; -fx-border-width: 1 0 0 0;");
+        getStyleClass().add("bottom-pane");
 
         Label infoLabel = new Label("Info :");
-        infoLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #c0c0e0; -fx-font-weight: bold;");
+        infoLabel.getStyleClass().add("subheading");
 
         Label timeLabel = new Label("Set specific time (s):");
-        timeLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c0e0;");
+        timeLabel.getStyleClass().add("body");
 
         specificTimeField = new TextField();
         specificTimeField.setPromptText("Entry");
         specificTimeField.setPrefWidth(70);
-        specificTimeField.setStyle(fieldStyle());
+        specificTimeField.getStyleClass().add("field");
 
         Label timescaleLabel = new Label("Time scale:");
-        timescaleLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c0e0;");
+        timescaleLabel.getStyleClass().add("body");
 
         timescaleDropdown = new ComboBox<>();
         timescaleDropdown.getItems().addAll(
             "0.1x", "0.5x", "1x", "2x", "5x", "10x",
             "100x", "1000x", "10000x", "100000x"
         );
+
         timescaleDropdown.setValue("1x");
-        timescaleDropdown.setStyle("-fx-font-size: 11px;");
+        timescaleDropdown.getStyleClass().add("combo-box");
         timescaleDropdown.setPrefWidth(90);
 
         startStopButton = new Button("Start/Stop");
-        startStopButton.setStyle(controlButtonStyle());
+        startStopButton.getStyleClass().add("control-button");
         startStopButton.setOnAction(e -> {
             running = !running;
             System.out.println("Simulation running: " + running);
         });
 
         resetButton = new Button("RESET");
-        resetButton.setStyle(controlButtonStyle());
+        resetButton.getStyleClass().add("control-button");
         resetButton.setOnAction(e -> {
             running = false;
             specificTimeField.clear();
@@ -94,16 +95,16 @@ public class BottomPane extends VBox {
 
         dataGrid = new HBox(6);
         dataGrid.setPadding(new Insets(6));
-        dataGrid.setStyle("-fx-background-color: #1a1a2e;");
+        dataGrid.getStyleClass().add("data-grid");
         dataGrid.setAlignment(Pos.TOP_LEFT);
         dataGrid.setFillHeight(false);
 
         Label liveLabel = new Label("Live data");
-        liveLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #c0c0e0; -fx-padding: 0 8 0 8;");
+        liveLabel.getStyleClass().add("subheading");
         liveLabel.setAlignment(Pos.CENTER_LEFT);
         dataGrid.getChildren().add(liveLabel);
 
-        // Request focus on the pane when mouse is clicked on it (allows for user to switch between controller UI and simulation camera)
+        // Request focus on the pane when mouse is clicked on it (allows for user to switch between controller UI and simulation camera).
         this.setOnMouseClicked(_ -> this.requestFocus());
 
         getChildren().addAll(controlsRow, dataGrid);
@@ -111,15 +112,11 @@ public class BottomPane extends VBox {
 
     private VBox makeSatelliteColumn(String title) {
         Label header = new Label(title);
-        header.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #c0c0e0;");
+        header.getStyleClass().add("subheading");
         HBox.setHgrow(header, Priority.ALWAYS);
 
         Button toggleButton = new Button("-");
-        toggleButton.setStyle(
-            "-fx-background-color: #4a4a6a; -fx-text-fill: #c0c0e0; " +
-            "-fx-font-size: 9px; -fx-padding: 1 5 1 5; " +
-            "-fx-background-radius: 2; -fx-cursor: hand;"
-        );
+        toggleButton.getStyleClass().add("toggle-button");
 
         HBox headerRow = new HBox(header, toggleButton);
         headerRow.setAlignment(Pos.CENTER_LEFT);
@@ -136,8 +133,13 @@ public class BottomPane extends VBox {
             for (int c = 0; c < 4; c++) {
                 boolean isKey = c % 2 == 0;
                 Label lbl = new Label(FULL_NAMES[r][c] + (isKey ? ":" : ""));
-                lbl.setStyle("-fx-font-size: 10px; -fx-text-fill: " +
-                             (isKey ? "#8888bb;" : "#e0e0ff;"));
+
+                if(isKey) {
+                    lbl.getStyleClass().add("key");
+                } else {
+                    lbl.getStyleClass().add("key-label");
+                }
+
                 lbl.setMaxWidth(Double.MAX_VALUE);
                 GridPane.setHgrow(lbl, Priority.ALWAYS);
                 grid.add(lbl, c, r);
@@ -146,20 +148,15 @@ public class BottomPane extends VBox {
         }
 
         VBox dataBox = new VBox(grid);
-        dataBox.setStyle(
-            "-fx-background-color: #252540; " +
-            "-fx-border-color: #555577; " +
-            "-fx-border-width: 1; " +
-            "-fx-border-radius: 3; " +
-            "-fx-background-radius: 3;"
-        );
+        dataBox.getStyleClass().add("data-box");
 
         VBox col = new VBox(4, headerRow, dataBox);
         col.setPadding(new Insets(5));
         col.setPrefWidth(DEFAULT_W);
         col.setMinWidth(MIN_W);
         col.setMaxWidth(MAX_W);
-        col.setStyle(expandedColStyle());
+
+        col.getStyleClass().add("column-expanded");
         col.setFillWidth(true);
 
         final double[] drag = {0, 0};
@@ -207,7 +204,7 @@ public class BottomPane extends VBox {
             dataBox.setVisible(!isMin);
             dataBox.setManaged(!isMin);
             toggleButton.setText(isMin ? "+" : "-");
-            col.setStyle(collapsedColStyle());
+            col.getStyleClass().set(0, "column-collapsed");
 
             int keyIndex = 0;
             for (int r = 0; r < FULL_NAMES.length; r++) {
@@ -251,14 +248,13 @@ public class BottomPane extends VBox {
 
         col.setOnMouseDragEntered(e -> {
             if (dragSource != null && dragSource != col) {
-                col.setStyle("-fx-border-color: #8888ff; -fx-border-width: 2; " +
-                             "-fx-border-radius: 4; -fx-background-color: #2a2a4a; -fx-background-radius: 4;");
+                col.getStyleClass().set(0, "column-drag");
             }
         });
 
         col.setOnMouseDragExited(e -> {
             if (dragSource != col) {
-                col.setStyle(collapsedColStyle());
+                col.getStyleClass().set(0, "column-collapsed");
             }
         });
 
@@ -271,7 +267,7 @@ public class BottomPane extends VBox {
                     dataGrid.getChildren().add(toIndex, dragSource);
                 }
                 dragSource.setOpacity(1.0);
-                col.setStyle(collapsedColStyle());
+                col.getStyleClass().set(0, "column-collapsed");
                 dragSource = null;
             }
             e.consume();
@@ -287,25 +283,5 @@ public class BottomPane extends VBox {
 
     public void updateSatelliteData(int index, String[][] keyValuePairs) {
         // TODO: implement live data updates once data layer exists
-    }
-
-    private String expandedColStyle() {
-        return "-fx-border-color: #444466; -fx-border-width: 1; -fx-border-radius: 4; " +
-               "-fx-background-color: #2a2a4a; -fx-background-radius: 4;";
-    }
-
-    private String collapsedColStyle() {
-        return "-fx-border-color: #444466; -fx-border-width: 1; -fx-border-radius: 4; " +
-               "-fx-background-color: #2a2a4a; -fx-background-radius: 4;";
-    }
-
-    private String fieldStyle() {
-        return "-fx-background-color: #2a2a4a; -fx-text-fill: #c0c0e0; -fx-border-color: #444466; " +
-               "-fx-border-radius: 2; -fx-background-radius: 2; -fx-font-size: 11px;";
-    }
-
-    private String controlButtonStyle() {
-        return "-fx-background-color: #4a4a6a; -fx-text-fill: #c0c0e0; -fx-font-size: 11px; " +
-               "-fx-padding: 3 10 3 10; -fx-background-radius: 3; -fx-cursor: hand;";
     }
 }
