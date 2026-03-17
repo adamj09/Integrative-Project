@@ -42,9 +42,7 @@ public class App extends Application {
         top.getChildren().add(root);
 
         // For some reason doing this fixes rendering issues, I'll see if I can figure out why (DONT TOUCH)
-        bottom.setOpacity(0.999999);
-        menuBar.setOpacity(0.999999);
-        sidebar.setOpacity(0.999999);
+        root.setOpacity(0.999999);
 
         Scene scene = new Scene(top, 1280, 720);
 
