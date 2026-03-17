@@ -20,7 +20,6 @@ import project.UI.Popups.DeleteWarningPopup;
 import project.UI.Popups.SatelliteCreatorPopup;
 
 public class SidebarPane extends VBox {
-
     private final Button celestialTab;
     private final Button satellitesTab;
 
@@ -41,14 +40,14 @@ public class SidebarPane extends VBox {
         this.bottom = bottom;
         setPrefWidth(230);
         setMinWidth(180);
-        setStyle("-fx-background-color: #1a1a2e; -fx-border-color: #444466; -fx-border-width: 0 1 0 0;");
+        getStyleClass().add("side-pane");
 
         // --- Tab buttons ---
         celestialTab = tabButton("Celestial body");
         satellitesTab = tabButton("Satellites");
 
         HBox tabs = new HBox(0, celestialTab, satellitesTab);
-        tabs.setStyle("-fx-background-color: #2a2a4a;");
+        tabs.getStyleClass().add("tabs");
 
         // --- Body list ---
         bodyListBox = new VBox(4);
@@ -56,7 +55,7 @@ public class SidebarPane extends VBox {
 
         bodyScroll = new ScrollPane(bodyListBox);
         bodyScroll.setFitToWidth(true);
-        bodyScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        bodyScroll.getStyleClass().add("scroll");
         VBox.setVgrow(bodyScroll, Priority.ALWAYS);
 
         VBox bodyView = new VBox(bodyScroll);
@@ -68,7 +67,7 @@ public class SidebarPane extends VBox {
 
         satelliteScroll = new ScrollPane(satelliteListBox);
         satelliteScroll.setFitToWidth(true);
-        satelliteScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        satelliteScroll.getStyleClass().add("scroll");
         VBox.setVgrow(satelliteScroll, Priority.ALWAYS);
 
         VBox satelliteView = new VBox(satelliteScroll);
@@ -98,7 +97,8 @@ public class SidebarPane extends VBox {
 
         getChildren().addAll(tabs, contentArea);
 
-        // Request focus on the pane when mouse is clicked on it (allows for user to switch between controller UI and simulation camera)
+        // Request focus on the pane when mouse is clicked on it (allows for user to
+        // switch between controller UI and simulation camera)
         this.setOnMouseClicked(_ -> this.requestFocus());
 
         // Add a placeholder body so it's not empty
@@ -126,10 +126,10 @@ public class SidebarPane extends VBox {
 
         Circle circle = new Circle(22, color);
         Label nameLabel = new Label(name);
-        nameLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #c0c0e0;");
+        nameLabel.getStyleClass().add("body");
 
         Button visButton = new Button(isPreset ? "unvisualize" : "visualize");
-        visButton.setStyle(smallButtonStyle());
+        visButton.getStyleClass().add("style-button-small");
         visButton.setOnAction(e -> {
             boolean active = visButton.getText().equals("unvisualize");
             visButton.setText(active ? "visualize" : "unvisualize");
@@ -139,12 +139,11 @@ public class SidebarPane extends VBox {
         VBox card = new VBox(4, circle, nameLabel, visButton);
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(8));
-        card.setStyle("-fx-background-color: #2a2a4a; -fx-border-color: #444466; " +
-                "-fx-border-width: 0 0 1 0; -fx-border-style: dashed;");
+        card.getStyleClass().add("card");
 
         if (!isPreset) {
             Button deleteButton = new Button("delete");
-            deleteButton.setStyle(smallButtonStyle());
+            deleteButton.getStyleClass().add("style-button-small");
             deleteButton.setOnAction(e -> {
                 DeleteWarningPopup warn = new DeleteWarningPopup();
                 warn.showAndWait();
@@ -167,10 +166,10 @@ public class SidebarPane extends VBox {
 
         Circle circle = new Circle(18, color);
         Label nameLabel = new Label(name);
-        nameLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #c0c0e0;");
+        nameLabel.getStyleClass().add("body");
 
         Button visButton = new Button("unvisualize");
-        visButton.setStyle(smallButtonStyle());
+        visButton.getStyleClass().add("style-button-small");
         visButton.setOnAction(e -> {
             boolean active = visButton.getText().equals("unvisualize");
             visButton.setText(active ? "visualize" : "unvisualize");
@@ -180,8 +179,7 @@ public class SidebarPane extends VBox {
         VBox card = new VBox(4, circle, nameLabel, visButton);
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(8));
-        card.setStyle("-fx-background-color: #2a2a4a; -fx-border-color: #444466; " +
-                "-fx-border-width: 0 0 1 0; -fx-border-style: dashed;");
+        card.getStyleClass().add("card");
 
         satelliteListBox.getChildren().add(card);
         bottom.addSatelliteColumn(name);
@@ -196,23 +194,10 @@ public class SidebarPane extends VBox {
     }
 
     private void setTabActive(Button b) {
-        b.setStyle("-fx-background-color: #3a3a5a; -fx-font-weight: bold; " +
-                "-fx-border-color: #444466; -fx-border-width: 0 1 0 0; -fx-font-size: 12px; -fx-text-fill: #c0c0e0;");
+        b.getStyleClass().set(0, "tab-active");
     }
 
     private void setTabInactive(Button b) {
-        b.setStyle("-fx-background-color: #2a2a4a; -fx-font-weight: normal; " +
-                "-fx-border-color: #444466; -fx-border-width: 0 1 0 0; -fx-font-size: 12px; -fx-text-fill: #c0c0e0;");
-    }
-
-    private Label sectionLabel(String text) {
-        Label l = new Label(text);
-        l.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c0e0; -fx-padding: 4 0 2 0;");
-        return l;
-    }
-
-    private String smallButtonStyle() {
-        return "-fx-background-color: #4a4a6a; -fx-text-fill: #c0c0e0; -fx-font-size: 11px; " +
-                "-fx-padding: 2 8 2 8; -fx-background-radius: 3; -fx-cursor: hand;";
+        b.getStyleClass().set(0, "tab-inactive");
     }
 }

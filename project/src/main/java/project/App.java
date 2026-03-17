@@ -3,7 +3,6 @@ package project;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import project.Renderer.Viewport;
 import project.Renderer.ControlManager;
@@ -19,8 +18,6 @@ public class App extends Application {
 
         Viewport viewport = new Viewport();
 
-        StackPane top = new StackPane();
-
         BottomPane bottom = new BottomPane();
         MainMenuBar menuBar = new MainMenuBar();
         SidebarPane sidebar = new SidebarPane(bottom);
@@ -30,23 +27,19 @@ public class App extends Application {
         menuBar.getNewSatelliteButton().setOnAction(e -> sidebar.openNewSatellitePopup(stage));
 
         BorderPane root = new BorderPane();
+        root.setCenter(viewport.getGLCanvas());
         root.setTop(menuBar);
         root.setLeft(sidebar);
-        root.setCenter(viewport.getGLCanvas());
         root.setBottom(bottom);
 
-        ControlManager controlManager = new ControlManager(root.getCenter());
+        ControlManager controlManager = new ControlManager(viewport.getGLCanvas());
 
         new Renderer(viewport, controlManager);
 
-        top.getChildren().add(root);
-
-        // TODO: For some reason doing this fixes rendering issues (try commenting this
-        // setOpacity() call and see what happens). I'll see if I can figure out why
-        // (DONT TOUCH)
-        root.setOpacity(0.9999999);
-
-        Scene scene = new Scene(top, 1280, 720);
+        // The "true" value here indicates the creation of a depth buffer. This is
+        // essential to ensure all nodes are placed on appopriate layers (contol nodes
+        // above panes for example)
+        Scene scene = new Scene(root, 1280, 720, true);
 
         scene.getStylesheets().add(new StyleSheet().styleSheet);
 
