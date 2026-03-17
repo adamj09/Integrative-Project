@@ -41,8 +41,10 @@ public class App extends Application {
 
         top.getChildren().add(root);
 
-        // For some reason doing this fixes rendering issues, I'll see if I can figure out why (DONT TOUCH)
-        root.setOpacity(0.999999);
+        // TODO: For some reason doing this fixes rendering issues (try commenting this
+        // setOpacity() call and see what happens). I'll see if I can figure out why
+        // (DONT TOUCH)
+        root.setOpacity(0.9999999);
 
         Scene scene = new Scene(top, 1280, 720);
 
