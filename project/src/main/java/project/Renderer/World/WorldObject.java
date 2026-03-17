@@ -10,12 +10,18 @@ public class WorldObject {
     private Matrix4f transformMatrix = new Matrix4f();
     private Mesh mesh;
     private String name; //TODO: should probably make this a randomized id
+    private Vector3f color = new Vector3f(1.0f, 1.0f, 1.0f);
 
     public WorldObject(String name, Mesh mesh) {
         this.mesh = mesh;
         this.name = name;
     }
 
+    public WorldObject(String name, Mesh mesh, Vector3f color) {
+        this.mesh = mesh;
+        this.name = name;
+        this.color = color;
+    }
 
     public Vector3f getTranslation() {
         return this.translation;
@@ -55,5 +61,13 @@ public class WorldObject {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Vector3f getColor() {
+        return this.color;
+    }
+
+    public void setColor(Vector3f color) {
+        this.color = color;
     }
 }

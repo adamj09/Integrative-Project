@@ -22,31 +22,24 @@ public class SimRenderer {
     private int VAO, EBO;
     private int[] VBO = new int[2];
 
-    private World world = new World();
+    private World world = new World("Test");
 
-    private Mesh mesh;
+    private Mesh bodyMesh;
 
     public SimRenderer(Camera camera) {
         this.camera = camera;
     }
 
-    public void setUpBuffers() {
+    public void setUpData() {
 
     }
 
     public void init() {
         shaderProgram = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
 
-        mesh = world.getObjects().get("name").getMesh();
-        mesh.packVerticesIntoBuffer();
-        mesh.packIndicesIntoBuffer();
-
-        float[] colors = {
-                1.0f, 0.0f, 0.0f,
-                0.0f, 1.0f, 0.0f,
-                0.0f, 0.0f, 1.0f,
-                1.0f, 1.0f, 0.0f
-        };
+        bodyMesh = world.getBody().getMesh();
+        bodyMesh.packVerticesIntoBuffer();
+        bodyMesh.packIndicesIntoBuffer();
 
         VAO = glGenVertexArrays();
         VBO[0] = glGenBuffers();
@@ -55,15 +48,15 @@ public class SimRenderer {
 
         glBindVertexArray(VAO);
 
-        FloatBuffer colorsBuffer = BufferUtils.createFloatBuffer(colors.length);
-        colorsBuffer.put(colors).flip();
+        FloatBuffer colorsBuffer = BufferUtils.createFloatBuffer(3);
+        world.getBody().getColor().get(colorsBuffer);
 
         // --- Vertex Attributes ---
         shaderProgram.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 0, 3, 3 * Float.BYTES, VBO[0],
-                mesh.getVertexBuffer());
+                bodyMesh.getVertexBuffer());
         shaderProgram.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 1, 3, 3 * Float.BYTES, VBO[1], colorsBuffer);
 
-        shaderProgram.bindElementBuffer(EBO, mesh.getIndexBuffer(), GL_STATIC_DRAW);
+        shaderProgram.bindElementBuffer(EBO, bodyMesh.getIndexBuffer(), GL_STATIC_DRAW);
 
         Matrix4f test = new Matrix4f().identity();
         test.translate(new Vector3f(0.f, 0.f, -10.f));
@@ -84,6 +77,6 @@ public class SimRenderer {
         shaderProgram.addFloatUniform("projection", camera.getProjection().get(projectionMatrixBuffer));
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glDrawElements(GL_TRIANGLES, mesh.getIndices().size() * 3, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, bodyMesh.getIndices().size() * 3, GL_UNSIGNED_INT, 0);
     }
 }

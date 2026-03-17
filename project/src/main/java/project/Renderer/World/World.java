@@ -2,21 +2,30 @@ package project.Renderer.World;
 
 import java.util.HashMap;
 
+import org.joml.Vector3f;
+
 import project.Renderer.Model.SphereGenerator;
 
 public class World {
-    private HashMap<String, WorldObject> objects = new HashMap<>();
+    private HashMap<String, WorldObject> satellites = new HashMap<>();
+    private WorldObject body;
+    private SphereGenerator sphereGenerator = new SphereGenerator();
 
-    public World() {
-        loadObjects();
+    public World(String name) {
+        body = new WorldObject(name, sphereGenerator.create(2), new Vector3f(1.0f, 0.0f, 0.0f));
+        loadSatellites();
     }
 
-    private void loadObjects() {
-        WorldObject object = new WorldObject("name", new SphereGenerator().create(2));
-        objects.put(object.getName(), object);
+    private void loadSatellites() {
+        WorldObject satellite = new WorldObject("test satellite", sphereGenerator.create(2));
+        satellites.put(satellite.getName(), satellite);
     }
 
     public HashMap<String, WorldObject> getObjects() {
-        return this.objects;
+        return this.satellites;
+    }
+
+    public WorldObject getBody() {
+        return body;
     }
 }
