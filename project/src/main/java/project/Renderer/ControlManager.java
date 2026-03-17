@@ -46,7 +46,7 @@ public class ControlManager {
     private void setUpKeyboardControls() {
         focusNode.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             KeyCode keyCode = event.getCode();
-
+           
             if (keyCode == KeyCode.getKeyCode(forwardKey)) {
                 forwardPressed = true;
             } else if (keyCode == KeyCode.getKeyCode(leftKey)) {
@@ -85,6 +85,7 @@ public class ControlManager {
         focusNode.setOnMousePressed(event -> {
             if(event.isPrimaryButtonDown()) {
                 focusButtonPressed = true;
+                focusNode.requestFocus();
             }
         });
 
@@ -93,6 +94,17 @@ public class ControlManager {
                 focusButtonPressed = false;
             }
         });
+    }
+
+    public void handleUnfocus() {
+        if(!focusNode.isFocused()) {
+            forwardPressed = false;
+            leftPressed = false;
+            backwardPressed = false;
+            rightPressed = false;
+            upPressed = false;
+            downPressed = false;
+        }
     }
 
     public void updateMousePosition() {

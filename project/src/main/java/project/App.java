@@ -5,24 +5,19 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import project.Renderer.Viewport;
+import project.Renderer.ControlManager;
 import project.Renderer.Renderer;
 import project.UI.BottomPane;
 import project.UI.MainMenuBar;
 import project.UI.SidebarPane;
 
 public class App extends Application {
-        // TODO: should probably make a class to hold these values (not Renderer since
-    // that object will have to be recreated if the user decides to changes mssa or
-    // swapbuffers variables)
-    public static double fps = 60;
-    public static int msaa = 4;
-    public static int swapBuffers = 2;
-
     @Override
     public void start(Stage stage) {
         setSystemProperties();
 
-        Renderer renderer = new Renderer(fps, msaa, swapBuffers);
+        Viewport viewport = new Viewport();
 
         StackPane top = new StackPane();
 
@@ -35,13 +30,20 @@ public class App extends Application {
         menuBar.getNewSatelliteButton().setOnAction(e -> sidebar.openNewSatellitePopup(stage));
 
         BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: #ffffff00;");
         root.setTop(menuBar);
         root.setLeft(sidebar);
+        root.setCenter(viewport.getGLCanvas());
         root.setBottom(bottom);
 
-        top.getChildren().add(renderer.getCanvas());
+        ControlManager controlManager = new ControlManager(root.getCenter());
+
+        new Renderer(viewport, controlManager);
+
         top.getChildren().add(root);
+
+        bottom.setOpacity(0.99999);
+        menuBar.setOpacity(0.99999);
+        sidebar.setOpacity(0.99999);
 
         Scene scene = new Scene(top, 1280, 720);
 

@@ -30,6 +30,9 @@ public class MainMenuBar extends HBox {
         HBox.setHgrow(spacer, Priority.ALWAYS);
  
         infoButton = styledButton("INFO");
+
+        // Request focus on the pane when mouse is clicked on it (allows for user to switch between controller UI and simulation camera)
+        this.setOnMouseClicked(_ -> this.requestFocus());
  
         getChildren().addAll(title, newBodyButton, newSatelliteButton, spacer, infoButton);
     }

@@ -31,7 +31,8 @@ public class FirstPersonCameraController {
 
     /**
      * Initializes the camera controller with a camera and control manager.
-     * @param camera Camera to control.
+     * 
+     * @param camera   Camera to control.
      * @param controls Control manager to get user input from.
      */
     public FirstPersonCameraController(Camera camera, ControlManager controls) {
@@ -42,7 +43,8 @@ public class FirstPersonCameraController {
     /**
      * Translates the camera based on user input.
      * 
-     * @param deltaTime The time in seconds between the last and current frame (used to keep movement speed framerate independent).
+     * @param deltaTime The time in seconds between the last and current frame (used
+     *                  to keep movement speed framerate independent).
      */
     private void translate(float deltaTime) {
         float speed = translateSpeed * deltaTime;
@@ -92,7 +94,8 @@ public class FirstPersonCameraController {
      * Applies rotation to the camera using quaternions. Rotation is controlled by
      * mouse movement.
      * 
-     * @param deltaTime The time in seconds between the last and current frame (used to keep movement speed framerate independent).
+     * @param deltaTime The time in seconds between the last and current frame (used
+     *                  to keep movement speed framerate independent).
      */
     private void rotate(float deltaTime) {
         // Find degrees in which to rotate based on mouse movement, rotation speed and
@@ -119,7 +122,8 @@ public class FirstPersonCameraController {
         // Create rotation quaternion by multiplying pitch and yaw quaternions.
         Quaternionf rotation = new Quaternionf();
         pitchQuaternion.mul(yawQuaternion, rotation);
-        rotation.normalize(); // Normalize the quaternion to make sure rotation speed remains consistent regardless of rotation angle.
+        rotation.normalize(); // Normalize the quaternion to make sure rotation speed remains consistent
+                              // regardless of rotation angle.
 
         Vector3f newDirection = new Vector3f();
         camera.getDirection().rotate(rotation, newDirection);
@@ -129,17 +133,19 @@ public class FirstPersonCameraController {
     }
 
     /**
-     * Updates the camera's transform by applying rotation and translation based on user input.
-     * @param deltaTime The time in seconds between the last and current frame (used to keep movement speed framerate independent).
+     * Updates the camera's transform by applying rotation and translation based on
+     * user input.
+     * 
+     * @param deltaTime The time in seconds between the last and current frame (used
+     *                  to keep movement speed framerate independent).
      */
     public void updateCameraTransform(float deltaTime) {
-        // Only update if the node associated with the controls is focused.
         if(controls.getFocusNode().isFocused()) {
-            if(controls.isFocusButtonPressed()) {
+            if (controls.isFocusButtonPressed()) {
                 rotate(deltaTime);
             }
             translate(deltaTime);
-        }
+        }   
     }
 
     /**
