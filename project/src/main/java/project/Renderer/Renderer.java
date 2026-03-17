@@ -4,8 +4,10 @@ import org.joml.Vector3f;
 
 import static org.lwjgl.opengl.GL41.*;
 
+import project.ControlManager;
 import project.Renderer.Camera.Camera;
 import project.Renderer.Camera.FirstPersonCameraController;
+import project.Renderer.Renderers.SimRenderer;
 
 public class Renderer {
     private Viewport viewport;

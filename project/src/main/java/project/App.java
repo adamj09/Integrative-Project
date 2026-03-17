@@ -5,7 +5,6 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import project.Renderer.Viewport;
-import project.Renderer.ControlManager;
 import project.Renderer.Renderer;
 import project.UI.BottomPane;
 import project.UI.MainMenuBar;

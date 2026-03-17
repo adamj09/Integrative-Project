@@ -3,7 +3,7 @@ package project.Renderer.Camera;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import project.Renderer.ControlManager;
+import project.ControlManager;
 
 /**
  * Class that controls a camera in a first person style (without rolling).

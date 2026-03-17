@@ -1,4 +1,4 @@
-package project.Renderer;
+package project.Renderer.World;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;

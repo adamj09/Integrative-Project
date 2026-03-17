@@ -1,4 +1,4 @@
-package project.Renderer;
+package project.Renderer.World;
 
 import java.util.HashMap;
 

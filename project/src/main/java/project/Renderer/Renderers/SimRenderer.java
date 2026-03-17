@@ -1,4 +1,4 @@
-package project.Renderer;
+package project.Renderer.Renderers;
 
 import static org.lwjgl.opengl.GL41.*;
 
@@ -8,8 +8,10 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
+import project.Renderer.ShaderProgram;
 import project.Renderer.Camera.Camera;
 import project.Renderer.Model.Mesh;
+import project.Renderer.World.World;
 
 public class SimRenderer {
     private ShaderProgram shaderProgram;
