@@ -1,0 +1,95 @@
+package project.Renderer.RenderSystems;
+
+import project.Renderer.ShaderProgram;
+import project.Renderer.Camera.Camera;
+import project.Renderer.World.World;
+import project.Renderer.World.WorldObject;
+
+import static org.lwjgl.opengl.GL41.*;
+
+import java.nio.FloatBuffer;
+
+import org.lwjgl.BufferUtils;
+
+public class BodyRenderSystem {
+    private ShaderProgram shaderProgram;
+    private String vertexShaderPath = "project/shaders/body.vert", fragmentShaderPath = "project/shaders/body.frag";
+
+    private Camera camera;
+    private World world;
+    private WorldObject body;
+
+    private int VAO, EBO, VBO;
+    private int indexCount;
+
+    public BodyRenderSystem(World world, Camera camera) {
+        this.camera = camera;
+        this.world = world;
+        body = world.getBody();
+
+        init();
+    }
+
+    public void init() {
+        shaderProgram = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
+        shaderProgram.use();
+
+        setUpVertexBuffer();
+        setUpIndexBuffer();
+        setUpUniforms();
+    }
+
+    public void loop(float deltaTime) {
+        updateUniforms();
+        draw();
+    }
+
+    public void setUpVertexBuffer() {
+        body.getMesh().packVerticesIntoBuffer();
+        body.getMesh().packIndicesIntoBuffer();
+
+        VAO = glGenVertexArrays();
+        VBO = glGenBuffers();
+
+        glBindVertexArray(VAO);
+
+        shaderProgram.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 0, 3, 3 * Float.BYTES, VBO,
+                body.getMesh().getVertexBuffer());
+    }
+
+    public void setUpIndexBuffer() {
+        EBO = glGenBuffers();
+
+        shaderProgram.bindElementBuffer(EBO, body.getMesh().getIndexBuffer(), GL_STATIC_DRAW);
+        indexCount = body.getMesh().getIndices().size() * 3;
+    }
+
+    public void setUpUniforms() {
+        FloatBuffer colorBuffer = BufferUtils.createFloatBuffer(3);
+        shaderProgram.addFloatUniform("color", world.getBody().getColor().get(colorBuffer));
+
+        FloatBuffer modelMatrixBuffer = BufferUtils.createFloatBuffer(16);
+        shaderProgram.addFloatUniform("model", body.getTransformMatrix().get(modelMatrixBuffer));
+    }
+
+    public void updateUniforms() {
+        FloatBuffer viewMatrixBuffer = BufferUtils.createFloatBuffer(16);
+        shaderProgram.addFloatUniform("view", camera.getView().get(viewMatrixBuffer));
+
+        FloatBuffer projectionMatrixBuffer = BufferUtils.createFloatBuffer(16);
+        shaderProgram.addFloatUniform("projection", camera.getProjection().get(projectionMatrixBuffer));
+    }
+
+    public void draw() {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
+    }
+
+    public int getEBO() {
+        return EBO;
+    }
+
+    public int getIndexCount() {
+        return indexCount;
+    }
+}

@@ -15,25 +15,21 @@ public class App extends Application {
     public void start(Stage stage) {
         setSystemProperties();
 
-        Viewport viewport = new Viewport();
-
         BottomPane bottom = new BottomPane();
         MainMenuBar menuBar = new MainMenuBar();
         SidebarPane sidebar = new SidebarPane(bottom);
+
+        Renderer.init();
 
         // Wire menu bar buttons to sidebar actions
         menuBar.getNewBodyButton().setOnAction(e -> sidebar.openNewBodyPopup(stage));
         menuBar.getNewSatelliteButton().setOnAction(e -> sidebar.openNewSatellitePopup(stage));
 
         BorderPane root = new BorderPane();
-        root.setCenter(viewport.getGLCanvas());
+        root.setCenter(Renderer.viewport.getGLCanvas());
         root.setTop(menuBar);
         root.setLeft(sidebar);
         root.setBottom(bottom);
-
-        ControlManager controlManager = new ControlManager(viewport.getGLCanvas());
-
-        new Renderer(viewport, controlManager);
 
         // The "true" value here indicates the creation of a depth buffer. This is
         // essential to ensure all nodes are placed on appopriate layers (contol nodes
