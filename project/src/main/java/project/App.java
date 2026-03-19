@@ -38,6 +38,7 @@ public class App extends Application {
 
         scene.getStylesheets().add(new StyleSheet().styleSheet);
 
+        //TODO: make custom menu bar to replace OS default
         stage.setScene(scene);
         stage.setTitle("Orbital Motion Simulator");
         stage.setResizable(true);

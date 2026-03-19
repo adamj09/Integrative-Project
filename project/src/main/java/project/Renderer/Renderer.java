@@ -39,11 +39,16 @@ public class Renderer {
 
     private static void initOpenGLRenderEventHandlers() {
         viewport.getGLCanvas().addOnInitEvent(_ -> {
+            // Set up viewport resize handler
+            handleViewportResize();
+
+            // Create camera controller
             cameraController = new FirstPersonCameraController(simWorld.getCamera(), controlManager);
-            bodyRenderSystem = new BodyRenderSystem(simWorld, simWorld.getCamera());
 
-            handleWindowResize();
+            // Create render systems
+            bodyRenderSystem = new BodyRenderSystem(simWorld);
 
+            // Init render systems
             bodyRenderSystem.init();
         });
 
@@ -56,7 +61,7 @@ public class Renderer {
         cameraController.updateCameraTransform(deltaTime);
     }
 
-    private static void handleWindowResize() {
+    private static void handleViewportResize() {
         viewport.getGLCanvas().widthProperty().addListener(_ -> {
             setCameraProjection();
         });

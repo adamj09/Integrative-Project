@@ -22,9 +22,9 @@ public class BodyRenderSystem {
     private int VAO, EBO, VBO;
     private int indexCount;
 
-    public BodyRenderSystem(World world, Camera camera) {
-        this.camera = camera;
+    public BodyRenderSystem(World world) {
         this.world = world;
+        this.camera = world.getCamera();
         body = world.getBody();
 
         init();
@@ -34,6 +34,10 @@ public class BodyRenderSystem {
         shaderProgram = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
         shaderProgram.use();
 
+        setUpBuffers();
+    }
+
+    public void setUpBuffers() {
         setUpVertexBuffer();
         setUpIndexBuffer();
         setUpUniforms();
@@ -72,6 +76,7 @@ public class BodyRenderSystem {
         shaderProgram.addFloatUniform("model", body.getTransformMatrix().get(modelMatrixBuffer));
     }
 
+    // TODO: move matrix buffers to camera class so that we aren't recreating buffers for every shader program
     public void updateUniforms() {
         FloatBuffer viewMatrixBuffer = BufferUtils.createFloatBuffer(16);
         shaderProgram.addFloatUniform("view", camera.getView().get(viewMatrixBuffer));
@@ -91,5 +96,15 @@ public class BodyRenderSystem {
 
     public int getIndexCount() {
         return indexCount;
+    }
+
+    public void setWorld(World world) {
+        this.world = world;
+        this.camera = world.getCamera();
+        VAO = 0;
+        VBO = 0;
+        EBO = 0;
+
+        setUpBuffers();
     }
 }
