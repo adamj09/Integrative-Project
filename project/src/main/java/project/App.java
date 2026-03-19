@@ -4,7 +4,6 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import project.Renderer.Viewport;
 import project.Renderer.Renderer;
 import project.UI.BottomPane;
 import project.UI.MainMenuBar;
@@ -38,7 +37,6 @@ public class App extends Application {
 
         scene.getStylesheets().add(new StyleSheet().styleSheet);
 
-        //TODO: make custom menu bar to replace OS default
         stage.setScene(scene);
         stage.setTitle("Orbital Motion Simulator");
         stage.setResizable(true);

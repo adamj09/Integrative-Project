@@ -20,9 +20,6 @@ public class MainMenuBar extends HBox {
         setAlignment(Pos.CENTER_LEFT);
         getStyleClass().add("main-menu-bar");
 
-        Label title = new Label("Orbital Motion Simulator");
-        title.getStyleClass().add("heading");
-
         newBodyButton = new Button("New celestial body");
         newBodyButton.getStyleClass().add("style-button");
 
@@ -34,12 +31,10 @@ public class MainMenuBar extends HBox {
 
         infoButton = new Button("INFO");
         infoButton.getStyleClass().add("style-button");
+        
+        this.setOnMouseClicked(_ -> this.requestFocus());
 
-        // Request focus on the pane when mouse is clicked on it (allows for user to
-        // switch between controller UI and simulation camera)
-        //this.setOnMouseClicked(_ -> this.requestFocus());
-
-        getChildren().addAll(title, newBodyButton, newSatelliteButton, spacer, infoButton);
+        getChildren().addAll(newBodyButton, newSatelliteButton, spacer, infoButton);
     }
 
     public Button getNewBodyButton() {
