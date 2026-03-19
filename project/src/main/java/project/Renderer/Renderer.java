@@ -4,21 +4,21 @@ import static org.lwjgl.opengl.GL41.*;
 
 import project.ControlManager;
 import project.Renderer.Camera.FirstPersonCameraController;
-import project.Renderer.RenderSystems.BodyRenderSystem;
 import project.Renderer.World.World;
 
 public class Renderer {
     public static Viewport viewport = new Viewport();
+
     public static final float DEFAULT_FOV = 90.f;
     public static final float DEFAULT_NEAR = 0.001f;
     public static final float DEFAULT_FAR = 1000.0f;
 
     // TODO: replace this with access to celestial body database
-    public static World simWorld = new World("test");
+    public static World simWorld;
 
-    private static BodyRenderSystem bodyRenderSystem;
+    private static RenderSystem renderSystem;
 
-    private static ControlManager controlManager = new ControlManager(viewport.getGLCanvas());
+    private static ControlManager controlManager;
     private static FirstPersonCameraController cameraController;
 
     public static void init() {
@@ -26,7 +26,7 @@ public class Renderer {
     }
 
     private static void loop(float deltaTime) {
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.1f, 0.1f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         controlManager.updateMousePosition();
@@ -34,11 +34,14 @@ public class Renderer {
 
         updateCamera(deltaTime);
 
-        bodyRenderSystem.loop(deltaTime);
+        renderSystem.loop(deltaTime);
     }
 
     private static void initOpenGLRenderEventHandlers() {
         viewport.getGLCanvas().addOnInitEvent(_ -> {
+            simWorld = new World("test");
+            controlManager = new ControlManager(viewport.getGLCanvas());
+
             // Set up viewport resize handler
             handleViewportResize();
 
@@ -46,10 +49,7 @@ public class Renderer {
             cameraController = new FirstPersonCameraController(simWorld.getCamera(), controlManager);
 
             // Create render systems
-            bodyRenderSystem = new BodyRenderSystem(simWorld);
-
-            // Init render systems
-            bodyRenderSystem.init();
+            renderSystem = new RenderSystem(simWorld);
         });
 
         viewport.getGLCanvas().addOnRenderEvent(event -> {
@@ -72,8 +72,8 @@ public class Renderer {
     }
 
     private static void setCameraProjection() {
-        simWorld.getCamera().setPerspectiveProjection((float) Math.toRadians(90.0f),
-                (float) viewport.getGLCanvas().getWidth() / (float) viewport.getGLCanvas().getHeight(), 0.001f,
-                1000.0f);
+        simWorld.getCamera().setPerspectiveProjection((float) Math.toRadians(DEFAULT_FOV),
+                (float) viewport.getGLCanvas().getWidth() / (float) viewport.getGLCanvas().getHeight(), DEFAULT_NEAR,
+                DEFAULT_FAR);
     }
 }

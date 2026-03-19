@@ -1,6 +1,5 @@
-package project.Renderer.RenderSystems;
+package project.Renderer;
 
-import project.Renderer.ShaderProgram;
 import project.Renderer.Camera.Camera;
 import project.Renderer.World.World;
 import project.Renderer.World.WorldObject;
@@ -11,10 +10,7 @@ import java.nio.FloatBuffer;
 
 import org.lwjgl.BufferUtils;
 
-public class BodyRenderSystem {
-    private ShaderProgram shaderProgram;
-    private String vertexShaderPath = "project/shaders/body.vert", fragmentShaderPath = "project/shaders/body.frag";
-
+public class RenderSystem {
     private Camera camera;
     private World world;
     private WorldObject body;
@@ -22,7 +18,10 @@ public class BodyRenderSystem {
     private int VAO, EBO, VBO;
     private int indexCount;
 
-    public BodyRenderSystem(World world) {
+    private static ShaderProgram shaderProgram;
+    private static String vertexShaderPath = "project/shaders/main.vert", fragmentShaderPath = "project/shaders/main.frag";
+
+    public RenderSystem(World world) {
         this.world = world;
         this.camera = world.getCamera();
         body = world.getBody();
@@ -31,6 +30,7 @@ public class BodyRenderSystem {
     }
 
     public void init() {
+        // Set up and use shader program
         shaderProgram = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
         shaderProgram.use();
 
@@ -69,20 +69,19 @@ public class BodyRenderSystem {
     }
 
     public void setUpUniforms() {
-        FloatBuffer colorBuffer = BufferUtils.createFloatBuffer(3);
-        shaderProgram.addFloatUniform("color", world.getBody().getColor().get(colorBuffer));
+        shaderProgram.addFloatUniformVec4("color", world.getBody().getColor());
 
         FloatBuffer modelMatrixBuffer = BufferUtils.createFloatBuffer(16);
-        shaderProgram.addFloatUniform("model", body.getTransformMatrix().get(modelMatrixBuffer));
+        shaderProgram.addFloatUniformMat4("model", body.getTransformMatrix().get(modelMatrixBuffer));
     }
 
     // TODO: move matrix buffers to camera class so that we aren't recreating buffers for every shader program
     public void updateUniforms() {
         FloatBuffer viewMatrixBuffer = BufferUtils.createFloatBuffer(16);
-        shaderProgram.addFloatUniform("view", camera.getView().get(viewMatrixBuffer));
+        shaderProgram.addFloatUniformMat4("view", camera.getView().get(viewMatrixBuffer));
 
         FloatBuffer projectionMatrixBuffer = BufferUtils.createFloatBuffer(16);
-        shaderProgram.addFloatUniform("projection", camera.getProjection().get(projectionMatrixBuffer));
+        shaderProgram.addFloatUniformMat4("projection", camera.getProjection().get(projectionMatrixBuffer));
     }
 
     public void draw() {

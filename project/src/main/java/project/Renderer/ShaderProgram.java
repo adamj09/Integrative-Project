@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
 
+import org.joml.Vector4f;
+
 public class ShaderProgram {
     private int ID;
 
@@ -77,8 +79,12 @@ public class ShaderProgram {
         glUseProgram(ID);
     }
 
-    public void addFloatUniform(String name, FloatBuffer buffer) {
+    public void addFloatUniformMat4(String name, FloatBuffer buffer) {
         glUniformMatrix4fv(glGetUniformLocation(ID, name), false, buffer);
+    }
+
+    public void addFloatUniformVec4(String name, Vector4f vec) {
+        glUniform4f(glGetUniformLocation(ID, name), vec.x, vec.y, vec.z, vec.w);
     }
 
     public void bindVertexBuffer(int bufferType, int usage, int location, int valueCount, int stride, int glBuffer, FloatBuffer data) {

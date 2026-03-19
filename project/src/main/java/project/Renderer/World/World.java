@@ -3,6 +3,7 @@ package project.Renderer.World;
 import java.util.HashMap;
 
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import project.Renderer.Renderer;
 import project.Renderer.Camera.Camera;
@@ -18,7 +19,7 @@ public class World {
 
     public World(String name) {
         sphere = sphereGenerator.create(2);
-        body = new WorldObject(name, sphere, new Vector3f(1.0f, 0.0f, 0.0f));
+        body = new WorldObject(name, sphere, new Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
 
         initCamera();
         loadSatellites();
@@ -30,10 +31,10 @@ public class World {
     }
 
     private void initCamera() {
-        camera.setView(new Vector3f(0.f, 0.f, -5.f), new Vector3f(0.f, 0.f, -1.f));
+        camera.setView(new Vector3f(0.f, 0.f, -5.f), new Vector3f(0.f, 0.f, 1.f));
 
         camera.setPerspectiveProjection((float) Math.toRadians(Renderer.DEFAULT_FOV),
-                (float) (Renderer.viewport.getGLCanvas().getWidth() / Renderer.viewport.getGLCanvas().getHeight()),
+                (float)Renderer.viewport.getGLCanvas().getWidth() / (float)Renderer.viewport.getGLCanvas().getHeight(),
                 Renderer.DEFAULT_NEAR, Renderer.DEFAULT_FAR);
     }
 
