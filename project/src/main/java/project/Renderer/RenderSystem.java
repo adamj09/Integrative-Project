@@ -6,7 +6,6 @@ import project.Renderer.World.WorldObject;
 
 import static org.lwjgl.opengl.GL41.*;
 
-import java.nio.Buffer;
 import java.nio.FloatBuffer;
 
 import org.lwjgl.BufferUtils;
@@ -16,7 +15,7 @@ public class RenderSystem {
     private World world;
     private WorldObject body;
 
-    private int VAO, EBO, VBO;
+    private int VAO, EBO, vboVertices, vboColors;
     private int uboMatrices;
     private int indexCount;
 
@@ -27,7 +26,9 @@ public class RenderSystem {
     public RenderSystem(World world) {
         this.world = world;
         this.camera = world.getCamera();
-        body = world.getBody();
+        this.body = world.getBody();
+
+        this.world.packColorsIntoBuffer();
 
         init();
     }
@@ -58,18 +59,35 @@ public class RenderSystem {
         body.getMesh().packIndicesIntoBuffer();
 
         VAO = glGenVertexArrays();
-        VBO = glGenBuffers();
+        vboVertices = glGenBuffers();
+        vboColors = glGenBuffers();
 
         glBindVertexArray(VAO);
 
-        BufferTools.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 0, 3, 3 * Float.BYTES, VBO,
-                body.getMesh().getVertexBuffer());
+        // Vertices
+        glBindBuffer(GL_ARRAY_BUFFER, vboVertices);
+        glBufferData(GL_ARRAY_BUFFER, body.getMesh().getVertexBuffer(), GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * Float.BYTES, 0);
+        glEnableVertexAttribArray(0);
+        
+        // Colors
+        glBindBuffer(GL_ARRAY_BUFFER, vboColors);
+        glBufferData(GL_ARRAY_BUFFER, world.getColorsBuffer(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, vboColors);
+        glVertexAttribPointer(1, 4, GL_FLOAT, false, 4 * Float.BYTES, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glVertexAttribDivisor(1, 4);
     }
 
     private void setUpIndexBuffer() {
         EBO = glGenBuffers();
 
-        BufferTools.bindElementBuffer(EBO, body.getMesh().getIndexBuffer(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, body.getMesh().getIndexBuffer(), GL_STATIC_DRAW);
+
         indexCount = body.getMesh().getIndices().size() * 3;
     }
 
@@ -82,7 +100,10 @@ public class RenderSystem {
         uboMatrices = glGenBuffers();
         int size = 2 * Float.BYTES * 16;
 
-        BufferTools.bindUniformBufferObject(uboMatrices, size, GL_STATIC_DRAW, 0);
+        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+        glBufferData(GL_UNIFORM_BUFFER, size, GL_STATIC_DRAW);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, size);
 
         FloatBuffer modelMatrixBuffer = BufferUtils.createFloatBuffer(16);
         shaderProgram.addUniformMat4f("model", body.getTransformMatrix().get(modelMatrixBuffer));
@@ -90,11 +111,14 @@ public class RenderSystem {
 
     private void updateUniforms() {
         FloatBuffer projectionMatrixBuffer = BufferUtils.createFloatBuffer(16);
-        BufferTools.updateUniformBufferFloatData(uboMatrices, 0,
-                camera.getProjection().get(projectionMatrixBuffer), 0);
+        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, camera.getProjection().get(projectionMatrixBuffer));
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         FloatBuffer viewMatrixBuffer = BufferUtils.createFloatBuffer(16);
-        BufferTools.updateUniformBufferFloatData(uboMatrices, Float.BYTES * 16, camera.getView().get(viewMatrixBuffer), 0);
+        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+        glBufferSubData(GL_UNIFORM_BUFFER, Float.BYTES * 16, camera.getView().get(viewMatrixBuffer));
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 
     private void draw() {
@@ -114,7 +138,8 @@ public class RenderSystem {
         this.world = world;
         this.camera = world.getCamera();
         VAO = 0;
-        VBO = 0;
+        vboVertices = 0;
+        vboColors = 0;
         EBO = 0;
 
         setUpBuffers();
