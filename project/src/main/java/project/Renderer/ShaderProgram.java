@@ -11,7 +11,6 @@ import java.util.concurrent.Executors;
 import static org.lwjgl.opengl.GL41.*;
 
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -32,7 +31,6 @@ public class ShaderProgram {
             fragmentShaderSource = futures.get(1).get();
 
             executor.shutdown();
-
         } catch (InterruptedException | ExecutionException ex) {
             System.err.println(ex.getMessage());
             System.exit(1);
@@ -79,24 +77,12 @@ public class ShaderProgram {
         glUseProgram(ID);
     }
 
-    public void addFloatUniformMat4(String name, FloatBuffer buffer) {
+    public void addUniformMat4f(String name, FloatBuffer buffer) {
         glUniformMatrix4fv(glGetUniformLocation(ID, name), false, buffer);
     }
 
-    public void addFloatUniformVec4(String name, Vector4f vec) {
+    public void addUniformVec4f(String name, Vector4f vec) {
         glUniform4f(glGetUniformLocation(ID, name), vec.x, vec.y, vec.z, vec.w);
-    }
-
-    public void bindVertexBuffer(int bufferType, int usage, int location, int valueCount, int stride, int glBuffer, FloatBuffer data) {
-        glBindBuffer(bufferType, glBuffer);
-        glBufferData(bufferType, data, usage);
-        glVertexAttribPointer(location, valueCount, GL_FLOAT, false, valueCount * Float.BYTES, 0);
-        glEnableVertexAttribArray(location);
-    }
-
-    public void bindElementBuffer(int glBuffer, IntBuffer data, int usage) {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glBuffer);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, data, usage);
     }
 
     private class ShaderLoaderTask implements Callable<String> {

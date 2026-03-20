@@ -6,6 +6,7 @@ import project.Renderer.World.WorldObject;
 
 import static org.lwjgl.opengl.GL41.*;
 
+import java.nio.Buffer;
 import java.nio.FloatBuffer;
 
 import org.lwjgl.BufferUtils;
@@ -16,10 +17,12 @@ public class RenderSystem {
     private WorldObject body;
 
     private int VAO, EBO, VBO;
+    private int uboMatrices;
     private int indexCount;
 
     private static ShaderProgram shaderProgram;
-    private static String vertexShaderPath = "project/shaders/main.vert", fragmentShaderPath = "project/shaders/main.frag";
+    private static String vertexShaderPath = "project/shaders/main.vert",
+            fragmentShaderPath = "project/shaders/main.frag";
 
     public RenderSystem(World world) {
         this.world = world;
@@ -34,13 +37,9 @@ public class RenderSystem {
         shaderProgram = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
         shaderProgram.use();
 
-        setUpBuffers();
-    }
+        glEnable(GL_DEPTH_TEST);
 
-    public void setUpBuffers() {
-        setUpVertexBuffer();
-        setUpIndexBuffer();
-        setUpUniforms();
+        setUpBuffers();
     }
 
     public void loop(float deltaTime) {
@@ -48,7 +47,13 @@ public class RenderSystem {
         draw();
     }
 
-    public void setUpVertexBuffer() {
+    private void setUpBuffers() {
+        setUpVertexBuffer();
+        setUpIndexBuffer();
+        setUpUniforms();
+    }
+
+    private void setUpVertexBuffer() {
         body.getMesh().packVerticesIntoBuffer();
         body.getMesh().packIndicesIntoBuffer();
 
@@ -57,34 +62,42 @@ public class RenderSystem {
 
         glBindVertexArray(VAO);
 
-        shaderProgram.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 0, 3, 3 * Float.BYTES, VBO,
+        BufferTools.bindVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 0, 3, 3 * Float.BYTES, VBO,
                 body.getMesh().getVertexBuffer());
     }
 
-    public void setUpIndexBuffer() {
+    private void setUpIndexBuffer() {
         EBO = glGenBuffers();
 
-        shaderProgram.bindElementBuffer(EBO, body.getMesh().getIndexBuffer(), GL_STATIC_DRAW);
+        BufferTools.bindElementBuffer(EBO, body.getMesh().getIndexBuffer(), GL_STATIC_DRAW);
         indexCount = body.getMesh().getIndices().size() * 3;
     }
 
-    public void setUpUniforms() {
-        shaderProgram.addFloatUniformVec4("color", world.getBody().getColor());
+    private void setUpUniforms() {
+        shaderProgram.addUniformVec4f("color", world.getBody().getColor());
+
+        int uniformBlockIndex = glGetUniformBlockIndex(shaderProgram.getID(), "Matrices");
+        glUniformBlockBinding(shaderProgram.getID(), uniformBlockIndex, 0);
+
+        uboMatrices = glGenBuffers();
+        int size = 2 * Float.BYTES * 16;
+
+        BufferTools.bindUniformBufferObject(uboMatrices, size, GL_STATIC_DRAW, 0);
 
         FloatBuffer modelMatrixBuffer = BufferUtils.createFloatBuffer(16);
-        shaderProgram.addFloatUniformMat4("model", body.getTransformMatrix().get(modelMatrixBuffer));
+        shaderProgram.addUniformMat4f("model", body.getTransformMatrix().get(modelMatrixBuffer));
     }
 
-    // TODO: move matrix buffers to camera class so that we aren't recreating buffers for every shader program
-    public void updateUniforms() {
-        FloatBuffer viewMatrixBuffer = BufferUtils.createFloatBuffer(16);
-        shaderProgram.addFloatUniformMat4("view", camera.getView().get(viewMatrixBuffer));
-
+    private void updateUniforms() {
         FloatBuffer projectionMatrixBuffer = BufferUtils.createFloatBuffer(16);
-        shaderProgram.addFloatUniformMat4("projection", camera.getProjection().get(projectionMatrixBuffer));
+        BufferTools.updateUniformBufferFloatData(uboMatrices, 0,
+                camera.getProjection().get(projectionMatrixBuffer), 0);
+
+        FloatBuffer viewMatrixBuffer = BufferUtils.createFloatBuffer(16);
+        BufferTools.updateUniformBufferFloatData(uboMatrices, Float.BYTES * 16, camera.getView().get(viewMatrixBuffer), 0);
     }
 
-    public void draw() {
+    private void draw() {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
     }

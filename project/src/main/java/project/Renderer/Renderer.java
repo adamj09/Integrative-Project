@@ -39,11 +39,11 @@ public class Renderer {
 
     private static void initOpenGLRenderEventHandlers() {
         viewport.getGLCanvas().addOnInitEvent(_ -> {
-            simWorld = new World("test");
-            controlManager = new ControlManager(viewport.getGLCanvas());
-
             // Set up viewport resize handler
             handleViewportResize();
+
+            simWorld = new World("test");
+            controlManager = new ControlManager(viewport.getGLCanvas());
 
             // Create camera controller
             cameraController = new FirstPersonCameraController(simWorld.getCamera(), controlManager);
