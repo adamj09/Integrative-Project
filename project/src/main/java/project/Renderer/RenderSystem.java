@@ -7,6 +7,7 @@ import project.Renderer.World.WorldObject;
 import static org.lwjgl.opengl.GL41.*;
 
 import java.nio.FloatBuffer;
+import java.util.Map;
 
 import org.lwjgl.BufferUtils;
 
@@ -15,7 +16,7 @@ public class RenderSystem {
     private World world;
     private WorldObject body;
 
-    private int VAO, EBO, vboVertices, vboColors;
+    private int VAO, EBO, vboVertices, vboColors, vboModelMatrices;
     private int uboMatrices;
     private int indexCount;
 
@@ -49,12 +50,12 @@ public class RenderSystem {
     }
 
     private void setUpBuffers() {
-        setUpVertexBuffer();
+        setUpVertexBuffers();
         setUpIndexBuffer();
         setUpUniforms();
     }
 
-    private void setUpVertexBuffer() {
+    private void setUpVertexBuffers() {
         body.getMesh().packVerticesIntoBuffer();
         body.getMesh().packIndicesIntoBuffer();
 
@@ -79,7 +80,16 @@ public class RenderSystem {
         glBindBuffer(GL_ARRAY_BUFFER, vboColors);
         glVertexAttribPointer(1, 4, GL_FLOAT, false, 4 * Float.BYTES, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glVertexAttribDivisor(1, 4);
+        glVertexAttribDivisor(1, 1);
+
+        // Model Matrices (for satellites and body)
+        vboModelMatrices = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
+        glBufferData(GL_ARRAY_BUFFER, (world.getSatellites().size() + 1) * 16 * Float.BYTES, GL_STATIC_DRAW);
+
+        for(Map.Entry<String, WorldObject> set : world.getSatellites().entrySet()) {
+            
+        }
     }
 
     private void setUpIndexBuffer() {
@@ -123,7 +133,7 @@ public class RenderSystem {
 
     private void draw() {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
+        glDrawElementsInstanced(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0, 1);
     }
 
     public int getEBO() {

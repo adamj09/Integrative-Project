@@ -15,6 +15,8 @@ public class Mesh {
     private FloatBuffer vertexBuffer;
     private IntBuffer indexBuffer;
 
+    //TODO: add per-mesh VAO
+
     public Mesh(ArrayList<Vector3f> vertices, ArrayList<Vector3i> indices) {
         this.vertices = vertices;
         this.indices = indices;

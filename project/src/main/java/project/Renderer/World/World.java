@@ -16,15 +16,13 @@ import project.Renderer.Model.SphereGenerator;
 public class World {
     private HashMap<String, WorldObject> satellites = new HashMap<>();
     private WorldObject body;
-    private SphereGenerator sphereGenerator = new SphereGenerator();
-    private Mesh sphere;
+    private Mesh sphere = new SphereGenerator().create(2);
     private Camera camera = new Camera();
 
     private FloatBuffer colorsBuffer;
 
     public World(String name) {
-        sphere = sphereGenerator.create(2);
-        body = new WorldObject(name, sphere, new Vector4f(1.0f, 0.0f, 1.0f, 1.0f));
+        body = new WorldObject(name, sphere, new Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
 
         initCamera();
         loadSatellites();
@@ -38,12 +36,12 @@ public class World {
     public void packColorsIntoBuffer() {
         colorsBuffer = BufferUtils.createFloatBuffer(4 * (satellites.size() + 1));
 
-        float[] colors = new float[satellites.size() + 1];
+        float[] colors = new float[4 * (satellites.size() + 1)];
         colors[0] = body.getColor().x;
         colors[1] = body.getColor().y;
         colors[2] = body.getColor().z;
         colors[3] = body.getColor().w;
-
+                      
         int i = 4;
         for (Map.Entry<String, WorldObject> set : satellites.entrySet()) {
             colors[i] = set.getValue().getColor().x;
@@ -65,7 +63,7 @@ public class World {
                 Renderer.DEFAULT_NEAR, Renderer.DEFAULT_FAR);
     }
 
-    public HashMap<String, WorldObject> getObjects() {
+    public HashMap<String, WorldObject> getSatellites() {
         return this.satellites;
     }
 
