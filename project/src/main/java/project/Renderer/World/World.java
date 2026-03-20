@@ -22,11 +22,6 @@ public class World {
 
     private FloatBuffer colorsBuffer;
 
-    // TODO: left off here, need to pack all vertices and indices from all meshes
-    // into buffers for rendering
-    private FloatBuffer verticesBuffer;
-    private FloatBuffer indicesBuffer;
-
     public World(String name) {
         sphere = sphereGenerator.create(2);
         body = new WorldObject(name, sphere, new Vector4f(1.0f, 0.0f, 1.0f, 1.0f));
