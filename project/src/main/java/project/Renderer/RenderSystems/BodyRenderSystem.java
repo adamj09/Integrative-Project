@@ -1,19 +1,15 @@
-package project.Renderer;
+package project.Renderer.RenderSystems;
 
+import project.Renderer.ShaderProgram;
 import project.Renderer.Camera.Camera;
 import project.Renderer.World.World;
-import project.Renderer.World.WorldObject;
-
 import static org.lwjgl.opengl.GL41.*;
 
 import java.nio.FloatBuffer;
 
-import org.joml.Vector3f;
-import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
 
-public class RenderSystem {
-    private static int test = 0;
+public class BodyRenderSystem {
     private Camera camera;
     private World world;
 
@@ -21,12 +17,12 @@ public class RenderSystem {
     private int uboMatrices;
 
     private static ShaderProgram shaderProgram;
-    private static String vertexShaderPath = "project/shaders/main.vert",
-            fragmentShaderPath = "project/shaders/main.frag";
+    private static String vertexShaderPath = "project/shaders/body.vert",
+            fragmentShaderPath = "project/shaders/body.frag";
 
     private final int MAT4F_SIZE = 16 * Float.BYTES, VEC4F_SIZE = 4 * Float.BYTES;
 
-    public RenderSystem(World world) {
+    public BodyRenderSystem(World world) {
         this.world = world;
         this.camera = world.getCamera();
 
@@ -96,8 +92,6 @@ public class RenderSystem {
     }
 
     private void setUpUniforms() {
-        shaderProgram.addUniformVec4f("color", world.getBody().getColor());
-
         int uniformBlockIndex = glGetUniformBlockIndex(shaderProgram.getID(), "Matrices");
         glUniformBlockBinding(shaderProgram.getID(), uniformBlockIndex, 0);
 
@@ -131,7 +125,7 @@ public class RenderSystem {
 
     private void draw() {
         glBindVertexArray(world.getSphere().getVAO());
-        glDrawElementsInstanced(GL_TRIANGLES, world.getSphere().getIndices().size() * 3, GL_UNSIGNED_INT, 0, world.getSatellites().size() + 1);
+        glDrawElementsInstanced(GL_TRIANGLES, world.getSphere().getIndices().size() * 3, GL_UNSIGNED_INT, 0, world.getBodies().size() + 1);
     }
 
     public void setWorld(World world) {

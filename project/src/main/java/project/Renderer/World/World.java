@@ -14,46 +14,42 @@ import project.Renderer.Model.Mesh;
 import project.Renderer.Model.SphereGenerator;
 
 public class World {
-    private HashMap<String, WorldObject> satellites = new HashMap<>();
-    private WorldObject body;
+    private HashMap<String, WorldObject> bodies = new HashMap<>();
     private Mesh sphere = new SphereGenerator().create(2);
     private Camera camera = new Camera();
 
     private FloatBuffer colorsBuffer;
     private FloatBuffer matricesBuffer;
 
-    public World(String name) {
-        body = new WorldObject(name, sphere, new Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
-
+    public World() {
         initCamera();
-        loadSatellites();
+        loadWorld();
 
-        colorsBuffer = BufferUtils.createFloatBuffer(4 * (satellites.size() + 1));
-        matricesBuffer = BufferUtils.createFloatBuffer(16 * (satellites.size() + 1));
+        colorsBuffer = BufferUtils.createFloatBuffer(4 * bodies.size());
+        matricesBuffer = BufferUtils.createFloatBuffer(16 * bodies.size());
 
         updateColorBuffer();
         updateMatrixBuffer();
     }
 
-    private void loadSatellites() {
-        WorldObject satellite = new WorldObject("test satellite", sphere, new Vector4f(1.0f, 0.0f, 0.0f, 1.0f));
+    private void loadWorld() {
+        WorldObject body = new WorldObject("body", sphere, new Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+
+        WorldObject satellite = new WorldObject("test", sphere, new Vector4f(1.0f, 0.0f, 0.0f, 1.0f));
         satellite.setTranslation(new Vector3f(-10.f, 0.f, 0.f));
         satellite.setScale(new Vector3f(0.5f, 0.5f, 0.5f));
-        satellites.put(satellite.getName(), satellite);
+
+        bodies.put(body.getName(), body);
+        bodies.put(satellite.getName(), satellite);
     }
 
     public void updateColorBuffer() {
         colorsBuffer.clear();
 
         float[] colors = new float[colorsBuffer.capacity()];
-        Vector4f colorBody = body.getColor();
-        colors[0] = colorBody.x;
-        colors[1] = colorBody.y;
-        colors[2] = colorBody.z;
-        colors[3] = colorBody.w;
-                      
-        int i = 4;
-        for (Map.Entry<String, WorldObject> set : satellites.entrySet()) {
+
+        int i = 0;
+        for (Map.Entry<String, WorldObject> set : bodies.entrySet()) {
             Vector4f color = set.getValue().getColor();
             colors[i] = color.x;
             colors[i + 1] = color.y;
@@ -69,10 +65,9 @@ public class World {
         matricesBuffer.clear();
 
         float[] matrices = new float[matricesBuffer.capacity()];
-        body.getTransformMatrix().get(matrices);
 
-        int i = 1;
-        for(Map.Entry<String, WorldObject> set : satellites.entrySet()) {
+        int i = 0;
+        for(Map.Entry<String, WorldObject> set : bodies.entrySet()) {
             set.getValue().getTransformMatrix().get(matrices, 16 * i);
         }
 
@@ -88,12 +83,27 @@ public class World {
                 Renderer.DEFAULT_NEAR, Renderer.DEFAULT_FAR);
     }
 
-    public HashMap<String, WorldObject> getSatellites() {
-        return this.satellites;
+    public void addBody(WorldObject body) {
+        if(bodies.containsKey(body.getName())) {
+            // TODO: handle this case by notifying user a body with this name already exists
+            return;
+        }
+
+        bodies.put(body.getName(), body);
+
+        updateColorBuffer();
+        updateMatrixBuffer();
     }
 
-    public WorldObject getBody() {
-        return this.body;
+    public void removeBody(String name) {
+        bodies.remove(name);
+
+        updateColorBuffer();
+        updateMatrixBuffer();
+    }
+
+    public HashMap<String, WorldObject> getBodies() {
+        return this.bodies;
     }
 
     public Camera getCamera() {

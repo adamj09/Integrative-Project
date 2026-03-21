@@ -4,6 +4,7 @@ import static org.lwjgl.opengl.GL41.*;
 
 import project.ControlManager;
 import project.Renderer.Camera.FirstPersonCameraController;
+import project.Renderer.RenderSystems.BodyRenderSystem;
 import project.Renderer.World.World;
 
 public class Renderer {
@@ -16,7 +17,7 @@ public class Renderer {
     // TODO: replace this with access to celestial body database
     public static World simWorld;
 
-    private static RenderSystem renderSystem;
+    private static BodyRenderSystem renderSystem;
 
     private static ControlManager controlManager;
     private static FirstPersonCameraController cameraController;
@@ -49,7 +50,7 @@ public class Renderer {
             cameraController = new FirstPersonCameraController(simWorld.getCamera(), controlManager);
 
             // Create render systems
-            renderSystem = new RenderSystem(simWorld);
+            renderSystem = new BodyRenderSystem(simWorld);
         });
 
         viewport.getGLCanvas().addOnRenderEvent(event -> {
