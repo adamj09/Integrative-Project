@@ -13,12 +13,11 @@ public class BodyRenderSystem {
     private Camera camera;
     private World world;
 
-    private int vboColors, vboModelMatrices;
-    private int uboMatrices;
+    private int vboColors,
+            vboModelMatrices,
+            uboCameraMatrices;
 
     private static ShaderProgram shaderProgram;
-    private static String vertexShaderPath = "project/shaders/body.vert",
-            fragmentShaderPath = "project/shaders/body.frag";
 
     private final int MAT4F_SIZE = 16 * Float.BYTES, VEC4F_SIZE = 4 * Float.BYTES;
 
@@ -31,7 +30,7 @@ public class BodyRenderSystem {
 
     public void init() {
         // Set up and use shader program
-        shaderProgram = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
+        shaderProgram = new ShaderProgram("project/shaders/body.vert", "project/shaders/body.frag");
         shaderProgram.use();
 
         glEnable(GL_DEPTH_TEST);
@@ -92,26 +91,26 @@ public class BodyRenderSystem {
     }
 
     private void setUpUniforms() {
-        int uniformBlockIndex = glGetUniformBlockIndex(shaderProgram.getID(), "Matrices");
+        int uniformBlockIndex = glGetUniformBlockIndex(shaderProgram.getID(), "CameraMatrices");
         glUniformBlockBinding(shaderProgram.getID(), uniformBlockIndex, 0);
 
-        uboMatrices = glGenBuffers();
+        uboCameraMatrices = glGenBuffers();
         int size = 2 * MAT4F_SIZE;
 
-        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+        glBindBuffer(GL_UNIFORM_BUFFER, uboCameraMatrices);
         glBufferData(GL_UNIFORM_BUFFER, size, GL_STATIC_DRAW);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
-        glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, size);
+        glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboCameraMatrices, 0, size);
     }
 
     private void update() {
         FloatBuffer projectionMatrixBuffer = BufferUtils.createFloatBuffer(16);
-        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+        glBindBuffer(GL_UNIFORM_BUFFER, uboCameraMatrices);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, camera.getProjection().get(projectionMatrixBuffer));
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         FloatBuffer viewMatrixBuffer = BufferUtils.createFloatBuffer(16);
-        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+        glBindBuffer(GL_UNIFORM_BUFFER, uboCameraMatrices);
         glBufferSubData(GL_UNIFORM_BUFFER, MAT4F_SIZE, camera.getView().get(viewMatrixBuffer));
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
@@ -125,7 +124,8 @@ public class BodyRenderSystem {
 
     private void draw() {
         glBindVertexArray(world.getSphere().getVAO());
-        glDrawElementsInstanced(GL_TRIANGLES, world.getSphere().getIndices().size() * 3, GL_UNSIGNED_INT, 0, world.getBodies().size() + 1);
+        glDrawElementsInstanced(GL_TRIANGLES, world.getSphere().getIndices().size() * 3, GL_UNSIGNED_INT, 0,
+                world.getBodies().size());
     }
 
     public void setWorld(World world) {

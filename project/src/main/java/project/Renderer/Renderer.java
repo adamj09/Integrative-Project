@@ -43,7 +43,7 @@ public class Renderer {
             // Set up viewport resize handler
             handleViewportResize();
 
-            simWorld = new World("test");
+            simWorld = new World();
             controlManager = new ControlManager(viewport.getGLCanvas());
 
             // Create camera controller

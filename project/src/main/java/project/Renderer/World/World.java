@@ -69,6 +69,7 @@ public class World {
         int i = 0;
         for(Map.Entry<String, WorldObject> set : bodies.entrySet()) {
             set.getValue().getTransformMatrix().get(matrices, 16 * i);
+            i++;
         }
 
         matricesBuffer.put(matrices).flip();
