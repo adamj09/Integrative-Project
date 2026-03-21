@@ -2,37 +2,45 @@ package project.Renderer.RenderSystems;
 
 import project.Renderer.Renderer;
 import project.Renderer.World.World;
+
 import static org.lwjgl.opengl.GL41.*;
 
-public class BodyRenderSystem {
+import java.nio.FloatBuffer;
+
+import org.lwjgl.BufferUtils;
+
+public class LightRenderSystem {
     private World world;
 
-    private int vboColors,
-            vboModelMatrices;
+    private FloatBuffer colorBuffer = BufferUtils.createFloatBuffer(3), matrixBuffer = BufferUtils.createFloatBuffer(16);
 
-    public BodyRenderSystem(World world) {
+    private int vboColor, vboModelMatrix;
+
+    public LightRenderSystem(World world) {
         this.world = world;
+
         init();
     }
 
     public void init() {
-        glBindVertexArray(world.getBodyMesh().getVAO());
+        glBindVertexArray(world.getLightSource().getMesh().getVAO());
 
-        // Colors
-        vboColors = glGenBuffers();
-        glBindBuffer(GL_ARRAY_BUFFER, vboColors);
-        glBufferData(GL_ARRAY_BUFFER, world.getColorsBuffer(), GL_STATIC_DRAW);
-
+        // Color
+        vboColor = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, vboColor);
+        glBufferData(GL_ARRAY_BUFFER, world.getLightSource().getColor().get(colorBuffer), GL_STATIC_DRAW);
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 3, GL_FLOAT, false, Renderer.VEC3F_SIZE, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+        
         glVertexAttribDivisor(1, 1);
 
-        // Model Matrices
-        vboModelMatrices = glGenBuffers();
-        glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
-        glBufferData(GL_ARRAY_BUFFER, world.getMatricesBuffer(), GL_STATIC_DRAW);
+        // Model Matrix
+        vboModelMatrix = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrix);
+        glBufferData(GL_ARRAY_BUFFER, world.getLightSource().getTransformMatrix().get(matrixBuffer), GL_STATIC_DRAW);
+
+        glBindVertexArray(world.getLightSource().getMesh().getVAO());
 
         // Model matrix attribute pointers. Note that we need to do this four times,
         // since the maximum size of an attribute is equivalent to a Vector4f. I.e.
@@ -58,23 +66,7 @@ public class BodyRenderSystem {
     }
 
     public void loop() {
-        // Update model transformation matrices.
-        world.updateMatrixBuffer();
-
-        glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
-        glBufferData(GL_ARRAY_BUFFER, world.getMatricesBuffer(), GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        // Draw bodies (instanced)
-        glBindVertexArray(world.getBodyMesh().getVAO());
-        glDrawElementsInstanced(GL_TRIANGLES, world.getBodyMesh().getIndices().size() * 3, GL_UNSIGNED_INT, 0,
-                world.getBodies().size());
-    }
-
-    public void setWorld(World world) {
-        this.world = world;
-        vboColors = 0;
-
-        init();
+        glBindVertexArray(world.getLightSource().getMesh().getVAO());
+        glDrawElementsInstanced(GL_TRIANGLES, world.getLightSource().getMesh().getIndices().size() * 3, GL_UNSIGNED_INT, 0, 1);
     }
 }

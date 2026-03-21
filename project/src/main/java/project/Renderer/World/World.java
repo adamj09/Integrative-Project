@@ -5,27 +5,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.joml.Vector3f;
-import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
 
-import project.Renderer.Renderer;
 import project.Renderer.Camera.Camera;
 import project.Renderer.Model.Mesh;
 import project.Renderer.Model.SphereGenerator;
 
 public class World {
+    private WorldObject lightSource;
     private HashMap<String, WorldObject> bodies = new HashMap<>();
-    private Mesh sphere = new SphereGenerator().create(2);
     private Camera camera = new Camera();
 
     private FloatBuffer colorsBuffer;
     private FloatBuffer matricesBuffer;
 
+    private Mesh bodyMesh;
+
     public World() {
-        initCamera();
         loadWorld();
 
-        colorsBuffer = BufferUtils.createFloatBuffer(4 * bodies.size());
+        colorsBuffer = BufferUtils.createFloatBuffer(3 * bodies.size());
         matricesBuffer = BufferUtils.createFloatBuffer(16 * bodies.size());
 
         updateColorBuffer();
@@ -33,9 +32,16 @@ public class World {
     }
 
     private void loadWorld() {
-        WorldObject body = new WorldObject("body", sphere, new Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+        Mesh sphere = new SphereGenerator().create(2);
 
-        WorldObject satellite = new WorldObject("test", sphere, new Vector4f(1.0f, 0.0f, 0.0f, 1.0f));
+        bodyMesh = new Mesh(sphere.getVertices(), sphere.getIndices());
+
+        lightSource = new WorldObject("light", new Mesh(sphere.getVertices(), sphere.getIndices()));
+        lightSource.setTranslation(new Vector3f(10.f, 0.f, 0.f));
+
+        WorldObject body = new WorldObject("body", bodyMesh, new Vector3f(1.0f, 1.0f, 1.0f));
+
+        WorldObject satellite = new WorldObject("test", bodyMesh, new Vector3f(1.0f, 0.0f, 0.0f));
         satellite.setTranslation(new Vector3f(-10.f, 0.f, 0.f));
         satellite.setScale(new Vector3f(0.5f, 0.5f, 0.5f));
 
@@ -50,12 +56,11 @@ public class World {
 
         int i = 0;
         for (Map.Entry<String, WorldObject> set : bodies.entrySet()) {
-            Vector4f color = set.getValue().getColor();
+            Vector3f color = set.getValue().getColor();
             colors[i] = color.x;
             colors[i + 1] = color.y;
             colors[i + 2] = color.z;
-            colors[i + 3] = color.w;
-            i += 4;
+            i += 3;
         }
 
         colorsBuffer.put(colors).flip();
@@ -73,15 +78,6 @@ public class World {
         }
 
         matricesBuffer.put(matrices).flip();
-    }
-
-    private void initCamera() {
-        camera.setView(new Vector3f(0.f, 0.f, -5.f), new Vector3f(0.f, 0.f, 1.f));
-
-        camera.setPerspectiveProjection((float) Math.toRadians(Renderer.DEFAULT_FOV),
-                (float) Renderer.viewport.getGLCanvas().getWidth()
-                        / (float) Renderer.viewport.getGLCanvas().getHeight(),
-                Renderer.DEFAULT_NEAR, Renderer.DEFAULT_FAR);
     }
 
     public void addBody(WorldObject body) {
@@ -119,7 +115,11 @@ public class World {
         return this.matricesBuffer;
     }
 
-    public Mesh getSphere() {
-        return this.sphere;
+    public Mesh getBodyMesh() {
+        return this.bodyMesh;
+    }
+
+    public WorldObject getLightSource() {
+        return this.lightSource;
     }
 }

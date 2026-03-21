@@ -18,14 +18,14 @@ public class App extends Application {
         MainMenuBar menuBar = new MainMenuBar();
         SidebarPane sidebar = new SidebarPane(bottom);
 
-        Renderer.init();
+        Renderer mainRenderer = new Renderer();
 
         // Wire menu bar buttons to sidebar actions
         menuBar.getNewBodyButton().setOnAction(e -> sidebar.openNewBodyPopup(stage));
         menuBar.getNewSatelliteButton().setOnAction(e -> sidebar.openNewSatellitePopup(stage));
 
         BorderPane root = new BorderPane();
-        root.setCenter(Renderer.viewport.getGLCanvas());
+        root.setCenter(mainRenderer.getViewport().getGLCanvas());
         root.setTop(menuBar);
         root.setLeft(sidebar);
         root.setBottom(bottom);

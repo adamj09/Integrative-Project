@@ -2,7 +2,6 @@ package project.Renderer.World;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.joml.Vector4f;
 
 import project.Renderer.Model.Mesh;
 
@@ -11,7 +10,8 @@ public class WorldObject {
     private Matrix4f transformMatrix = new Matrix4f();
     private Mesh mesh;
     private String name;
-    private Vector4f color = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+    private Vector3f color = new Vector3f(1.0f, 1.0f, 1.0f);
+    private Vector3f lightColor = new Vector3f();
 
     public WorldObject(String name, Mesh mesh) {
         this.mesh = mesh;
@@ -20,7 +20,7 @@ public class WorldObject {
         updateTransform();
     }
 
-    public WorldObject(String name, Mesh mesh, Vector4f color) {
+    public WorldObject(String name, Mesh mesh, Vector3f color) {
         this.mesh = mesh;
         this.name = name;
         this.color = color;
@@ -75,11 +75,19 @@ public class WorldObject {
         this.name = name;
     }
 
-    public Vector4f getColor() {
+    public Vector3f getColor() {
         return this.color;
     }
 
-    public void setColor(Vector4f color) {
+    public void setColor(Vector3f color) {
         this.color = color;
+    }
+
+    public Vector3f getLightColor() {
+        return this.color;
+    }
+
+    public void setLightColor(Vector3f lightColor) {
+        this.lightColor = lightColor;
     }
 }
