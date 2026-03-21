@@ -27,8 +27,12 @@ public class World {
 
         initCamera();
         loadSatellites();
-        packColorsIntoBuffer();
-        packMatricesIntoBuffer();
+
+        colorsBuffer = BufferUtils.createFloatBuffer(4 * (satellites.size() + 1));
+        matricesBuffer = BufferUtils.createFloatBuffer(16 * (satellites.size() + 1));
+
+        updateColorBuffer();
+        updateMatrixBuffer();
     }
 
     private void loadSatellites() {
@@ -38,11 +42,10 @@ public class World {
         satellites.put(satellite.getName(), satellite);
     }
 
-    public void packColorsIntoBuffer() {
-        int capacity = 4 * (satellites.size() + 1);
-        colorsBuffer = BufferUtils.createFloatBuffer(capacity);
+    public void updateColorBuffer() {
+        colorsBuffer.clear();
 
-        float[] colors = new float[capacity];
+        float[] colors = new float[colorsBuffer.capacity()];
         Vector4f colorBody = body.getColor();
         colors[0] = colorBody.x;
         colors[1] = colorBody.y;
@@ -62,11 +65,10 @@ public class World {
         colorsBuffer.put(colors).flip();
     }
 
-    public void packMatricesIntoBuffer() {
-        int capacity = 16 * (satellites.size() + 1);
-        matricesBuffer = BufferUtils.createFloatBuffer(capacity);
+    public void updateMatrixBuffer() {
+        matricesBuffer.clear();
 
-        float[] matrices = new float[capacity];
+        float[] matrices = new float[matricesBuffer.capacity()];
         body.getTransformMatrix().get(matrices);
 
         int i = 1;

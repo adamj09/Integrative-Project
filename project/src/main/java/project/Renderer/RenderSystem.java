@@ -2,14 +2,18 @@ package project.Renderer;
 
 import project.Renderer.Camera.Camera;
 import project.Renderer.World.World;
+import project.Renderer.World.WorldObject;
 
 import static org.lwjgl.opengl.GL41.*;
 
 import java.nio.FloatBuffer;
 
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
 
 public class RenderSystem {
+    private static int test = 0;
     private Camera camera;
     private World world;
 
@@ -40,7 +44,7 @@ public class RenderSystem {
     }
 
     public void loop(float deltaTime) {
-        updateUniforms();
+        update();
         draw();
     }
 
@@ -106,7 +110,7 @@ public class RenderSystem {
         glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, size);
     }
 
-    private void updateUniforms() {
+    private void update() {
         FloatBuffer projectionMatrixBuffer = BufferUtils.createFloatBuffer(16);
         glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, camera.getProjection().get(projectionMatrixBuffer));
@@ -116,6 +120,13 @@ public class RenderSystem {
         glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
         glBufferSubData(GL_UNIFORM_BUFFER, MAT4F_SIZE, camera.getView().get(viewMatrixBuffer));
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        // Update model transformation matrices.
+        world.updateMatrixBuffer();
+
+        glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
+        glBufferData(GL_ARRAY_BUFFER, world.getMatricesBuffer(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     private void draw() {

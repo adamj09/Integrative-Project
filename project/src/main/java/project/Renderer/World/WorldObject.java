@@ -29,7 +29,7 @@ public class WorldObject {
     }
 
     public void updateTransform() {
-        transformMatrix.translate(translation);
+        transformMatrix.setTranslation(translation);
         transformMatrix.scale(scale);
     }
 
@@ -39,7 +39,7 @@ public class WorldObject {
 
     public void setTranslation(Vector3f translation) {
         this.translation = translation;
-        updateTransform();
+        transformMatrix.setTranslation(this.translation);
     }
 
     public Vector3f getScale() {
@@ -48,7 +48,7 @@ public class WorldObject {
 
     public void setScale(Vector3f scale) {
         this.scale = scale;
-        updateTransform();
+        transformMatrix.scale(this.scale);
     }
 
     public Matrix4f getTransformMatrix() {
