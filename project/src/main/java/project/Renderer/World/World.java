@@ -20,38 +20,61 @@ public class World {
     private Camera camera = new Camera();
 
     private FloatBuffer colorsBuffer;
+    private FloatBuffer matricesBuffer;
 
     public World(String name) {
         body = new WorldObject(name, sphere, new Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
 
         initCamera();
         loadSatellites();
+        packColorsIntoBuffer();
+        packMatricesIntoBuffer();
     }
 
     private void loadSatellites() {
-        WorldObject satellite = new WorldObject("test satellite", sphere);
+        WorldObject satellite = new WorldObject("test satellite", sphere, new Vector4f(1.0f, 0.0f, 0.0f, 1.0f));
+        satellite.setTranslation(new Vector3f(-10.f, 0.f, 0.f));
+        satellite.setScale(new Vector3f(0.5f, 0.5f, 0.5f));
         satellites.put(satellite.getName(), satellite);
     }
 
     public void packColorsIntoBuffer() {
-        colorsBuffer = BufferUtils.createFloatBuffer(4 * (satellites.size() + 1));
+        int capacity = 4 * (satellites.size() + 1);
+        colorsBuffer = BufferUtils.createFloatBuffer(capacity);
 
-        float[] colors = new float[4 * (satellites.size() + 1)];
-        colors[0] = body.getColor().x;
-        colors[1] = body.getColor().y;
-        colors[2] = body.getColor().z;
-        colors[3] = body.getColor().w;
+        float[] colors = new float[capacity];
+        Vector4f colorBody = body.getColor();
+        colors[0] = colorBody.x;
+        colors[1] = colorBody.y;
+        colors[2] = colorBody.z;
+        colors[3] = colorBody.w;
                       
         int i = 4;
         for (Map.Entry<String, WorldObject> set : satellites.entrySet()) {
-            colors[i] = set.getValue().getColor().x;
-            colors[i + 1] = set.getValue().getColor().x;
-            colors[i + 2] = set.getValue().getColor().x;
-            colors[i + 3] = set.getValue().getColor().x;
+            Vector4f color = set.getValue().getColor();
+            colors[i] = color.x;
+            colors[i + 1] = color.y;
+            colors[i + 2] = color.z;
+            colors[i + 3] = color.w;
             i += 4;
         }
 
         colorsBuffer.put(colors).flip();
+    }
+
+    public void packMatricesIntoBuffer() {
+        int capacity = 16 * (satellites.size() + 1);
+        matricesBuffer = BufferUtils.createFloatBuffer(capacity);
+
+        float[] matrices = new float[capacity];
+        body.getTransformMatrix().get(matrices);
+
+        int i = 1;
+        for(Map.Entry<String, WorldObject> set : satellites.entrySet()) {
+            set.getValue().getTransformMatrix().get(matrices, 16 * i);
+        }
+
+        matricesBuffer.put(matrices).flip();
     }
 
     private void initCamera() {
@@ -77,5 +100,13 @@ public class World {
 
     public FloatBuffer getColorsBuffer() {
         return this.colorsBuffer;
+    }
+
+    public FloatBuffer getMatricesBuffer() {
+        return this.matricesBuffer;
+    }
+
+    public Mesh getSphere() {
+        return this.sphere;
     }
 }

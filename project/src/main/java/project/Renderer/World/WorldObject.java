@@ -39,6 +39,7 @@ public class WorldObject {
 
     public void setTranslation(Vector3f translation) {
         this.translation = translation;
+        updateTransform();
     }
 
     public Vector3f getScale() {
@@ -47,6 +48,7 @@ public class WorldObject {
 
     public void setScale(Vector3f scale) {
         this.scale = scale;
+        updateTransform();
     }
 
     public Matrix4f getTransformMatrix() {

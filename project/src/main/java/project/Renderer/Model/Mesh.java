@@ -8,6 +8,8 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.lwjgl.BufferUtils;
 
+import static org.lwjgl.opengl.GL41.*;
+
 public class Mesh {
     private ArrayList<Vector3f> vertices = new ArrayList<>();
     private ArrayList<Vector3i> indices = new ArrayList<>();
@@ -15,14 +17,42 @@ public class Mesh {
     private FloatBuffer vertexBuffer;
     private IntBuffer indexBuffer;
 
-    //TODO: add per-mesh VAO
+    private int VAO;
+    private int VBO;
+    private int EBO;
 
     public Mesh(ArrayList<Vector3f> vertices, ArrayList<Vector3i> indices) {
         this.vertices = vertices;
         this.indices = indices;
+
+        setUpVertexBuffer();
+        setUpIndexBuffer();
     }
 
-    public void packVerticesIntoBuffer() {
+    private void setUpVertexBuffer() {
+        packVerticesIntoBuffer();
+
+        VAO = glGenVertexArrays();
+        VBO = glGenBuffers();
+
+        glBindVertexArray(VAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * Float.BYTES, 0);
+        glEnableVertexAttribArray(0);
+    }
+
+    private void setUpIndexBuffer () {
+        packIndicesIntoBuffer();
+
+        EBO = glGenBuffers();
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL_STATIC_DRAW);
+    }
+
+    private void packVerticesIntoBuffer() {
         vertexBuffer = BufferUtils.createFloatBuffer(this.vertices.size() * 3);
 
         float[] vertices = new float[this.vertices.size() * 3];
@@ -36,7 +66,7 @@ public class Mesh {
         vertexBuffer.put(vertices).flip();
     }
 
-    public void packIndicesIntoBuffer() {
+    private void packIndicesIntoBuffer() {
         indexBuffer = BufferUtils.createIntBuffer(this.indices.size() * 3);
 
         int[] indices = new int[this.indices.size() * 3];
@@ -64,5 +94,17 @@ public class Mesh {
 
     public ArrayList<Vector3i> getIndices() {
         return indices;
+    }
+
+    public int getVAO() {
+        return this.VAO;
+    }
+
+    public int getVBO() {
+        return this.VBO;
+    }
+
+    public int getEBO() {
+        return this.EBO;
     }
 }
