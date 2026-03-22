@@ -23,7 +23,6 @@ public class Renderer {
 
     private ControlManager controlManager;
     private FirstPersonCameraController cameraController;
-    private ShaderProgram bodyShaderProgram, lightShaderProgram;
 
     public Renderer() {
         initOpenGLRenderEventHandlers();
@@ -43,25 +42,24 @@ public class Renderer {
             // Create camera controller
             cameraController = new FirstPersonCameraController(world.getCamera(), controlManager);
 
-            // Create shader programs
-            bodyShaderProgram = new ShaderProgram("project/shaders/body.vert",
-                    "project/shaders/body.frag");
+            Shader mainVertShader = new Shader("project/Shaders/Main.vert", GL_VERTEX_SHADER);
 
-            lightShaderProgram = new ShaderProgram("project/shaders/lightSource.vert", "project/shaders/lightSource.frag");
+            Shader bodyFragShader = new Shader("project/Shaders/Body.frag", GL_FRAGMENT_SHADER);
+            Shader lightFragShader = new Shader("project/Shaders/LightSource.frag", GL_FRAGMENT_SHADER);
+
+            // Create shader programs
+            ShaderProgram bodyShaderProgram = new ShaderProgram(mainVertShader.getShader(), bodyFragShader.getShader());
+            ShaderProgram lightShaderProgram = new ShaderProgram(mainVertShader.getShader(), lightFragShader.getShader());
 
             // Create render systems
-            bodyShaderProgram.use();
-            bodyRenderSystem = new BodyRenderSystem(world);
+            bodyRenderSystem = new BodyRenderSystem(world, bodyShaderProgram);
             cameraRenderSystem = new CameraRenderSystem(world.getCamera());
-
-            lightShaderProgram.use();
-            lightRenderSystem = new LightRenderSystem(world);
+            lightRenderSystem = new LightRenderSystem(world, lightShaderProgram);
 
             setCameraProjection();
 
             glUniformBlockBinding(bodyShaderProgram.getID(), glGetUniformBlockIndex(bodyShaderProgram.getID(), "CameraMatrices"), 0);
             glUniformBlockBinding(bodyShaderProgram.getID(), glGetUniformBlockIndex(lightShaderProgram.getID(), "CameraMatrices"), 0);
-
         });
 
         viewport.getGLCanvas().addOnRenderEvent(event -> {
@@ -73,11 +71,8 @@ public class Renderer {
 
             cameraController.updateCameraTransform((float) event.delta);
 
-            bodyShaderProgram.use();
             cameraRenderSystem.loop();
             bodyRenderSystem.loop();
-
-            lightShaderProgram.use();
             lightRenderSystem.loop();
         });
     }

@@ -1,6 +1,7 @@
 package project.Renderer.RenderSystems;
 
 import project.Renderer.Renderer;
+import project.Renderer.ShaderProgram;
 import project.Renderer.World.World;
 import static org.lwjgl.opengl.GL41.*;
 
@@ -10,12 +11,19 @@ public class BodyRenderSystem {
     private int vboColors,
             vboModelMatrices;
 
-    public BodyRenderSystem(World world) {
+    private ShaderProgram shaderProgram;
+
+    public BodyRenderSystem(World world, ShaderProgram shaderProgram) {
         this.world = world;
+        this.shaderProgram = shaderProgram;
         init();
     }
 
     public void init() {
+        shaderProgram.use();
+
+        shaderProgram.addUniformVec3f("lightColor", world.getLightSource().getLightColor());
+
         glBindVertexArray(world.getBodyMesh().getVAO());
 
         // Colors
@@ -58,6 +66,7 @@ public class BodyRenderSystem {
     }
 
     public void loop() {
+        shaderProgram.use();
         // Update model transformation matrices.
         world.updateMatrixBuffer();
 

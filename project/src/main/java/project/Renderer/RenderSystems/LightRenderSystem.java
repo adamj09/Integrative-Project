@@ -1,6 +1,7 @@
 package project.Renderer.RenderSystems;
 
 import project.Renderer.Renderer;
+import project.Renderer.ShaderProgram;
 import project.Renderer.World.World;
 
 import static org.lwjgl.opengl.GL41.*;
@@ -16,13 +17,18 @@ public class LightRenderSystem {
 
     private int vboColor, vboModelMatrix;
 
-    public LightRenderSystem(World world) {
+    private ShaderProgram shaderProgram;
+
+    public LightRenderSystem(World world, ShaderProgram shaderProgram) {
         this.world = world;
+        this.shaderProgram = shaderProgram;
 
         init();
     }
 
     public void init() {
+        shaderProgram.use();
+
         glBindVertexArray(world.getLightSource().getMesh().getVAO());
 
         // Color
@@ -66,6 +72,8 @@ public class LightRenderSystem {
     }
 
     public void loop() {
+        shaderProgram.use();
+        
         glBindVertexArray(world.getLightSource().getMesh().getVAO());
         glDrawElementsInstanced(GL_TRIANGLES, world.getLightSource().getMesh().getIndices().size() * 3, GL_UNSIGNED_INT, 0, 1);
     }
