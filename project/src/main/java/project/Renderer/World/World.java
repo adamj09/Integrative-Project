@@ -38,6 +38,7 @@ public class World {
 
         lightSource = new WorldObject("light", new Mesh(sphere.getVertices(), sphere.getIndices()));
         lightSource.setTranslation(new Vector3f(10.f, 0.f, 0.f));
+        lightSource.setLightColor(new Vector3f(1.f, 1.f, 1.f));
 
         WorldObject body = new WorldObject("body", bodyMesh, new Vector3f(1.0f, 1.0f, 1.0f));
 

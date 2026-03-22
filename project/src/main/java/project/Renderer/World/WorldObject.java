@@ -84,7 +84,7 @@ public class WorldObject {
     }
 
     public Vector3f getLightColor() {
-        return this.color;
+        return this.lightColor;
     }
 
     public void setLightColor(Vector3f lightColor) {
