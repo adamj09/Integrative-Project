@@ -45,10 +45,10 @@ public class Renderer {
             // Create camera controller
             cameraController = new FreeLookCameraController(world.getCamera(), controlManager);
 
-            Shader mainVertShader = new Shader("project/Shaders/Main.vert", GL_VERTEX_SHADER);
+            Shader mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
 
-            Shader bodyFragShader = new Shader("project/Shaders/Body.frag", GL_FRAGMENT_SHADER);
-            Shader lightFragShader = new Shader("project/Shaders/LightSource.frag", GL_FRAGMENT_SHADER);
+            Shader bodyFragShader = new Shader("project/shaders/body.frag", GL_FRAGMENT_SHADER);
+            Shader lightFragShader = new Shader("project/shaders/lightSource.frag", GL_FRAGMENT_SHADER);
 
             // Create shader programs
             ShaderProgram bodyShaderProgram = new ShaderProgram(mainVertShader.getShader(), bodyFragShader.getShader());
