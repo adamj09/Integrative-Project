@@ -1,6 +1,7 @@
 package project.Renderer.World;
 
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,12 +33,13 @@ public class World {
     }
 
     private void loadWorld() {
-        Mesh sphere = new SphereGenerator().create(2);
+        Mesh sphere = new SphereGenerator().create(4);
 
-        bodyMesh = new Mesh(sphere.getVertices(), sphere.getIndices());
+        bodyMesh = new Mesh(sphere.getVertices(), sphere.getIndices(), sphere.getNormals());
 
-        lightSource = new WorldObject("light", new Mesh(sphere.getVertices(), sphere.getIndices()));
-        lightSource.setTranslation(new Vector3f(10.f, 0.f, 0.f));
+        lightSource = new WorldObject("light", new Mesh(sphere.getVertices(), sphere.getIndices(), sphere.getNormals()));
+        lightSource.setTranslation(new Vector3f(990.f, 0.f, 0.f));
+        lightSource.setScale(new Vector3f(10.f, 10.f, 10.f));
         lightSource.setLightColor(new Vector3f(1.f, 1.f, 1.f));
 
         WorldObject body = new WorldObject("body", bodyMesh, new Vector3f(1.0f, 1.0f, 1.0f));

@@ -35,11 +35,12 @@ public class LightRenderSystem {
         vboColor = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboColor);
         glBufferData(GL_ARRAY_BUFFER, world.getLightSource().getColor().get(colorBuffer), GL_STATIC_DRAW);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, Renderer.VEC3F_SIZE, 0);
+        glEnableVertexAttribArray(2);
+
+        glVertexAttribPointer(2, 3, GL_FLOAT, false, Renderer.VEC3F_SIZE, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         
-        glVertexAttribDivisor(1, 1);
+        glVertexAttribDivisor(2, 1);
 
         // Model Matrix
         vboModelMatrix = glGenBuffers();
@@ -52,19 +53,19 @@ public class LightRenderSystem {
         // since the maximum size of an attribute is equivalent to a Vector4f. I.e.
         // setting up 4 Vector4fs is equivalent to setting up the Matrix4f. which is the
         // data structure we're trying to send over to our shader.
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 0);
         glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, Renderer.VEC4F_SIZE);
+        glVertexAttribPointer(3, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 0);
         glEnableVertexAttribArray(4);
-        glVertexAttribPointer(4, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 2 * Renderer.VEC4F_SIZE);
+        glVertexAttribPointer(4, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, Renderer.VEC4F_SIZE);
         glEnableVertexAttribArray(5);
-        glVertexAttribPointer(5, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 3 * Renderer.VEC4F_SIZE);
+        glVertexAttribPointer(5, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 2 * Renderer.VEC4F_SIZE);
+        glEnableVertexAttribArray(6);
+        glVertexAttribPointer(6, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 3 * Renderer.VEC4F_SIZE);
 
-        glVertexAttribDivisor(2, 1);
         glVertexAttribDivisor(3, 1);
         glVertexAttribDivisor(4, 1);
         glVertexAttribDivisor(5, 1);
+        glVertexAttribDivisor(6, 1);
 
         glBindVertexArray(0);
 
@@ -73,7 +74,7 @@ public class LightRenderSystem {
 
     public void loop() {
         shaderProgram.use();
-        
+
         glBindVertexArray(world.getLightSource().getMesh().getVAO());
         glDrawElementsInstanced(GL_TRIANGLES, world.getLightSource().getMesh().getIndices().size() * 3, GL_UNSIGNED_INT, 0, 1);
     }

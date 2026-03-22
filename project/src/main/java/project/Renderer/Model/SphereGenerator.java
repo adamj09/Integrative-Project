@@ -86,10 +86,12 @@ public class SphereGenerator {
         addVertex(new Vector3f(1, t, 0));
         addVertex(new Vector3f(-1, -t, 0));
         addVertex(new Vector3f(1, -t, 0));
+
         addVertex(new Vector3f(0, -1, t));
         addVertex(new Vector3f(0, 1, t));
         addVertex(new Vector3f(0, -1, -t));
         addVertex(new Vector3f(0, 1, -t));
+
         addVertex(new Vector3f(t, 0, -1));
         addVertex(new Vector3f(t, 0, 1));
         addVertex(new Vector3f(-t, 0, -1));
@@ -102,16 +104,19 @@ public class SphereGenerator {
         indices.add(new Vector3i(0, 1, 7));
         indices.add(new Vector3i(0, 7, 10));
         indices.add(new Vector3i(0, 10, 11));
+
         indices.add(new Vector3i(1, 5, 9));
         indices.add(new Vector3i(5, 11, 4));
         indices.add(new Vector3i(11, 10, 2));
         indices.add(new Vector3i(10, 7, 6));
         indices.add(new Vector3i(7, 1, 8));
+
         indices.add(new Vector3i(3, 9, 4));
         indices.add(new Vector3i(3, 4, 2));
         indices.add(new Vector3i(3, 2, 6));
         indices.add(new Vector3i(3, 6, 8));
         indices.add(new Vector3i(3, 8, 9));
+
         indices.add(new Vector3i(4, 9, 5));
         indices.add(new Vector3i(2, 4, 11));
         indices.add(new Vector3i(6, 2, 10));
@@ -138,6 +143,8 @@ public class SphereGenerator {
             this.indices.add(triangle);
         }
 
-        return new Mesh(this.vertices, this.indices);
+        // Note: for a sphere, normals are just the sphere's vertices divided by the
+        // radius (radius here is 1 so just pass in vertices)
+        return new Mesh(this.vertices, this.indices, vertices);
     }
 }

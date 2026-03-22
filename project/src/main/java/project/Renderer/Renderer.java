@@ -3,7 +3,7 @@ package project.Renderer;
 import static org.lwjgl.opengl.GL41.*;
 
 import project.ControlManager;
-import project.Renderer.Camera.FirstPersonCameraController;
+import project.Renderer.Camera.FreeLookCameraController;
 import project.Renderer.RenderSystems.BodyRenderSystem;
 import project.Renderer.RenderSystems.CameraRenderSystem;
 import project.Renderer.RenderSystems.LightRenderSystem;
@@ -22,7 +22,7 @@ public class Renderer {
     private LightRenderSystem lightRenderSystem;
 
     private ControlManager controlManager;
-    private FirstPersonCameraController cameraController;
+    private FreeLookCameraController cameraController;
 
     public Renderer() {
         initOpenGLRenderEventHandlers();
@@ -36,11 +36,14 @@ public class Renderer {
             // Enable depth testing
             glEnable(GL_DEPTH_TEST);
 
+            glFrontFace(GL_CCW);
+            glEnable(GL_CULL_FACE);
+
             world = new World();
             controlManager = new ControlManager(viewport.getGLCanvas());
 
             // Create camera controller
-            cameraController = new FirstPersonCameraController(world.getCamera(), controlManager);
+            cameraController = new FreeLookCameraController(world.getCamera(), controlManager);
 
             Shader mainVertShader = new Shader("project/Shaders/Main.vert", GL_VERTEX_SHADER);
 

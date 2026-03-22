@@ -21,11 +21,6 @@ public class ShaderProgram {
             System.err.println("Linking shader program failed: " + glGetProgramInfoLog(ID));
             System.exit(1);
         }
-
-        // Delete shaders as they are no longer needed after program creation and
-        // linking.
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
     }
 
     public void use() {

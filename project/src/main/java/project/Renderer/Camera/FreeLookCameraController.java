@@ -10,7 +10,7 @@ import project.ControlManager;
  * 
  * @author Adam Johnston
  */
-public class FirstPersonCameraController {
+public class FreeLookCameraController {
     private Camera camera;
     private ControlManager controls;
 
@@ -35,10 +35,15 @@ public class FirstPersonCameraController {
      * @param camera   Camera to control.
      * @param controls Control manager to get user input from.
      */
-    public FirstPersonCameraController(Camera camera, ControlManager controls) {
+    public FreeLookCameraController(Camera camera, ControlManager controls) {
         this.camera = camera;
         this.controls = controls;
     }
+
+    /**
+     * Defines the maximum distance the camera can travel from the origin.
+     */
+    private float maxDistance = 100.f;
 
     /**
      * Translates the camera based on user input.
@@ -55,12 +60,14 @@ public class FirstPersonCameraController {
         if (controls.isForwardPressed()) { // Move forward
             direction.mul(speed, displacement);
             position.add(displacement, newPosition);
-            camera.setView(newPosition, direction);
+
+            setCameraView(newPosition, direction);
         }
         if (controls.isBackwardPressed()) { // Move backward
             direction.mul(speed, displacement);
             position.sub(displacement, newPosition);
-            camera.setView(newPosition, direction);
+
+            setCameraView(newPosition, direction);
         }
         if (controls.isLeftPressed()) {
             Vector3f frontCrossUp = new Vector3f();
@@ -68,7 +75,8 @@ public class FirstPersonCameraController {
             frontCrossUp.normalize().mul(speed, displacement);
 
             position.sub(displacement, newPosition);
-            camera.setView(newPosition, direction);
+
+            setCameraView(newPosition, direction);
         }
         if (controls.isRightPressed()) {
             Vector3f frontCrossUp = new Vector3f();
@@ -76,18 +84,28 @@ public class FirstPersonCameraController {
             frontCrossUp.normalize().mul(speed, displacement);
 
             position.add(displacement, newPosition);
-            camera.setView(newPosition, direction);
+
+            setCameraView(newPosition, direction);
         }
         if (controls.isUpPressed()) { // Move Up
             up.mul(speed, displacement);
             position.add(displacement, newPosition);
-            camera.setView(newPosition, direction);
+
+            setCameraView(newPosition, direction);
         }
         if (controls.isDownPressed()) { // Move Up
             up.mul(speed, displacement);
             position.sub(displacement, newPosition);
-            camera.setView(newPosition, direction);
+
+            setCameraView(newPosition, direction);
         }
+    }
+
+    private void setCameraView(Vector3f position, Vector3f direction) {
+        if (position.length() > maxDistance) {
+            return;
+        }
+        camera.setView(position, direction);
     }
 
     /**
@@ -140,12 +158,12 @@ public class FirstPersonCameraController {
      *                  to keep movement speed framerate independent).
      */
     public void updateCameraTransform(float deltaTime) {
-        if(controls.getFocusNode().isFocused()) {
+        if (controls.getFocusNode().isFocused()) {
             if (controls.isFocusButtonPressed()) {
                 rotate(deltaTime);
             }
             translate(deltaTime);
-        }   
+        }
     }
 
     /**

@@ -23,6 +23,7 @@ public class BodyRenderSystem {
         shaderProgram.use();
 
         shaderProgram.addUniformVec3f("lightColor", world.getLightSource().getLightColor());
+        shaderProgram.addUniformVec3f("lightPosition", world.getLightSource().getTranslation());
 
         glBindVertexArray(world.getBodyMesh().getVAO());
 
@@ -30,12 +31,12 @@ public class BodyRenderSystem {
         vboColors = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboColors);
         glBufferData(GL_ARRAY_BUFFER, world.getColorsBuffer(), GL_STATIC_DRAW);
+        glEnableVertexAttribArray(2);
 
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, Renderer.VEC3F_SIZE, 0);
+        glVertexAttribPointer(2, 3, GL_FLOAT, false, Renderer.VEC3F_SIZE, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        glVertexAttribDivisor(1, 1);
+        glVertexAttribDivisor(2, 1);
 
         // Model Matrices
         vboModelMatrices = glGenBuffers();
@@ -46,19 +47,19 @@ public class BodyRenderSystem {
         // since the maximum size of an attribute is equivalent to a Vector4f. I.e.
         // setting up 4 Vector4fs is equivalent to setting up the Matrix4f. which is the
         // data structure we're trying to send over to our shader.
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 0);
         glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, Renderer.VEC4F_SIZE);
+        glVertexAttribPointer(3, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 0);
         glEnableVertexAttribArray(4);
-        glVertexAttribPointer(4, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 2 * Renderer.VEC4F_SIZE);
+        glVertexAttribPointer(4, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, Renderer.VEC4F_SIZE);
         glEnableVertexAttribArray(5);
-        glVertexAttribPointer(5, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 3 * Renderer.VEC4F_SIZE);
+        glVertexAttribPointer(5, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 2 * Renderer.VEC4F_SIZE);
+        glEnableVertexAttribArray(6);
+        glVertexAttribPointer(6, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 3 * Renderer.VEC4F_SIZE);
 
-        glVertexAttribDivisor(2, 1);
         glVertexAttribDivisor(3, 1);
         glVertexAttribDivisor(4, 1);
         glVertexAttribDivisor(5, 1);
+        glVertexAttribDivisor(6, 1);
 
         glBindVertexArray(0);
 
@@ -73,6 +74,9 @@ public class BodyRenderSystem {
         glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
         glBufferData(GL_ARRAY_BUFFER, world.getMatricesBuffer(), GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        // Update view position (for specular lighting)
+        shaderProgram.addUniformVec3f("viewPosition", world.getCamera().getPosition());
 
         // Draw bodies (instanced)
         glBindVertexArray(world.getBodyMesh().getVAO());
