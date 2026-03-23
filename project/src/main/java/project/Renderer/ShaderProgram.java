@@ -35,6 +35,10 @@ public class ShaderProgram {
         glUniform3f(glGetUniformLocation(ID, name), vec.x, vec.y, vec.z);
     }
 
+    public void addUniformBlockBinding(String blockName, int blockBinding) {
+        glUniformBlockBinding(ID, glGetUniformBlockIndex(ID, "CameraMatrices"), 0);
+    }
+
     public int getID() {
         return ID;
     }

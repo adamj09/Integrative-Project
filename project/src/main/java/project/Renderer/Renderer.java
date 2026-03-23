@@ -60,10 +60,9 @@ public class Renderer {
             lightRenderSystem = new LightRenderSystem(world, lightShaderProgram);
 
             setCameraProjection();
-
-            // TODO: make this a helper method in ShaderProgram class
-            glUniformBlockBinding(bodyShaderProgram.getID(), glGetUniformBlockIndex(bodyShaderProgram.getID(), "CameraMatrices"), 0);
-            glUniformBlockBinding(bodyShaderProgram.getID(), glGetUniformBlockIndex(lightShaderProgram.getID(), "CameraMatrices"), 0);
+            
+            bodyShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
+            lightShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
         });
 
         viewport.getGLCanvas().addOnRenderEvent(event -> {
