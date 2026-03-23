@@ -6,6 +6,7 @@ import project.ControlManager;
 import project.Renderer.Camera.FreeLookCameraController;
 import project.Renderer.RenderSystems.BodyRenderSystem;
 import project.Renderer.RenderSystems.CameraRenderSystem;
+import project.Renderer.RenderSystems.CircleRenderSystem;
 import project.Renderer.RenderSystems.LightRenderSystem;
 import project.Renderer.World.World;
 
@@ -20,6 +21,7 @@ public class Renderer {
     private CameraRenderSystem cameraRenderSystem;
     private BodyRenderSystem bodyRenderSystem;
     private LightRenderSystem lightRenderSystem;
+    private CircleRenderSystem circleRenderSystem;
 
     private ControlManager controlManager;
     private FreeLookCameraController cameraController;
@@ -45,19 +47,22 @@ public class Renderer {
             // Create camera controller
             cameraController = new FreeLookCameraController(world.getCamera(), controlManager);
 
-            Shader mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
+            Shader mainVertShader = new Shader("project/shaders/main_vert.glsl", GL_VERTEX_SHADER);
 
-            Shader bodyFragShader = new Shader("project/shaders/body.frag", GL_FRAGMENT_SHADER);
-            Shader lightFragShader = new Shader("project/shaders/lightSource.frag", GL_FRAGMENT_SHADER);
+            Shader bodyFragShader = new Shader("project/shaders/body_frag.glsl", GL_FRAGMENT_SHADER);
+            Shader lightFragShader = new Shader("project/shaders/light_source_frag.glsl", GL_FRAGMENT_SHADER);
+            Shader circleFragShader = new Shader("project/shaders/circle_frag.glsl", GL_FRAGMENT_SHADER);
 
             // Create shader programs
             ShaderProgram bodyShaderProgram = new ShaderProgram(mainVertShader.getShader(), bodyFragShader.getShader());
             ShaderProgram lightShaderProgram = new ShaderProgram(mainVertShader.getShader(), lightFragShader.getShader());
+            ShaderProgram circleShaderProgram = new ShaderProgram(mainVertShader.getShader(), circleFragShader.getShader());
 
             // Create render systems
             bodyRenderSystem = new BodyRenderSystem(world, bodyShaderProgram);
             cameraRenderSystem = new CameraRenderSystem(world.getCamera());
             lightRenderSystem = new LightRenderSystem(world, lightShaderProgram);
+            circleRenderSystem = new CircleRenderSystem(viewport, lightShaderProgram);
 
             setCameraProjection();
             

@@ -22,8 +22,8 @@ public class BodyRenderSystem {
     public void init() {
         shaderProgram.use();
 
-        shaderProgram.addUniformVec3f("lightColor", world.getLightSource().getLightColor());
-        shaderProgram.addUniformVec3f("lightPosition", world.getLightSource().getTranslation());
+        shaderProgram.addUniformVec3f("light_color", world.getLightSource().getLightColor());
+        shaderProgram.addUniformVec3f("light_position", world.getLightSource().getTranslation());
 
         glBindVertexArray(world.getBodyMesh().getVAO());
 
@@ -74,9 +74,6 @@ public class BodyRenderSystem {
         glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
         glBufferData(GL_ARRAY_BUFFER, world.getMatricesBuffer(), GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        // Update view position (for specular lighting)
-        shaderProgram.addUniformVec3f("viewPosition", world.getCamera().getPosition());
 
         // Draw bodies (instanced)
         glBindVertexArray(world.getBodyMesh().getVAO());
