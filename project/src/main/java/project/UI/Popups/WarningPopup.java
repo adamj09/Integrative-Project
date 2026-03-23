@@ -8,6 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import project.StyleSheet;
 
 public class WarningPopup extends Stage {
 
@@ -31,10 +32,12 @@ public class WarningPopup extends Stage {
         VBox root = new VBox(10, title, content, closeBtn);
         root.setPadding(new Insets(16));
         root.setAlignment(Pos.CENTER_LEFT);
-        root.getStyleClass().add("small-pane");;
+        root.getStyleClass().add("small-pane");
         root.setPrefWidth(300);
 
-        setScene(new Scene(root));
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(new StyleSheet().styleSheet);
+        setScene(scene);
     }
 
     public static void show(String text) {

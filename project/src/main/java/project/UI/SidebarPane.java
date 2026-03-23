@@ -15,6 +15,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
+import project.Presets.PresetConfiguration;
+import project.Presets.PresetConfiguration.BodyPreset;
+import project.Presets.PresetConfiguration.SatellitePreset;
 import project.UI.Popups.BodyCreatorPopup;
 import project.UI.Popups.DeleteWarningPopup;
 import project.UI.Popups.SatelliteCreatorPopup;
@@ -35,6 +38,8 @@ public class SidebarPane extends VBox {
     // Track entries so we can wire delete/visualize
     private final List<String> bodyNames = new ArrayList<>();
     private final List<String> satelliteNames = new ArrayList<>();
+    private final List<BodyPreset> bodyEntries = new ArrayList<>();
+    private final List<SatellitePreset> satelliteEntries = new ArrayList<>();
 
     public SidebarPane(BottomPane bottom) {
         this.bottom = bottom;
@@ -123,6 +128,8 @@ public class SidebarPane extends VBox {
 
     private void addBodyCard(String name, Color color, boolean isPreset) {
         bodyNames.add(name);
+        BodyPreset entry = new BodyPreset(name, color, isPreset);
+        bodyEntries.add(entry);
 
         Circle circle = new Circle(22, color);
         Label nameLabel = new Label(name);
@@ -150,6 +157,7 @@ public class SidebarPane extends VBox {
                 if (warn.wasConfirmed()) {
                     bodyListBox.getChildren().remove(card);
                     bodyNames.remove(name);
+                    bodyEntries.remove(entry);
                 }
             });
             HBox btns = new HBox(4, visButton, deleteButton);
@@ -163,6 +171,7 @@ public class SidebarPane extends VBox {
 
     private void addSatelliteCard(String name, Color color) {
         satelliteNames.add(name);
+        satelliteEntries.add(new SatellitePreset(name, color));
 
         Circle circle = new Circle(18, color);
         Label nameLabel = new Label(name);
@@ -183,6 +192,28 @@ public class SidebarPane extends VBox {
 
         satelliteListBox.getChildren().add(card);
         bottom.addSatelliteColumn(name);
+    }
+
+    public PresetConfiguration toPresetConfiguration() {
+        return new PresetConfiguration(bodyEntries, satelliteEntries, bottom.toPresetState());
+    }
+
+    public void applyPresetConfiguration(PresetConfiguration configuration) {
+        bodyListBox.getChildren().clear();
+        satelliteListBox.getChildren().clear();
+        bodyNames.clear();
+        satelliteNames.clear();
+        bodyEntries.clear();
+        satelliteEntries.clear();
+        bottom.clearSatelliteColumns();
+        bottom.applyPresetState(configuration.getBottomPanePreset());
+
+        for (BodyPreset body : configuration.getBodies()) {
+            addBodyCard(body.name(), body.color(), body.preset());
+        }
+        for (SatellitePreset satellite : configuration.getSatellites()) {
+            addSatelliteCard(satellite.name(), satellite.color());
+        }
     }
 
     private Button tabButton(String text) {

@@ -15,6 +15,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import project.Presets.PresetConfiguration.BottomPanePreset;
 
 public class BottomPane extends VBox {
 
@@ -73,15 +74,15 @@ public class BottomPane extends VBox {
         startStopButton.getStyleClass().add("control-button");
         startStopButton.setOnAction(e -> {
             running = !running;
+            updateStartStopButtonLabel();
             System.out.println("Simulation running: " + running);
         });
+        updateStartStopButtonLabel();
 
         resetButton = new Button("RESET");
         resetButton.getStyleClass().add("control-button");
         resetButton.setOnAction(e -> {
-            running = false;
-            specificTimeField.clear();
-            timescaleDropdown.setValue("1x");
+            applyPresetState(new BottomPanePreset("", "1x", false));
             System.out.println("Simulation reset");
         });
 
@@ -281,7 +282,36 @@ public class BottomPane extends VBox {
         dataGrid.getChildren().add(col);
     }
 
+    public void clearSatelliteColumns() {
+        if (dataGrid.getChildren().size() > 1) {
+            dataGrid.getChildren().remove(1, dataGrid.getChildren().size());
+        }
+    }
+
+    public BottomPanePreset toPresetState() {
+        String specificTime = specificTimeField.getText() == null ? "" : specificTimeField.getText();
+        String timescale = timescaleDropdown.getValue() == null ? "1x" : timescaleDropdown.getValue();
+        return new BottomPanePreset(specificTime, timescale, running);
+    }
+
+    public void applyPresetState(BottomPanePreset preset) {
+        specificTimeField.setText(preset.specificTime());
+
+        String timescale = preset.timescale();
+        if (timescale == null || !timescaleDropdown.getItems().contains(timescale)) {
+            timescale = "1x";
+        }
+        timescaleDropdown.setValue(timescale);
+
+        running = preset.running();
+        updateStartStopButtonLabel();
+    }
+
     public void updateSatelliteData(int index, String[][] keyValuePairs) {
         // TODO: implement live data updates once data layer exists
+    }
+
+    private void updateStartStopButtonLabel() {
+        startStopButton.setText(running ? "Stop" : "Start");
     }
 }

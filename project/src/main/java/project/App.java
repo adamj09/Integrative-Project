@@ -4,9 +4,11 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import project.Presets.PresetManager;
 import project.Renderer.Renderer;
 import project.UI.BottomPane;
 import project.UI.MainMenuBar;
+import project.UI.Popups.InfoPopup;
 import project.UI.SidebarPane;
 
 public class App extends Application {
@@ -17,12 +19,24 @@ public class App extends Application {
         BottomPane bottom = new BottomPane();
         MainMenuBar menuBar = new MainMenuBar();
         SidebarPane sidebar = new SidebarPane(bottom);
+        PresetManager presetManager = new PresetManager();
 
         Renderer mainRenderer = new Renderer();
 
         // Wire menu bar buttons to sidebar actions
         menuBar.getNewBodyButton().setOnAction(e -> sidebar.openNewBodyPopup(stage));
         menuBar.getNewSatelliteButton().setOnAction(e -> sidebar.openNewSatellitePopup(stage));
+        menuBar.getSaveAsMenuItem().setOnAction(e -> presetManager.savePresetAs(stage, sidebar));
+        menuBar.getSaveMenuItem().setOnAction(e -> presetManager.savePreset(stage, sidebar));
+        menuBar.getLoadMenuItem().setOnAction(e -> presetManager.loadPreset(stage, sidebar));
+        menuBar.getInfoButton().setOnAction(e -> InfoPopup.show("""
+            Orbital Motion Simulator
+
+            Use 'New celestial body' to add a central body and 'New satellite' to add orbiting objects.
+            Adjust simulation settings in the sidebar and bottom controls.
+            """));
+
+        presetManager.markCurrentStateSaved(sidebar);
 
         BorderPane root = new BorderPane();
         root.setCenter(mainRenderer.getViewport().getGLCanvas());
@@ -40,6 +54,11 @@ public class App extends Application {
         stage.setScene(scene);
         stage.setTitle("Orbital Motion Simulator");
         stage.setResizable(true);
+        stage.setOnCloseRequest(event -> {
+            if (!presetManager.canClose(stage, sidebar)) {
+                event.consume();
+            }
+        });
         stage.show();
     }
 

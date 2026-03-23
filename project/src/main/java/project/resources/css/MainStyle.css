@@ -259,3 +259,73 @@
     -fx-background-radius: 3;
     -fx-cursor: hand;
 }
+
+/* --- Menu Button / File Dropdown --- */
+.menu-button {
+    -fx-background-color: -button-color;
+    -fx-text-fill: -text-color;
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
+
+.menu-button .label {
+    -fx-text-fill: -text-color;
+}
+
+.menu-button .arrow {
+    -fx-background-color: -text-color;
+}
+
+.context-menu {
+    -fx-background-color: -light-bg-color;
+    -fx-border-color: -dark-accent-color;
+    -fx-border-width: 1;
+    -fx-background-radius: 0;
+}
+
+.menu-item {
+    -fx-background-color: -light-bg-color;
+}
+
+.menu-item .label {
+    -fx-text-fill: -text-color;
+}
+
+.menu-item:focused,
+.menu-item:armed {
+    -fx-background-color: -light-accent-color;
+}
+
+.menu-item:focused .label,
+.menu-item:armed .label {
+    -fx-text-fill: -text-color;
+}
+
+.unsaved-warning-pane {
+    -fx-border-color: -error-color;
+    -fx-border-width: 2;
+}
+
+.unsaved-warning-title {
+    -fx-text-fill: -error-color;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.unsaved-warning-message {
+    -fx-text-fill: #ffd9d9;
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-line-spacing: 2px;
+}
+
+.warning-confirm-button {
+    -fx-background-color: -error-color;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.warning-confirm-button:hover {
+    -fx-background-color: #ff8585;
+}
