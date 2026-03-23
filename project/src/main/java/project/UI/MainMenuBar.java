@@ -3,11 +3,13 @@ package project.UI;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import project.UiTheme;
 
 public class MainMenuBar extends HBox {
 
@@ -17,6 +19,7 @@ public class MainMenuBar extends HBox {
     private final MenuItem saveAsMenuItem;
     private final MenuItem saveMenuItem;
     private final MenuItem loadMenuItem;
+    private final ComboBox<UiTheme> themeSelector;
     private final Button infoButton;
 
     public MainMenuBar() {
@@ -39,6 +42,12 @@ public class MainMenuBar extends HBox {
         fileMenuButton.getItems().addAll(saveAsMenuItem, saveMenuItem, loadMenuItem);
         fileMenuButton.getStyleClass().add("style-button");
 
+        themeSelector = new ComboBox<>();
+        themeSelector.getItems().addAll(UiTheme.values());
+        themeSelector.setValue(UiTheme.MIDNIGHT);
+        themeSelector.setPrefWidth(140);
+        themeSelector.getStyleClass().addAll("combo-box", "theme-selector");
+
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
@@ -47,7 +56,7 @@ public class MainMenuBar extends HBox {
         
         this.setOnMouseClicked(_ -> this.requestFocus());
 
-        getChildren().addAll(newBodyButton, newSatelliteButton, fileMenuButton, spacer, infoButton);
+        getChildren().addAll(newBodyButton, newSatelliteButton, fileMenuButton, themeSelector, spacer, infoButton);
     }
 
     public Button getNewBodyButton() {
@@ -68,6 +77,10 @@ public class MainMenuBar extends HBox {
 
     public MenuItem getLoadMenuItem() {
         return loadMenuItem;
+    }
+
+    public ComboBox<UiTheme> getThemeSelector() {
+        return themeSelector;
     }
 
     public Button getInfoButton() {

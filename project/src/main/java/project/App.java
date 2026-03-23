@@ -39,10 +39,18 @@ public class App extends Application {
         presetManager.markCurrentStateSaved(sidebar);
 
         BorderPane root = new BorderPane();
+        root.setStyle(UiTheme.MIDNIGHT.toStyleString());
         root.setCenter(mainRenderer.getViewport().getGLCanvas());
         root.setTop(menuBar);
         root.setLeft(sidebar);
         root.setBottom(bottom);
+
+        menuBar.getThemeSelector().setOnAction(e -> {
+            UiTheme selectedTheme = menuBar.getThemeSelector().getValue();
+            if (selectedTheme != null) {
+                root.setStyle(selectedTheme.toStyleString());
+            }
+        });
 
         // The "true" value here indicates the creation of a depth buffer. This is
         // essential to ensure all nodes are placed on appopriate layers (contol nodes

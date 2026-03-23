@@ -302,6 +302,16 @@
     -fx-text-fill: -text-color;
 }
 
+.theme-selector {
+    -fx-background-color: -button-color;
+    -fx-border-color: -dark-accent-color;
+    -fx-border-width: 1;
+}
+
+.theme-selector .list-cell {
+    -fx-font-weight: bold;
+}
+
 .unsaved-warning-pane {
     -fx-border-color: -error-color;
     -fx-border-width: 2;
