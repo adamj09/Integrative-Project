@@ -61,6 +61,7 @@ public class Renderer {
 
             setCameraProjection();
 
+            // TODO: make this a helper method in ShaderProgram class
             glUniformBlockBinding(bodyShaderProgram.getID(), glGetUniformBlockIndex(bodyShaderProgram.getID(), "CameraMatrices"), 0);
             glUniformBlockBinding(bodyShaderProgram.getID(), glGetUniformBlockIndex(lightShaderProgram.getID(), "CameraMatrices"), 0);
         });
