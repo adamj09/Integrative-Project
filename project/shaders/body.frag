@@ -2,6 +2,7 @@
 
 uniform vec3 light_color;
 uniform vec3 light_position;
+uniform vec2 resolution;
 
 layout(std140) uniform CameraMatrices {
   mat4 projection;
@@ -13,17 +14,28 @@ camera_matrices;
 in vec3 out_color;
 in vec3 out_normal;
 in vec3 out_fragment_position;
+flat in int out_instance_ID;
 
 out vec4 fragColor;
 
-vec4 create_circle(vec2 position, vec4 color, float size) {
-    float circle = sqrt(pow(position.x, 2.0) + pow(position.y + 2.0));
-    circle = smoothstep(size, size + 0.003, 1.0 - circle);
+vec4 create_ellipse(vec2 position, vec4 color, float radius_x, float radius_y) {
+    float ellipse = sqrt(pow(radius_x, 2.0) - pow(radius_y, 2.0));
+    ellipse = smoothstep(size, size + 0.003, 1.0 - ellipse);
 
-    return color * circle;
+    return color * ellipse;
 }
 
 void main() {
+  vec3 result;
+
+  // --- Orbital Path ---
+
+  vec2 norm_coordinates = vec2(gl_FragCoord / resolution);
+  float aspect = resolution.x / resolution.y;
+  vec2 point = 
+
+
+  // --- Lighting ---
   vec3 view_position = vec3(camera_matrices.inverse_view[3][0], camera_matrices.inverse_view[3][1], camera_matrices.inverse_view[3][2]);
   vec3 normal = normalize(out_normal);
 
@@ -50,19 +62,7 @@ void main() {
       pow(max(dot(view_direction, reflect_direction), 0.0), 8);
   vec3 specular = specular_strength * specular_intensity * light_color;
 
-  vec3 result = (ambient + diffuse + specular) * out_color;
-
-// Circle creation demo
-    //   vec2 position = gl_FragCoord.xy / resolution;
-
-    // vec4 canvasColor = vec4(0.0);
-    // float circle = 0.0;
-
-    // vec3 circle = create_circle(position - vec2(0.5, 0.5), vec4(1.0, 1.0, 1.0, 1.0), 0.9);
-
-    // canvasColor += circle;
-
-    // gl_FragColor = vec4(canvasColor);
+  result = (ambient + diffuse + specular) * out_color;
 
   fragColor = vec4(result, 1.0);
 }

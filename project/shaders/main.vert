@@ -15,11 +15,13 @@ camera_matrices;
 out vec3 out_color;
 out vec3 out_normal;
 out vec3 out_fragment_position;
+out int out_instance_ID;
 
 void main() {
   out_color = color;
   out_normal = normal;
   out_fragment_position = vec3(model * vec4(position, 1.0));
+  out_instance_ID = gl_InstanceID;
 
   gl_Position = camera_matrices.projection * camera_matrices.view * model * vec4(position, 1.0);
 }
