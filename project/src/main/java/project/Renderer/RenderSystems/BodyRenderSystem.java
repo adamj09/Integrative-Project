@@ -18,6 +18,7 @@ public class BodyRenderSystem {
     private ShaderProgram shaderProgram;
 
     public BodyRenderSystem(Viewport viewport, World world, ShaderProgram shaderProgram) {
+        this.viewport = viewport;
         this.world = world;
         this.shaderProgram = shaderProgram;
         init();

@@ -14,27 +14,10 @@ camera_matrices;
 in vec3 out_color;
 in vec3 out_normal;
 in vec3 out_fragment_position;
-flat in int out_instance_ID;
 
 out vec4 fragColor;
 
-vec4 create_ellipse(vec2 position, vec4 color, float radius_x, float radius_y) {
-    float ellipse = sqrt(pow(radius_x, 2.0) - pow(radius_y, 2.0));
-    ellipse = smoothstep(size, size + 0.003, 1.0 - ellipse);
-
-    return color * ellipse;
-}
-
 void main() {
-  vec3 result;
-
-  // --- Orbital Path ---
-
-  vec2 norm_coordinates = vec2(gl_FragCoord / resolution);
-  float aspect = resolution.x / resolution.y;
-  vec2 point = 
-
-
   // --- Lighting ---
   vec3 view_position = vec3(camera_matrices.inverse_view[3][0], camera_matrices.inverse_view[3][1], camera_matrices.inverse_view[3][2]);
   vec3 normal = normalize(out_normal);
@@ -62,7 +45,7 @@ void main() {
       pow(max(dot(view_direction, reflect_direction), 0.0), 8);
   vec3 specular = specular_strength * specular_intensity * light_color;
 
-  result = (ambient + diffuse + specular) * out_color;
+  vec4 result = vec4((ambient + diffuse + specular) * out_color, 1.0);
 
-  fragColor = vec4(result, 1.0);
+  fragColor = vec4(result);
 }
