@@ -6,10 +6,7 @@ import project.Renderer.Viewport;
 import project.Renderer.World.World;
 import static org.lwjgl.opengl.GL41.*;
 
-import org.joml.Vector2f;
-
 public class BodyRenderSystem {
-    private Viewport viewport;
     private World world;
 
     private int vboColors,
@@ -17,8 +14,7 @@ public class BodyRenderSystem {
 
     private ShaderProgram shaderProgram;
 
-    public BodyRenderSystem(Viewport viewport, World world, ShaderProgram shaderProgram) {
-        this.viewport = viewport;
+    public BodyRenderSystem(World world, ShaderProgram shaderProgram) {
         this.world = world;
         this.shaderProgram = shaderProgram;
         init();
@@ -79,9 +75,6 @@ public class BodyRenderSystem {
         glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
         glBufferData(GL_ARRAY_BUFFER, world.getMatricesBuffer(), GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        shaderProgram.addUniformVec2f("resolution",
-                new Vector2f((float) viewport.getGLCanvas().getWidth(), (float) viewport.getGLCanvas().getHeight()));
 
         // Draw bodies (instanced)
         glBindVertexArray(world.getBodyMesh().getVAO());

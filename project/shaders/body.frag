@@ -15,7 +15,7 @@ in vec3 out_color;
 in vec3 out_normal;
 in vec3 out_fragment_position;
 
-out vec4 fragColor;
+out vec4 frag_color;
 
 void main() {
   // --- Lighting ---
@@ -47,5 +47,5 @@ void main() {
 
   vec4 result = vec4((ambient + diffuse + specular) * out_color, 1.0);
 
-  fragColor = vec4(result);
+  frag_color = vec4(result);
 }
