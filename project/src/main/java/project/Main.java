@@ -45,7 +45,7 @@ public class Main extends Application {
         // Mass of Earth: 5.972e24 kg
         // Radius of Earth: 6371 km
         Body earth = new Body("Earth", 5.972e24, 6371);
-        earth.setTimeScale(0.5);
+        earth.setTimeScale(1);
 
         // Create a satellite (e.g., simulating a low Earth orbit satellite)
         // International Space Station approximate values
@@ -109,9 +109,8 @@ public class Main extends Application {
         earth.startSatellites();
         
 
-        // Start the simulation and immediately capture the reference time
+        // Start the simulation
         earth.start();
-        long timeNanos = System.nanoTime();
 
         // Print data every second for 10 seconds
         int printCount = 0;
@@ -125,6 +124,7 @@ public class Main extends Application {
         } // Wait 1 second before printing
         earth.resetTime();
         
+        long timeNanos = System.nanoTime();
 
         while (printCount < maxPrints) {
             try {

@@ -156,7 +156,6 @@ public class MathOrbits {
         double currentTime = satellite.getData().currentTime;
         double lastTime = satellite.getData().lastTime;
         if(currentTime == lastTime){
-            //System.out.println("current "+currentTime+" last "+lastTime+" rejection");
             return;
         }
 
