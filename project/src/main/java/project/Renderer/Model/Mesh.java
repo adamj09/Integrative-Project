@@ -4,6 +4,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.lwjgl.BufferUtils;
@@ -14,17 +15,16 @@ public class Mesh {
     private ArrayList<Vector3f> vertices = new ArrayList<>();
     private ArrayList<Vector3i> indices = new ArrayList<>();
     private ArrayList<Vector3f> normals = new ArrayList<>();
+    private ArrayList<Vector2f> texCoords = new ArrayList<>();
 
     private FloatBuffer vertexBuffer;
     private IntBuffer indexBuffer;
     private FloatBuffer normalBuffer;
+    private FloatBuffer texCoordBuffer;
 
-    private int VAO;
-    private int VBO;
-    private int NBO;
-    private int EBO;
+    private int VAO, VBO, NBO, TBO, EBO;
 
-    public Mesh(ArrayList<Vector3f> vertices, ArrayList<Vector3i> indices, ArrayList<Vector3f> normals) {
+    public Mesh(ArrayList<Vector3f> vertices, ArrayList<Vector3i> indices, ArrayList<Vector3f> normals, ArrayList<Vector2f> texCoords) {
         this.vertices = vertices;
         this.indices = indices;
         this.normals = normals;
@@ -32,9 +32,21 @@ public class Mesh {
         VAO = glGenVertexArrays();
         glBindVertexArray(VAO);
 
-        setUpVertexBuffer();
-        setUpIndexBuffer();
-        setUpNormalBuffer();
+        if(!vertices.isEmpty()) {
+            setUpVertexBuffer();
+        }
+
+        if(!indices.isEmpty()) {
+            setUpIndexBuffer();
+        }
+
+        if(!normals.isEmpty()) {
+            setUpNormalBuffer();
+        }
+
+        if(!texCoords.isEmpty()) {
+            setUpTexCoordBuffer();
+        }
     }
 
     private void setUpVertexBuffer() {
@@ -66,6 +78,17 @@ public class Mesh {
         glBufferData(GL_ARRAY_BUFFER, normalBuffer, GL_STATIC_DRAW);
         glVertexAttribPointer(1, 3, GL_FLOAT, false, 3 * Float.BYTES, 0);
         glEnableVertexAttribArray(1);
+    }
+
+    private void setUpTexCoordBuffer() {
+        packTexCoordsIntoBuffer();
+
+        TBO = glGenBuffers();
+
+        glBindBuffer(GL_ARRAY_BUFFER, TBO);
+        glBufferData(GL_ARRAY_BUFFER, texCoordBuffer, GL_STATIC_DRAW);
+        glVertexAttribPointer(1, 2, GL_FLOAT, false, 2 * Float.BYTES, 0);
+        glEnableVertexAttribArray(2);
     }
 
     private void packVerticesIntoBuffer() {
@@ -108,6 +131,20 @@ public class Mesh {
         }
 
         normalBuffer.put(normals).flip();
+    }
+
+    // TODO: should probably make a more elegant, all-in-on function for packing data into a buffer
+    private void packTexCoordsIntoBuffer() {
+        texCoordBuffer = BufferUtils.createFloatBuffer(this.texCoords.size() * 2);
+
+        float[] texCoords = new float[this.texCoords.size() * 3];
+
+        for (int i = 0, j = 0; i < this.texCoords.size(); i++, j += 2) {
+            texCoords[j] = this.texCoords.get(i).x;
+            texCoords[j + 1] = this.texCoords.get(i).y;
+        }
+
+        texCoordBuffer.put(texCoords).flip();
     }
 
     public FloatBuffer getVertexBuffer() {

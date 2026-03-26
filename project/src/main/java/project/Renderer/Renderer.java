@@ -60,7 +60,7 @@ public class Renderer {
             ShaderProgram orbitShaderProgram = new ShaderProgram(orbitVertShader.getShader(), orbitFragShader.getShader());
 
             // Create render systems
-            bodyRenderSystem = new BodyRenderSystem(world, bodyShaderProgram);
+            bodyRenderSystem = new BodyRenderSystem(viewport, world, bodyShaderProgram);
             cameraRenderSystem = new CameraRenderSystem(world.getCamera());
             lightRenderSystem = new LightRenderSystem(world, lightShaderProgram);
             orbitRenderSystem = new OrbitRenderSystem(viewport, world, orbitShaderProgram);
@@ -69,10 +69,11 @@ public class Renderer {
             
             bodyShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
             lightShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
+            orbitShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
         });
 
         viewport.getGLCanvas().addOnRenderEvent(event -> {
-            glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             controlManager.updateMousePosition();
