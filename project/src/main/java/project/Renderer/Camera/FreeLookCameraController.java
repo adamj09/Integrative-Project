@@ -118,9 +118,9 @@ public class FreeLookCameraController {
     private void rotate(float deltaTime) {
         // Find degrees in which to rotate based on mouse movement, rotation speed and
         // delta time.
-        float pitchDegrees = -(float) Math.clamp(controls.getMouseDeltaYNormalized() * rotateSpeed * deltaTime,
+        float pitchDegrees = -(float) Math.clamp(controls.getMouseDeltaYNormalized() * (rotateSpeed * deltaTime),
                 -pitchLimit, pitchLimit),
-                yawDegrees = -controls.getMouseDeltaXNormalized() * rotateSpeed * deltaTime;
+                yawDegrees = -controls.getMouseDeltaXNormalized() * (rotateSpeed * deltaTime);
 
         // Set pitch axis to be perpendicular to the camera's direction and up vectors.
         Vector3f pitchAxis = new Vector3f();

@@ -41,7 +41,7 @@ public class Renderer {
             glFrontFace(GL_CCW);
             glEnable(GL_CULL_FACE);
 
-            world = new World();
+            world = new World("world");
             controlManager = new ControlManager(viewport.getGLCanvas());
 
             // Create camera controller
@@ -60,7 +60,7 @@ public class Renderer {
             ShaderProgram orbitShaderProgram = new ShaderProgram(orbitVertShader.getShader(), orbitFragShader.getShader());
 
             // Create render systems
-            bodyRenderSystem = new BodyRenderSystem(viewport, world, bodyShaderProgram);
+            bodyRenderSystem = new BodyRenderSystem(world, bodyShaderProgram);
             cameraRenderSystem = new CameraRenderSystem(world.getCamera());
             lightRenderSystem = new LightRenderSystem(world, lightShaderProgram);
             orbitRenderSystem = new OrbitRenderSystem(viewport, world, orbitShaderProgram);
@@ -84,8 +84,6 @@ public class Renderer {
             cameraRenderSystem.loop();
             bodyRenderSystem.loop();
             lightRenderSystem.loop();
-
-            glDisable(GL_CULL_FACE);
             orbitRenderSystem.loop();
         });
     }

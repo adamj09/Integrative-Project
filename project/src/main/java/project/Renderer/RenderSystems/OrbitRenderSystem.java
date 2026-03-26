@@ -1,24 +1,19 @@
 package project.Renderer.RenderSystems;
 
+import project.Renderer.Renderer;
 import project.Renderer.ShaderProgram;
 import project.Renderer.Viewport;
-import project.Renderer.Model.Mesh;
 import project.Renderer.World.World;
 
 import static org.lwjgl.opengl.GL41.*;
 
-import java.util.ArrayList;
-
 import org.joml.Vector2f;
-import org.joml.Vector3f;
-import org.joml.Vector3i;
 
 public class OrbitRenderSystem {
     private Viewport viewport;
     private World world;
     private ShaderProgram shaderProgram;
-
-    private Mesh screenQuad;
+    private int vboModelMatrices;
 
     public OrbitRenderSystem(Viewport viewport, World world, ShaderProgram shaderProgram) {
         this.viewport = viewport;
@@ -31,18 +26,35 @@ public class OrbitRenderSystem {
     public void init() {
         shaderProgram.use();
 
-        ArrayList<Vector3f> vertices = new ArrayList<>();
-        vertices.add(new Vector3f(-1.0f, 1.0f, 0.0f));
-        vertices.add(new Vector3f(1.0f, 1.0f, 0.0f));
-        vertices.add(new Vector3f(1.0f, -1.0f, 0.0f));
-        vertices.add(new Vector3f(-1.0f, -1.0f, 0.0f));
+        glBindVertexArray(world.getOrbitMesh().getVAO());
 
-        ArrayList<Vector3i> indices = new ArrayList<>();
-        indices.add(new Vector3i(0, 3, 1));
-        indices.add(new Vector3i( 1, 3, 2));
+        // Model Matrices
+        vboModelMatrices = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
+        glBufferData(GL_ARRAY_BUFFER, world.getBodyMatrixBuffer(), GL_STATIC_DRAW);
 
-        // TODO: create screenQuad texture coordinates
-        screenQuad = new Mesh(vertices, indices, new ArrayList<Vector3f>(), new ArrayList<>());
+        // Model matrix attribute pointers. Note that we need to do this four times,
+        // since the maximum size of an attribute is equivalent to a Vector4f. I.e.
+        // setting up 4 Vector4fs is equivalent to setting up the Matrix4f. which is the
+        // data structure we're trying to send over to our shader.
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 0);
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(5, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, Renderer.VEC4F_SIZE);
+        glEnableVertexAttribArray(5);
+        glVertexAttribPointer(6, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 2 * Renderer.VEC4F_SIZE);
+        glEnableVertexAttribArray(6);
+        glVertexAttribPointer(7, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 3 * Renderer.VEC4F_SIZE);
+
+        glVertexAttribDivisor(4, 1);
+        glVertexAttribDivisor(5, 1);
+        glVertexAttribDivisor(6, 1);
+        glVertexAttribDivisor(7, 1);
+
+        glBindVertexArray(0);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
     }
 
     public void loop() {
@@ -52,7 +64,7 @@ public class OrbitRenderSystem {
                 new Vector2f((float) viewport.getGLCanvas().getWidth(), (float) viewport.getGLCanvas().getHeight()));
 
         glClear(GL_DEPTH_BUFFER_BIT);
-        glBindVertexArray(screenQuad.getVAO());
-        glDrawElementsInstanced(GL_TRIANGLES, screenQuad.getVertices().size() * 3, GL_UNSIGNED_INT, 0, world.getBodies().size());
+        glBindVertexArray(world.getOrbitMesh().getVAO());
+        glDrawArraysInstanced(GL_LINE_LOOP, 0, world.getOrbitMesh().getVertices().size(), world.getOrbits().size() - 1);
     }
 }

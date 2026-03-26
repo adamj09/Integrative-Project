@@ -87,7 +87,7 @@ public class Mesh {
 
         glBindBuffer(GL_ARRAY_BUFFER, TBO);
         glBufferData(GL_ARRAY_BUFFER, texCoordBuffer, GL_STATIC_DRAW);
-        glVertexAttribPointer(1, 2, GL_FLOAT, false, 2 * Float.BYTES, 0);
+        glVertexAttribPointer(2, 2, GL_FLOAT, false, 2 * Float.BYTES, 0);
         glEnableVertexAttribArray(2);
     }
 
@@ -165,6 +165,10 @@ public class Mesh {
 
     public ArrayList<Vector3f> getNormals() {
         return normals;
+    }
+
+    public ArrayList<Vector2f> getTexCoords() {
+        return texCoords;
     }
 
     public int getVAO() {
