@@ -97,12 +97,14 @@ public class Satellite implements Runnable{
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
             MathOrbits.getRelativeInfo(this);
+            
             try {
                 Thread.sleep(Constant.UPDATE_TIME);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
             }
+                 
         }
     }
 }

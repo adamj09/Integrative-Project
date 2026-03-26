@@ -1,15 +1,22 @@
 package project;
 
 public class OrbitsTime implements Runnable{
+    private static final long NANOS_PER_MS = 1_000_000L;
+    private static final long NANOS_PER_SECOND = 1_000_000_000L;
+    
     private double timeScale = 1;
-    private double lastTime; // in millisecond
-    private double finalTime; // in millisecond
+    private double finalTime; // in milliseconds (simulation time)
+    private long startTimeReal; // when simulation started in nanoseconds
+    private long totalPausedTime; // total time spent paused (in nanoseconds)
+    private long pauseStartTime; // when we paused in nanoseconds
     private boolean runningStatus = false;
     private Thread timeThread; // thread for time calculations
 
 
     public OrbitsTime(){
-        this.lastTime = System.currentTimeMillis();
+        this.startTimeReal = 0;
+        this.totalPausedTime = 0;
+        this.pauseStartTime = 0;
         this.timeThread = null;
     }
 
@@ -23,7 +30,9 @@ public class OrbitsTime implements Runnable{
 
     public void resetTime(){
         this.finalTime = 0;
-        this.lastTime = System.currentTimeMillis();
+        this.startTimeReal = System.nanoTime();
+        this.totalPausedTime = 0;
+        this.pauseStartTime = 0;
     }
 
     /**
@@ -31,17 +40,32 @@ public class OrbitsTime implements Runnable{
      * @param timeSeconds the time value in seconds
      */
     public void setTime(double timeSeconds){
+        long currentRealTime = System.nanoTime();
         this.finalTime = timeSeconds * 1000; // convert to milliseconds
-        this.lastTime = System.currentTimeMillis();
+        // Adjust startTimeReal so that next calculateTime() produces the desired time
+        this.startTimeReal = currentRealTime - this.totalPausedTime - (long)(this.finalTime / this.timeScale * NANOS_PER_MS);
     }
 
 
     public void start(){
+        if (!this.runningStatus) {
+            // If we're resuming from a pause, accumulate the pause duration
+            if (this.pauseStartTime > 0) {
+                this.totalPausedTime += System.nanoTime() - this.pauseStartTime;
+                this.pauseStartTime = 0;
+            } else if (this.startTimeReal == 0) {
+                // First start of the simulation
+                this.startTimeReal = System.nanoTime();
+            }
+        }
         this.runningStatus = true;
     }
 
     public void stop(){
         this.runningStatus = false;
+        if (this.pauseStartTime == 0) {
+            this.pauseStartTime = System.nanoTime();
+        }
     }
 
     /**
@@ -95,34 +119,25 @@ public class OrbitsTime implements Runnable{
         while (!Thread.currentThread().isInterrupted()) {
             calculateTime();
             updateSatellitesTime(); // Update satellites with new time
-            try {
-                Thread.sleep(Constant.UPDATE_TIME);        
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            }
         }
     }
 
     /**
      * Calculates the elapsed time with support for pause/resume and time scaling.
      * Called repeatedly in the run method to update the simulation time.
+     * Derives simulation time directly from real elapsed time to avoid accumulation errors.
+     * Properly accounts for paused periods. Uses nanosecond precision.
      */
     private void calculateTime(){
-        double currentTime = System.currentTimeMillis();
-        
-        // Only update finalTime if the simulation is running
-        if (runningStatus) {
-            // Calculate the delta time since the last update
-            double deltaTime = currentTime - lastTime;
+        if (startTimeReal > 0) {
+            // Calculate elapsed real time since simulation started, minus paused periods (in nanoseconds)
+            long currentRealTime = System.nanoTime();
+            long elapsedRealTimeNanos = currentRealTime - startTimeReal - totalPausedTime;
             
-            // Apply time scale to delta time and add to final time
-            this.finalTime += deltaTime * this.timeScale;
+            // Convert to milliseconds and apply time scale
+            double elapsedRealTimeMs = elapsedRealTimeNanos / (double) NANOS_PER_MS;
+            this.finalTime = elapsedRealTimeMs * this.timeScale;
         }
-        
-        // Always update lastTime to the current time
-        this.lastTime = currentTime;
-        
     }
 }
  

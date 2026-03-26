@@ -154,7 +154,9 @@ public class MathOrbits {
     //
     public static void getRelativeInfo(Satellite satellite){
         double currentTime = satellite.getData().currentTime;
-        if(currentTime == satellite.getData().lastTime){
+        double lastTime = satellite.getData().lastTime;
+        if(currentTime == lastTime){
+            //System.out.println("current "+currentTime+" last "+lastTime+" rejection");
             return;
         }
 

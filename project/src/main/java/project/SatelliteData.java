@@ -40,5 +40,5 @@ public class SatelliteData {
     public Vector3d lineOfNodesVect;
     public double time0 = 0; //time at which the satellite is at the initial position and velocity
     public double currentTime; //current time in the simulation
-    public double lastTime;
+    public double lastTime = -1;
 }

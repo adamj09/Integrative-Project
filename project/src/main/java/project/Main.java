@@ -45,6 +45,7 @@ public class Main extends Application {
         // Mass of Earth: 5.972e24 kg
         // Radius of Earth: 6371 km
         Body earth = new Body("Earth", 5.972e24, 6371);
+        earth.setTimeScale(0.5);
 
         // Create a satellite (e.g., simulating a low Earth orbit satellite)
         // International Space Station approximate values
@@ -102,23 +103,49 @@ public class Main extends Application {
         System.out.println("Satellite: " + satellite.getData().name);
         System.out.println();
 
-        // Start the time thread
+
         earth.startTimeThread();
         // Start satellite calculation threads
         earth.startSatellites();
-        // Start the simulation
+        
+
+        // Start the simulation and immediately capture the reference time
         earth.start();
+        long timeNanos = System.nanoTime();
 
         // Print data every second for 10 seconds
         int printCount = 0;
         int maxPrints = 10;
 
+        //Need to wait a bit before getting the first values because of initialization time of the threads, otherwise the first values will be 0 and it will cause a rejection in the getRelativeInfo method of the satellite
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } // Wait 1 second before printing
+        earth.resetTime();
+        
+
         while (printCount < maxPrints) {
             try {
-                Thread.sleep(1000); // Wait 1 second before printing
-
+                
+                if(printCount == 3){
+                    earth.stop();
+                    System.out.println("stop");
+                    Thread.sleep(2000);
+                    earth.start();
+                    System.out.println("start");
+                }
+                
+                if(printCount == 6){
+                    earth.resetTime();
+                }
+                 
                 data = satellite.getData();
                 double timeSeconds = earth.getTimeSeconds();
+                long elapsedNanos = System.nanoTime() - timeNanos;
+                double elapsedSeconds = elapsedNanos / 1_000_000_000.0;
+                System.out.printf("Time real N: %.2f s | ", elapsedSeconds);
                 System.out.printf("Time: %.2f s | ", timeSeconds);
                 System.out.printf("Time satelite: %.2f s | ", data.currentTime);
                 System.out.printf("Energy: %.2f s | ", data.totalEnergy);
@@ -126,7 +153,8 @@ public class Main extends Application {
                     data.currentPosition.x / 1000, data.currentPosition.y / 1000, data.currentPosition.z / 1000);
                 System.out.printf("Velocity: (%.2f, %.2f, %.2f) m/s%n", 
                     data.currentVelocity.x, data.currentVelocity.y, data.currentVelocity.z);
-
+                
+                Thread.sleep(1000); // Wait 1 second before printing
                 printCount++;
 
             } catch (InterruptedException e) {
@@ -138,6 +166,8 @@ public class Main extends Application {
         // Stop the simulation
         System.out.println();
         System.out.println("=== Test Complete ===");
+        long finalElapsedNanos = System.nanoTime() - timeNanos;
+        System.out.println("real time: " + (finalElapsedNanos / 1_000_000_000.0) + " s");
         earth.stop();
         earth.stopSatellites();
         earth.stopTimeThread();

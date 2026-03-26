@@ -9,5 +9,5 @@ public class Constant {
     public static final int MAXIMUM_NUMBER_OF_SATELITE = 10;
 
     //time
-    public static final int UPDATE_TIME = 100; //in miliseconds (time between each calculation of the sitelittes info)
+    public static final int UPDATE_TIME = 10; //in miliseconds (time between each calculation of the sitelittes info)
 }
