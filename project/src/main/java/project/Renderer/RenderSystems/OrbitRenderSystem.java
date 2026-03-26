@@ -1,6 +1,5 @@
 package project.Renderer.RenderSystems;
 
-import project.Renderer.Renderer;
 import project.Renderer.ShaderProgram;
 import project.Renderer.Viewport;
 import project.Renderer.Model.Mesh;
