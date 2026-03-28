@@ -18,14 +18,14 @@ in vec3 out_fragment_position;
 out vec4 frag_color;
 
 //TODO: 
-// 1. Put everything in the scene in the same shader program (lights, bodies, orbits)
+// 1. Put everything in the scene in the same shader program (lights, bodies, orbits). This will improve efficiency and simplicity.
 // 2. Add boolean to check whether we want the mesh drawn to be affected by lighting calculations:
 //      in bool shadeObject
 //      if(shadeObject == true) {
-//          run the Phong lighting algorithm and add its result to the final colour
+//          run the Phong lighting algorithm and multiply its result with the final colour
 //      }
 //      else {
-//          just render the final colour without the added colour given by the lighting algorithm
+//          just render the final colour without the colour given by the lighting algorithm
 //      }
 //      
 //      Perhaps the Phong lighting algorithm can be split into a separate function that returns a vec3 colour.
