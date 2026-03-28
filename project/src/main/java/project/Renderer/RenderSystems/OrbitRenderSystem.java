@@ -31,7 +31,7 @@ public class OrbitRenderSystem {
         // Model Matrices
         vboModelMatrices = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
-        glBufferData(GL_ARRAY_BUFFER, world.getBodyMatrixBuffer(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, world.getOrbitMatrixBuffer(), GL_STATIC_DRAW);
 
         // Model matrix attribute pointers. Note that we need to do this four times,
         // since the maximum size of an attribute is equivalent to a Vector4f. I.e.

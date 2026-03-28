@@ -128,7 +128,7 @@ public class World {
     }
 
     public FloatBuffer getOrbitMatrixBuffer() {
-        return this.bodyMatrixBuffer;
+        return this.orbitMatrixBuffer;
     }
 
     public Mesh getBodyMesh() {
