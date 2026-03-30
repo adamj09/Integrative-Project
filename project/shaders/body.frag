@@ -17,26 +17,13 @@ in vec3 out_fragment_position;
 
 out vec4 frag_color;
 
-//TODO: 
-// 1. Put everything in the scene in the same shader program (lights, bodies, orbits). This will improve efficiency and simplicity.
-// 2. Add boolean to check whether we want the mesh drawn to be affected by lighting calculations:
-//      in bool shadeObject
-//      if(shadeObject == true) {
-//          run the Phong lighting algorithm and multiply its result with the final colour
-//      }
-//      else {
-//          just render the final colour without the colour given by the lighting algorithm
-//      }
-//      
-//      Perhaps the Phong lighting algorithm can be split into a separate function that returns a vec3 colour.
 void main() {
   // --- Lighting ---
   vec3 view_position = vec3(camera_matrices.inverse_view[3][0], camera_matrices.inverse_view[3][1], camera_matrices.inverse_view[3][2]);
   vec3 normal = normalize(out_normal);
 
-  // Light direction is always the light's position (directional lighting) to
-  // simulate an infinitely distant light source (ex: Sun)
-  vec3 light_direction = normalize(light_position);
+  // Light direction (vector between light's position and the fragment's position)
+  vec3 light_direction = normalize(light_position - out_fragment_position);
 
   // Ambient Lighting
   float ambient_strength = 0.01;

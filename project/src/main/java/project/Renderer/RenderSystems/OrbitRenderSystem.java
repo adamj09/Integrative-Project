@@ -39,11 +39,11 @@ public class OrbitRenderSystem {
         // data structure we're trying to send over to our shader.
         glEnableVertexAttribArray(4);
         glVertexAttribPointer(4, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 0);
-        glEnableVertexAttribArray(4);
-        glVertexAttribPointer(5, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, Renderer.VEC4F_SIZE);
         glEnableVertexAttribArray(5);
-        glVertexAttribPointer(6, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 2 * Renderer.VEC4F_SIZE);
+        glVertexAttribPointer(5, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, Renderer.VEC4F_SIZE);
         glEnableVertexAttribArray(6);
+        glVertexAttribPointer(6, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 2 * Renderer.VEC4F_SIZE);
+        glEnableVertexAttribArray(7);
         glVertexAttribPointer(7, 4, GL_FLOAT, false, Renderer.MAT4F_SIZE, 3 * Renderer.VEC4F_SIZE);
 
         glVertexAttribDivisor(4, 1);
@@ -54,7 +54,6 @@ public class OrbitRenderSystem {
         glBindVertexArray(0);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-
     }
 
     public void loop() {
@@ -63,7 +62,7 @@ public class OrbitRenderSystem {
         shaderProgram.addUniformVec2f("resolution",
                 new Vector2f((float) viewport.getGLCanvas().getWidth(), (float) viewport.getGLCanvas().getHeight()));
 
-        glClear(GL_DEPTH_BUFFER_BIT);
+        //glClear(GL_DEPTH_BUFFER_BIT);
         glBindVertexArray(world.getOrbitMesh().getVAO());
         glDrawArraysInstanced(GL_LINE_LOOP, 0, world.getOrbitMesh().getVertices().size(), world.getOrbits().size() - 1);
     }

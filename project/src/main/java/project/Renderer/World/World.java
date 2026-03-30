@@ -1,6 +1,5 @@
 package project.Renderer.World;
 
-import java.nio.Buffer;
 import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +39,9 @@ public class World {
         bodyMatrixBuffer = BufferUtils.createFloatBuffer(16 * bodies.size());
         orbitMatrixBuffer = BufferUtils.createFloatBuffer(16 * orbits.size());
 
-        //TODO: update world buffer
+        updateBodyMatrixBuffer();
+        updateColorBuffer();
+        updateOrbitMatrixBuffer();
     }
 
     private void loadLightSource() {
@@ -71,6 +72,9 @@ public class World {
 
         for (Map.Entry<String, WorldObject> body : bodies.entrySet()) {
             WorldObject orbit = new WorldObject(body.getKey(), orbitMesh);
+            // Test transforms
+            orbit.setScale(new Vector3f(15.f, 1.f, 10.f));
+            orbit.setTranslation(new Vector3f(5.f, 0.f, 0.f));
 
             // TODO: transform orbit here according to the info associated with the given
             // celestial body.
@@ -79,11 +83,29 @@ public class World {
         }
     }
 
-    public void updateWorldBuffer(FloatBuffer buffer, int step, HashMap<String, WorldObject> map) {
-        buffer.clear();
+    public void updateBodyMatrixBuffer() {
+        bodyMatrixBuffer.clear();
         int i = 0;
-        for (Map.Entry<String, WorldObject> item : map.entrySet()) {
-            item.getValue().getColor().get(i * step, buffer);
+        for (Map.Entry<String, WorldObject> item : bodies.entrySet()) {
+            item.getValue().getTransformMatrix().get(i * 16, bodyMatrixBuffer);
+            i++;
+        }
+    }
+
+    public void updateColorBuffer() {
+        colorsBuffer.clear();
+        int i = 0;
+        for (Map.Entry<String, WorldObject> item : bodies.entrySet()) {
+            item.getValue().getColor().get(i * 3, colorsBuffer);
+            i++;
+        }
+    }
+
+    public void updateOrbitMatrixBuffer() {
+        orbitMatrixBuffer.clear();
+        int i = 0;
+        for (Map.Entry<String, WorldObject> item : orbits.entrySet()) {
+            item.getValue().getTransformMatrix().get(i * 16, orbitMatrixBuffer);
             i++;
         }
     }
@@ -94,9 +116,12 @@ public class World {
             return;
         }
 
-        // TODO: update world buffer
-
         bodies.put(body.getName(), body);
+        //TODO: also add associated orbit when adding body
+
+        updateBodyMatrixBuffer();
+        updateColorBuffer();
+        updateOrbitMatrixBuffer();
     }
 
     public void removeBody(String name) {
@@ -104,7 +129,9 @@ public class World {
             bodies.remove(name);
         }
 
-        // TODO: update world buffer
+        updateBodyMatrixBuffer();
+        updateColorBuffer();
+        updateOrbitMatrixBuffer();
     }
 
     public HashMap<String, WorldObject> getBodies() {
