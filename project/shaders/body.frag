@@ -17,12 +17,17 @@ in vec3 out_fragment_position;
 
 out vec4 frag_color;
 
-void main() {
-  // --- Lighting ---
-  vec3 view_position = vec3(camera_matrices.inverse_view[3][0], camera_matrices.inverse_view[3][1], camera_matrices.inverse_view[3][2]);
+vec3 phong_lighting() {
+  // Surface normal vector
   vec3 normal = normalize(out_normal);
 
-  // Light direction (vector between light's position and the fragment's position)
+  // Camera's position
+  vec3 view_position = vec3(camera_matrices.inverse_view[3][0],
+                            camera_matrices.inverse_view[3][1],
+                            camera_matrices.inverse_view[3][2]);
+
+  // Light direction (vector between light's position and the fragment's
+  // position)
   vec3 light_direction = normalize(light_position - out_fragment_position);
 
   // Ambient Lighting
@@ -44,7 +49,8 @@ void main() {
       pow(max(dot(view_direction, reflect_direction), 0.0), 8);
   vec3 specular = specular_strength * specular_intensity * light_color;
 
-  vec4 result = vec4((ambient + diffuse + specular) * out_color, 1.0);
-
-  frag_color = vec4(result);
+  // Result is the sum of all the above.
+  return vec3(ambient + diffuse + specular);
 }
+
+void main() { frag_color = vec4(phong_lighting() * out_color, 1.0); }
