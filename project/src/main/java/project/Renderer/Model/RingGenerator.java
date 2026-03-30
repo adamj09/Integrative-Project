@@ -12,7 +12,7 @@ public class RingGenerator {
         double radianStep = Math.toRadians(step);
 
         for(int i = 0; i < pointCount; i++) {
-            vertices.add(new Vector3f((float)Math.cos(i * radianStep), 0.0f, (float)Math.sin(i * radianStep)));
+            vertices.add(new Vector3f((float)Math.sin(i * radianStep), 0.0f, (float)Math.cos(i * radianStep)));
         }
 
         return new Mesh(vertices, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
