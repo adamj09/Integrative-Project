@@ -31,6 +31,8 @@ public class ControlManager {
     private float mouseDeltaX, mouseDeltaY;
     private float mouseDeltaXNormalized, mouseDeltaYNormalized;
 
+    private float scrollDeltaY;
+
     private float mouseCurrentX = (float) MouseInfo.getPointerInfo().getLocation().getX(),
             mouseCurrentY = (float) MouseInfo.getPointerInfo().getLocation().getY();
 
@@ -46,7 +48,7 @@ public class ControlManager {
     private void setUpKeyboardControls() {
         focusNode.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             KeyCode keyCode = event.getCode();
-           
+
             if (keyCode == KeyCode.getKeyCode(forwardKey)) {
                 forwardPressed = true;
             } else if (keyCode == KeyCode.getKeyCode(leftKey)) {
@@ -83,21 +85,25 @@ public class ControlManager {
 
     private void setUpMouseControls() {
         focusNode.setOnMousePressed(event -> {
-            if(event.isPrimaryButtonDown()) {
+            if (event.isPrimaryButtonDown()) {
                 focusButtonPressed = true;
                 focusNode.requestFocus();
             }
         });
 
         focusNode.setOnMouseReleased(event -> {
-            if(!event.isPrimaryButtonDown()) {
+            if (!event.isPrimaryButtonDown()) {
                 focusButtonPressed = false;
             }
+        });
+
+        focusNode.setOnScroll(event -> {
+            scrollDeltaY = (float) event.getDeltaY();
         });
     }
 
     public void handleUnfocus() {
-        if(!focusNode.isFocused()) {
+        if (!focusNode.isFocused()) {
             forwardPressed = false;
             leftPressed = false;
             backwardPressed = false;
@@ -107,7 +113,7 @@ public class ControlManager {
         }
     }
 
-    public void updateMousePosition() {
+    public void updateMouse() {
         float mouseNewX = (float) MouseInfo.getPointerInfo().getLocation().getX(),
                 mouseNewY = (float) MouseInfo.getPointerInfo().getLocation().getY();
 
@@ -117,8 +123,8 @@ public class ControlManager {
         mouseCurrentX = mouseNewX;
         mouseCurrentY = mouseNewY;
 
-        mouseDeltaXNormalized = mouseDeltaX / (float)focusNode.getScaleX();
-        mouseDeltaYNormalized = mouseDeltaY / (float)focusNode.getScaleY();
+        mouseDeltaXNormalized = mouseDeltaX / (float) focusNode.getScaleX();
+        mouseDeltaYNormalized = mouseDeltaY / (float) focusNode.getScaleY();
     }
 
     public float getMouseDeltaX() {
@@ -143,6 +149,14 @@ public class ControlManager {
 
     public float getMouseCurrentY() {
         return this.mouseCurrentY;
+    }
+
+    public float getScrollDeltaY() {
+        return this.scrollDeltaY;
+    }
+
+    public void setScrollDeltaY(float scrollDeltaY) {
+        this.scrollDeltaY = scrollDeltaY;
     }
 
     public String getForwardKey() {

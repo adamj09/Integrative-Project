@@ -17,7 +17,7 @@ public class FixedCameraController {
     /**
      * Scalar dictating speed at which the camera translates.
      */
-    private float translateSpeed = 10.0f;
+    private float translateSpeed = 0.1f;
 
     /**
      * Scalar dictating speed at which the camera rotates.
@@ -44,6 +44,8 @@ public class FixedCameraController {
      */
     private float maxDistance = 100.f;
 
+    private Vector3f lookatPosition = new Vector3f();
+
     /**
      * Initializes the camera controller with a camera and control manager.
      * 
@@ -64,55 +66,19 @@ public class FixedCameraController {
     private void translate(float deltaTime) {
         Vector3f position = camera.getPosition(); 
         Vector3f direction = camera.getDirection().normalize();
-        Vector3f up = camera.getUp().normalize();
         Vector3f newPosition = new Vector3f();
         Vector3f displacement = new Vector3f();
 
-        Vector3f forward = new Vector3f((float)Math.sin(Math.toRadians(yaw)), 0.0f, (float)Math.cos(Math.toRadians(yaw)));
+        // Translation is proportional to distance from lookatPosition
+        float distance = position.distance(lookatPosition);
 
-        Vector3f right = new Vector3f();
-        direction.cross(up, right);
+        float speed = controls.getScrollDeltaY() * translateSpeed * deltaTime * distance;
 
-        float speed = translateSpeed * deltaTime;
+        direction.mul(speed, displacement);
+        position.add(displacement, newPosition);
 
-        if (controls.isForwardPressed()) { // Thrust forward
-            forward.mul(speed, displacement);
-            position.sub(displacement, newPosition);
-
-            setCameraView(newPosition, direction);
-        }
-        if (controls.isBackwardPressed()) { // Thrust backward
-            forward.mul(speed, displacement);
-            position.add(displacement, newPosition);
-
-            setCameraView(newPosition, direction);
-        }
-        if (controls.isLeftPressed()) { // Strafe left
-            right.normalize().mul(speed, displacement);
-
-            position.sub(displacement, newPosition);
-
-            setCameraView(newPosition, direction);
-        }
-        if (controls.isRightPressed()) { // Strafe right
-            right.normalize().mul(speed, displacement);
-
-            position.add(displacement, newPosition);
-
-            setCameraView(newPosition, direction);
-        }
-        if (controls.isUpPressed()) { // Move Up
-            up.mul(speed, displacement);
-            position.add(displacement, newPosition);
-
-            setCameraView(newPosition, direction);
-        }
-        if (controls.isDownPressed()) { // Move Up
-            up.mul(speed, displacement);
-            position.sub(displacement, newPosition);
-
-            setCameraView(newPosition, direction);
-        }
+        setCameraView(newPosition, direction);
+        controls.setScrollDeltaY(0);
     }
 
     private void setCameraView(Vector3f position, Vector3f direction) {
