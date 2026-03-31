@@ -1,4 +1,4 @@
-package project;
+package project.Math;
 
 public class Constant {
     // math orbits constant

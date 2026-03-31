@@ -1,4 +1,4 @@
-package project;
+package project.Math;
 
 public class OrbitsTime implements Runnable{
     private static final long NANOS_PER_MS = 1_000_000L;

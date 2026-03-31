@@ -1,4 +1,4 @@
-package project;
+package project.Math;
 
 import java.util.HashMap;
 
