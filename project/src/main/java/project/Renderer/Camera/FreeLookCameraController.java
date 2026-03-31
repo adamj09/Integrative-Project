@@ -29,6 +29,7 @@ public class FreeLookCameraController {
      */
     private float pitchLimit = 89.0f;
 
+    //TODO: convert pitch and yaw to radians
     /**
      * Camera pitch angle in degrees.
      */
