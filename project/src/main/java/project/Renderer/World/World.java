@@ -68,7 +68,7 @@ public class World {
     }
 
     private void loadOrbits() {
-        orbitMesh = new RingGenerator().create(5);
+        orbitMesh = new RingGenerator().create(2);
 
         for (Map.Entry<String, WorldObject> body : bodies.entrySet()) {
             WorldObject orbit = new WorldObject(body.getKey(), orbitMesh);
