@@ -1,5 +1,7 @@
 package project;
 
+import java.util.prefs.Preferences;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -12,6 +14,8 @@ import project.UI.Popups.InfoPopup;
 import project.UI.SidebarPane;
 
 public class App extends Application {
+    private static final String THEME_PREFERENCE_KEY = "ui.theme";
+
     @Override
     public void start(Stage stage) {
         setSystemProperties();
@@ -38,17 +42,24 @@ public class App extends Application {
 
         presetManager.markCurrentStateSaved(sidebar);
 
+        Preferences preferences = Preferences.userNodeForPackage(App.class);
+        UiTheme selectedTheme = UiTheme.fromStoredValue(
+            preferences.get(THEME_PREFERENCE_KEY, UiTheme.MIDNIGHT.name()));
+
         BorderPane root = new BorderPane();
-        root.setStyle(UiTheme.MIDNIGHT.toStyleString());
+        root.setStyle(selectedTheme.toStyleString());
         root.setCenter(mainRenderer.getViewport().getGLCanvas());
         root.setTop(menuBar);
         root.setLeft(sidebar);
         root.setBottom(bottom);
 
+        menuBar.getThemeSelector().setValue(selectedTheme);
+
         menuBar.getThemeSelector().setOnAction(e -> {
-            UiTheme selectedTheme = menuBar.getThemeSelector().getValue();
-            if (selectedTheme != null) {
-                root.setStyle(selectedTheme.toStyleString());
+            UiTheme theme = menuBar.getThemeSelector().getValue();
+            if (theme != null) {
+                root.setStyle(theme.toStyleString());
+                preferences.put(THEME_PREFERENCE_KEY, theme.name());
             }
         });
 

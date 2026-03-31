@@ -1,5 +1,5 @@
 /* --- Colours Used --- */
-* {
+.root {
     -bg-color: #1a1a2e;
     -light-bg-color: #2a2a4a;
     -bright-bg-color: #3a3a5a;
@@ -19,9 +19,6 @@
     -data-box-border-color: #555577;
 
     -error-color: #ff6666;
-}
-
-.root {
     -fx-font-size: 12px;
 }
 

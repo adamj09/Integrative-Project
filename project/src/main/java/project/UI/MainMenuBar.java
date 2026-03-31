@@ -4,7 +4,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.MenuButton;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -15,10 +16,20 @@ public class MainMenuBar extends HBox {
 
     private final Button newBodyButton;
     private final Button newSatelliteButton;
-    private final MenuButton fileMenuButton;
+    private final MenuBar menuBar;
+    private final Menu configLoaderMenu;
     private final MenuItem saveAsMenuItem;
     private final MenuItem saveMenuItem;
     private final MenuItem loadMenuItem;
+    private final Menu presetsMenu;
+    private final MenuItem mercuryPreset;
+    private final MenuItem venusPreset;
+    private final MenuItem earthPreset;
+    private final MenuItem marsPreset;
+    private final MenuItem jupiterPreset;
+    private final MenuItem saturnPreset;
+    private final MenuItem uranusPreset;
+    private final MenuItem neptunePreset;
     private final ComboBox<UiTheme> themeSelector;
     private final Button infoButton;
 
@@ -38,9 +49,31 @@ public class MainMenuBar extends HBox {
         saveMenuItem = new MenuItem("Save");
         loadMenuItem = new MenuItem("Load");
 
-        fileMenuButton = new MenuButton("File");
-        fileMenuButton.getItems().addAll(saveAsMenuItem, saveMenuItem, loadMenuItem);
-        fileMenuButton.getStyleClass().add("style-button");
+        // Presets submenu (as Menu)
+        mercuryPreset = new MenuItem("Mercury");
+        venusPreset = new MenuItem("Venus");
+        earthPreset = new MenuItem("Earth");
+        marsPreset = new MenuItem("Mars");
+        jupiterPreset = new MenuItem("Jupiter");
+        saturnPreset = new MenuItem("Saturn");
+        uranusPreset = new MenuItem("Uranus");
+        neptunePreset = new MenuItem("Neptune");
+        presetsMenu = new Menu("Presets");
+        presetsMenu.getItems().addAll(
+            mercuryPreset, venusPreset, earthPreset, marsPreset,
+            jupiterPreset, saturnPreset, uranusPreset, neptunePreset
+        );
+
+        // Configuration Loader menu (as Menu)
+        configLoaderMenu = new Menu("Configuration Loader");
+        configLoaderMenu.getItems().addAll(
+            presetsMenu, saveAsMenuItem, saveMenuItem, loadMenuItem
+        );
+
+        // Top-level MenuBar
+        menuBar = new MenuBar();
+        menuBar.getMenus().add(configLoaderMenu);
+        menuBar.setStyle("-fx-background-color: transparent;");
 
         themeSelector = new ComboBox<>();
         themeSelector.getItems().addAll(UiTheme.values());
@@ -56,7 +89,7 @@ public class MainMenuBar extends HBox {
         
         this.setOnMouseClicked(_ -> this.requestFocus());
 
-        getChildren().addAll(newBodyButton, newSatelliteButton, fileMenuButton, themeSelector, spacer, infoButton);
+        getChildren().addAll(newBodyButton, newSatelliteButton, menuBar, themeSelector, spacer, infoButton);
     }
 
     public Button getNewBodyButton() {
@@ -79,6 +112,24 @@ public class MainMenuBar extends HBox {
         return loadMenuItem;
     }
 
+    public MenuBar getMenuBar() {
+        return menuBar;
+    }
+    public Menu getConfigLoaderMenu() {
+        return configLoaderMenu;
+    }
+    public Menu getPresetsMenu() {
+        return presetsMenu;
+    }
+
+    public MenuItem getMercuryPreset() { return mercuryPreset; }
+    public MenuItem getVenusPreset() { return venusPreset; }
+    public MenuItem getEarthPreset() { return earthPreset; }
+    public MenuItem getMarsPreset() { return marsPreset; }
+    public MenuItem getJupiterPreset() { return jupiterPreset; }
+    public MenuItem getSaturnPreset() { return saturnPreset; }
+    public MenuItem getUranusPreset() { return uranusPreset; }
+    public MenuItem getNeptunePreset() { return neptunePreset; }
     public ComboBox<UiTheme> getThemeSelector() {
         return themeSelector;
     }

@@ -131,6 +131,18 @@ public enum UiTheme {
         );
     }
 
+    public static UiTheme fromStoredValue(String value) {
+        if (value == null || value.isBlank()) {
+            return MIDNIGHT;
+        }
+
+        try {
+            return UiTheme.valueOf(value);
+        } catch (IllegalArgumentException ex) {
+            return MIDNIGHT;
+        }
+    }
+
     @Override
     public String toString() {
         return label;
