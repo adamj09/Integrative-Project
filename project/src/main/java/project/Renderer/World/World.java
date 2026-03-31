@@ -127,6 +127,7 @@ public class World {
     public void removeBody(String name) {
         if (name != this.name) {
             bodies.remove(name);
+            // body.removeSatellite(name);
         }
 
         updateBodyMatrixBuffer();
