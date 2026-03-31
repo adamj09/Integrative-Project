@@ -55,7 +55,7 @@ public class Main extends Application {
             "hell", 20,
             5.972e24,           // mass of Earth
             3000.0, 0, 0,         // position: x=6778km, y=0, z=0 (in km)
-            1000, 5000, 0         // velocity: vx=0, vy=340 m/s, vz=0 (in m/s)
+            0, 300, 0         // velocity: vx=0, vy=340 m/s, vz=0 (in m/s)
         );
         satellite.getData().name = "TestSatellite";
 
@@ -149,6 +149,7 @@ public class Main extends Application {
                 System.out.printf("Time: %.2f s | ", timeSeconds);
                 System.out.printf("Time satelite: %.2f s | ", data.currentTime);
                 System.out.printf("Energy: %.2f s | ", data.totalEnergy);
+                System.out.printf("TrueAnomaly: %.2f s | ", data.trueAnomaly);
                 System.out.printf("Position: (%.2f, %.2f, %.2f) km | ", 
                     data.currentPosition.x / 1000, data.currentPosition.y / 1000, data.currentPosition.z / 1000);
                 System.out.printf("Velocity: (%.2f, %.2f, %.2f) m/s%n", 

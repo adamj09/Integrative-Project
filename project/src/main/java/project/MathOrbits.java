@@ -196,7 +196,7 @@ public class MathOrbits {
         satellite.getData().excessSpeed = Math.sqrt((2*mu)/distance);
 
         //kinetic energy
-        double kineticEnergy =  0.5 * satellite.getData().mass * currentVelocity.lengthSquared();
+        double kineticEnergy =  0.5 * currentVelocity.lengthSquared();
         satellite.getData().kineticEnergy = kineticEnergy;
         //gravitational potential energy
         double gravitationalPotEnergy = -mu / currentPosition.length();
