@@ -15,7 +15,7 @@
         <lwjgl.version>3.4.1</lwjgl.version>
         <joml.version>1.9.25</joml.version>
         <openglfx.version>2.8</openglfx.version>
-        <javafx.version>27-ea+3</javafx.version>
+        <javafx.version>25.0.2</javafx.version>
         <javafx.maven.plugin.version>0.0.8</javafx.maven.plugin.version>
         <kotlin.version>2.3.10</kotlin.version>
     </properties>

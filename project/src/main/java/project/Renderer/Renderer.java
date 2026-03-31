@@ -1,46 +1,110 @@
 package project.Renderer;
 
-import com.huskerdev.openglfx.canvas.GLCanvas;
-import com.huskerdev.openglfx.lwjgl.LWJGLExecutor;
+import static org.lwjgl.opengl.GL41.*;
 
-public abstract class Renderer {
-    private GLCanvas canvas;
+import project.ControlManager;
+import project.Renderer.Camera.FreeLookCameraController;
+import project.Renderer.RenderSystems.BodyRenderSystem;
+import project.Renderer.RenderSystems.CameraRenderSystem;
+import project.Renderer.RenderSystems.LightRenderSystem;
+import project.Renderer.RenderSystems.OrbitRenderSystem;
+import project.Renderer.World.World;
 
-    public Renderer(double fps, int msaa, int swapBuffers) {
-        canvas = createGLCanvas(fps, msaa, swapBuffers);
+public class Renderer {
+    public Viewport viewport = new Viewport();
+
+    public static final float DEFAULT_FOV = 45.f, DEFAULT_NEAR = 0.001f, DEFAULT_FAR = 1000.0f;
+    public static final int MAT4F_SIZE = 16 * Float.BYTES, VEC4F_SIZE = 4 * Float.BYTES, VEC3F_SIZE = 3 * Float.BYTES;
+
+    public World world;
+
+    private CameraRenderSystem cameraRenderSystem;
+    private BodyRenderSystem bodyRenderSystem;
+    private LightRenderSystem lightRenderSystem;
+    private OrbitRenderSystem orbitRenderSystem;
+
+    private ControlManager controlManager;
+    private FreeLookCameraController cameraController;
+
+    public Renderer() {
         initOpenGLRenderEventHandlers();
     }
 
-    public abstract void init();
-
-    public abstract void loop();
-
     private void initOpenGLRenderEventHandlers() {
-        canvas.addOnInitEvent(_ -> {
-            this.init();
+        viewport.getGLCanvas().addOnInitEvent(_ -> {
+            // Set up viewport resize handler
+            handleViewportResize();
+
+            // Enable depth testing
+            glEnable(GL_DEPTH_TEST);
+
+            glFrontFace(GL_CCW);
+            glEnable(GL_CULL_FACE);
+
+            world = new World("world");
+            controlManager = new ControlManager(viewport.getGLCanvas());
+
+            // Create camera controller
+            cameraController = new FreeLookCameraController(world.getCamera(), controlManager);
+
+            Shader mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
+            Shader orbitVertShader = new Shader("project/shaders/orbit.vert", GL_VERTEX_SHADER);
+
+            Shader bodyFragShader = new Shader("project/shaders/body.frag", GL_FRAGMENT_SHADER);
+            Shader lightFragShader = new Shader("project/shaders/light_source.frag", GL_FRAGMENT_SHADER);
+            Shader orbitFragShader = new Shader("project/shaders/orbit.frag", GL_FRAGMENT_SHADER);
+
+            // Create shader programs
+            ShaderProgram bodyShaderProgram = new ShaderProgram(mainVertShader.getShader(), bodyFragShader.getShader());
+            ShaderProgram lightShaderProgram = new ShaderProgram(mainVertShader.getShader(), lightFragShader.getShader());
+            ShaderProgram orbitShaderProgram = new ShaderProgram(orbitVertShader.getShader(), orbitFragShader.getShader());
+
+            // Create render systems
+            bodyRenderSystem = new BodyRenderSystem(world, bodyShaderProgram);
+            cameraRenderSystem = new CameraRenderSystem(world.getCamera());
+            lightRenderSystem = new LightRenderSystem(world, lightShaderProgram);
+            orbitRenderSystem = new OrbitRenderSystem(viewport, world, orbitShaderProgram);
+
+            setCameraProjection();
+            
+            bodyShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
+            lightShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
+            orbitShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
         });
 
-        canvas.addOnRenderEvent(_ -> {
-            this.loop();
+        viewport.getGLCanvas().addOnRenderEvent(event -> {
+            glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            controlManager.updateMousePosition();
+            controlManager.handleUnfocus();
+
+            cameraController.updateCameraTransform((float) event.delta);
+
+            cameraRenderSystem.loop();
+            bodyRenderSystem.loop();
+            lightRenderSystem.loop();
+            orbitRenderSystem.loop();
         });
     }
 
-    private GLCanvas createGLCanvas(double fps, int msaa, int swapBuffers) {
+    private void handleViewportResize() {
+        viewport.getGLCanvas().widthProperty().addListener(_ -> {
+            setCameraProjection();
+        });
 
-        GLCanvas.Builder glCanvasBuilder = new GLCanvas.Builder();
-        glCanvasBuilder.setFlipY(false);
-        glCanvasBuilder.setExecutor(LWJGLExecutor.LWJGL_MODULE);
-        glCanvasBuilder.setFps(fps);
-        glCanvasBuilder.setMSAA(msaa);
-        glCanvasBuilder.setSwapBuffers(swapBuffers);
-
-        var canvas = glCanvasBuilder.build();
-
-        return canvas;
+        viewport.getGLCanvas().heightProperty().addListener(_ -> {
+            setCameraProjection();
+        });
     }
 
+    private void setCameraProjection() {
+        world.getCamera().setPerspectiveProjection((float) Math.toRadians(DEFAULT_FOV),
+                (float) viewport.getGLCanvas().getWidth() / (float) viewport.getGLCanvas().getHeight(), DEFAULT_NEAR,
+                DEFAULT_FAR);
+    }
 
-    public GLCanvas getCanvas() {
-        return this.canvas;
+    public Viewport getViewport() {
+        return this.viewport;
     }
 }

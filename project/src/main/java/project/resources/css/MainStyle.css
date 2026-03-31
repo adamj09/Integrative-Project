@@ -1,0 +1,261 @@
+/* --- Colours Used --- */
+* {
+    -bg-color: #1a1a2e;
+    -light-bg-color: #2a2a4a;
+    -bright-bg-color: #3a3a5a;
+
+    -dark-accent-color: #444466;
+    -light-accent-color: #575781;
+    -bright-accent-color: #8888ff;
+
+    -text-color: #c0c0e0;
+
+    -button-color: #4a4a6a;
+
+    -key-label-color: #e0e0ff;
+    -key-color: #8888bb;
+
+    -data-box-bg-color: #252540;
+    -data-box-border-color: #555577;
+
+    -error-color: #ff6666;
+}
+
+.root {
+    -fx-font-size: 12px;
+}
+
+/* Bottom Pane Background */
+.bottom-pane {
+    -fx-background-color: -bg-color;
+    -fx-border-color: -dark-accent-color;
+    -fx-border-width: 1 0 0 0;
+}
+
+.side-pane {
+    -fx-background-color: -bg-color;
+    -fx-border-color: -dark-accent-color;
+    -fx-border-width: 0 1 0 0;
+}
+
+.main-menu-bar {
+    -fx-background-color: -light-bg-color;
+    -fx-border-color: -dark-accent-color;
+    -fx-border-width: 0 0 1 0;
+}
+
+.small-pane {
+    -fx-background-color: -bg-color;
+    -fx-border-color: -dark-accent-color;
+    -fx-border-width: 1;
+}
+
+.card {
+    -fx-background-color: -light-bg-color;
+    -fx-border-color: -dark-accent-color;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-style: dashed;
+}
+
+/* --- Text --- */
+.heading {
+    -fx-text-fill: -text-color;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+}
+
+.subheading {
+    -fx-text-fill: -text-color;
+    -fx-font-weight: bold;
+    -fx-padding: 8, 8, 8, 8;
+}
+
+.body {
+    -fx-text-fill: -text-color;
+    -fx-font-weight: normal;
+}
+
+.error-label {
+    -fx-text-fill: -error-color;
+    -fx-font-size: 11px;
+}
+
+/* Data Labels */
+.key-label {
+    -fx-text-fill: -key-label-color;
+    -fx-font-weight: normal;
+    -fx-font-size: 10px;
+}
+
+.key {
+    -fx-text-fill: -key-color;
+    -fx-font-weight: normal;
+    -fx-font-size: 10px;
+}
+
+/* --- Combo Box --- */
+.combo-box .list-view .list-cell:filled:hover {
+    -fx-background-color: -light-accent-color;
+    -fx-text-fill: -text-color;
+}
+
+.combo-box-base:focused {
+    -fx-background-color: -light-accent-color;
+}
+
+.combo-box-base:disabled {
+    -fx-opacity: .4;
+}
+
+/* While Open */
+.combo-box-base:showing {
+    -fx-color: -light-accent-color;
+}
+
+.combo-box {
+    -fx-background-color: -bg-color;
+    -fx-border-color: -dark-accent-color;
+    -fx-border-width: 1 1 1 1;
+    -fx-border-radius: 2 2 2 2;
+    -fx-text-fill: -text-color;
+    -fx-font-weight: normal;
+}
+
+.combo-box .list-cell {
+    -fx-background-color: -bg-color;
+    -fx-border-color: -dark-accent-color;
+    -fx-border-width: 0 0 0 0;
+    -fx-text-fill: -text-color;
+    -fx-font-weight: normal;
+}
+
+.combo-box .list-view {
+    -fx-background-color: -bg-color;
+    -fx-border-color: -dark-accent-color;
+    -fx-border-width: 0 0 0 0;
+    -fx-text-fill: -text-color;
+    -fx-font-weight: normal;
+}
+
+.combo-box-base .arrow-button .arrow {
+    -fx-background-color: -text-color;
+}
+
+.combo-box .list-cell:filled:selected,
+.combo-box-popup .list-view .list-cell:filled:selected:hover {
+    -fx-background-color: -dark-accent-color;
+    -fx-text-fill: -text-color;
+}
+
+/* --- Control Button --- */
+.control-button {
+    -fx-background-color: -button-color;
+    -fx-text-fill: -text-color;
+    -fx-font-size: 11px;
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
+
+/* --- Tabs --- */
+.tabs {
+    -fx-background-color: -light-bg-color;
+    -fx-border-width: 0 0 1 0;
+}
+
+.tab-active {
+    -fx-background-color: -bright-bg-color;
+    -fx-font-weight: bold;
+    -fx-border-color: -dark-accent-color;
+    -fx-border-width: 0 1 0 0;
+    -fx-text-fill: -text-color;
+}
+
+.tab-inactive {
+    -fx-background-color: -light-bg-color;
+    -fx-font-weight: normal;
+    -fx-border-color: -dark-accent-color;
+    -fx-border-width: 0 1 0 0;
+    -fx-text-fill: -text-color;
+}
+
+/* --- Scroll --- */
+.scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+/* --- Toggle Button --- */
+.toggle-button {
+    -fx-background-color: -button-color;
+    -fx-text-fill: -text-color;
+    -fx-font-size: 9px;
+    -fx-padding: 1 5 1 5;
+    -fx-background-radius: 2;
+    -fx-cursor: hand;
+}
+
+/* --- Data Grid --- */
+.data-grid {
+    -fx-background-color: -bg-color;
+}
+
+.data-box {
+    -fx-background-color: -data-box-bg-color;
+    -fx-border-color: -data-box-border-color;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+}
+
+/* --- Data Column --- */
+.column-drag {
+    -fx-border-color: -bright-accent-color;
+    -fx-border-width: 2;
+    -fx-border-radius: 4;
+    -fx-background-color: -light-bg-color;
+    -fx-background-radius: 4;
+}
+
+.column-expanded {
+    -fx-border-color: -dark-accent-color;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-color: -light-bg-color;
+    -fx-background-radius: 4;
+}
+
+.column-collapsed {
+    -fx-border-color: -dark-accent-color;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-color: -light-bg-color;
+    -fx-background-radius: 4;
+}
+
+/* --- Text Field --- */
+.field {
+    -fx-background-color: -light-bg-color;
+    -fx-text-fill: -text-color;
+    -fx-border-color: -dark-accent-color;
+    -fx-border-radius: 2;
+    -fx-background-radius: 2;
+    -fx-font-size: 11px;
+}
+
+.style-button {
+    -fx-background-color: -button-color;
+    -fx-text-fill: -text-color;
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
+
+.style-button-small {
+    -fx-background-color: -button-color;
+    -fx-text-fill: -text-color;
+    -fx-font-size: 11px;
+    -fx-padding: 2 8 2 8;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
