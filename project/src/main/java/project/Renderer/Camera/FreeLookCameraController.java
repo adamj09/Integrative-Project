@@ -17,7 +17,7 @@ public class FreeLookCameraController {
     /**
      * Scalar dictating speed at which the camera translates.
      */
-    private float translateSpeed = 10.0f;
+    private float translateSpeed = 0.f;
 
     /**
      * Scalar dictating speed at which the camera rotates.
@@ -44,6 +44,10 @@ public class FreeLookCameraController {
      */
     private float maxDistance = 100.f;
 
+    private float acceleration = 0.0005f;
+
+    private float maxSpeed = 10.f;
+
     /**
      * Initializes the camera controller with a camera and control manager.
      * 
@@ -65,54 +69,68 @@ public class FreeLookCameraController {
         Vector3f position = camera.getPosition(); 
         Vector3f direction = camera.getDirection().normalize();
         Vector3f up = camera.getUp().normalize();
-        Vector3f newPosition = new Vector3f();
-        Vector3f displacement = new Vector3f();
-
         Vector3f forward = new Vector3f((float)Math.sin(yaw), 0.0f, (float)Math.cos(yaw));
-
         Vector3f right = new Vector3f();
         direction.cross(up, right);
+        right.normalize();
+
+        Vector3f velocity = new Vector3f();
+
+        Vector3f thrustAcceleration = new Vector3f();
+        forward.mul(translateSpeed * deltaTime * ((controls.isForwardPressed() ? 1 : 0) - (controls.isBackwardPressed() ? 1 : 0)), thrustAcceleration);
+
+        Vector3f strafeAcceleration = new Vector3f();
+        right.mul(translateSpeed * deltaTime * ((controls.isLeftPressed() ? 1 : 0) - (controls.isRightPressed() ? 1 : 0)), strafeAcceleration);
+
+        Vector3f floatAcceleration = new Vector3f();
+        up.mul(translateSpeed * deltaTime * ((controls.isUpPressed() ? 1 : 0) - (controls.isDownPressed() ? 1 : 0)), floatAcceleration);
+
+        Vector3f acceleration = new Vector3f(thrustAcceleration.add(strafeAcceleration).add(floatAcceleration));
 
         float speed = translateSpeed * deltaTime;
+        speed = (float)Math.clamp(speed + this.acceleration, 0, maxSpeed);
 
         if (controls.isForwardPressed()) { // Thrust forward
-            forward.mul(speed, displacement);
-            position.sub(displacement, newPosition);
+            Vector3f temp = new Vector3f();
+            forward.mul(-speed, temp);
 
-            setCameraView(newPosition, direction);
+            velocity.add(temp);
         }
         if (controls.isBackwardPressed()) { // Thrust backward
-            forward.mul(speed, displacement);
-            position.add(displacement, newPosition);
+            Vector3f temp = new Vector3f();
+            forward.mul(speed, temp);
 
-            setCameraView(newPosition, direction);
+            velocity.add(temp);
         }
         if (controls.isLeftPressed()) { // Strafe left
-            right.normalize().mul(speed, displacement);
+            Vector3f temp = new Vector3f();
+            right.mul(-speed, temp);
 
-            position.sub(displacement, newPosition);
-
-            setCameraView(newPosition, direction);
+            velocity.add(temp);
         }
         if (controls.isRightPressed()) { // Strafe right
-            right.normalize().mul(speed, displacement);
+            Vector3f temp = new Vector3f();
+            right.mul(speed, temp);
 
-            position.add(displacement, newPosition);
-
-            setCameraView(newPosition, direction);
+            velocity.add(temp);
         }
         if (controls.isUpPressed()) { // Move Up
-            up.mul(speed, displacement);
-            position.add(displacement, newPosition);
+            Vector3f temp = new Vector3f();
+            up.mul(speed, temp);
 
-            setCameraView(newPosition, direction);
+            velocity.add(temp);
         }
         if (controls.isDownPressed()) { // Move Up
-            up.mul(speed, displacement);
-            position.sub(displacement, newPosition);
+            Vector3f temp = new Vector3f();
+            up.mul(-speed, temp);
 
-            setCameraView(newPosition, direction);
+            velocity.add(temp);
         }
+
+        Vector3f newPosition = new Vector3f();
+        position.add(velocity, newPosition);
+
+        setCameraView(newPosition, direction);
     }
 
     private void setCameraView(Vector3f position, Vector3f direction) {
