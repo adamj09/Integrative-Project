@@ -22,20 +22,20 @@ public class FixedCameraController {
     /**
      * Scalar dictating speed at which the camera rotates.
      */
-    private float rotateSpeed = 10.0f;
+    private float rotateSpeed = 0.005f;
 
     /**
-     * Degrees to limit pitch to.
+     * Radians to limit pitch to.
      */
-    private float pitchLimit = 89.0f;
+    private float pitchLimit = (float)Math.PI / 2.f;
 
     /**
-     * Camera pitch angle in degrees.
+     * Camera pitch angle in radians.
      */
     private float pitch;
 
     /**
-     * Camera yaw angle in degrees.
+     * Camera yaw angle in radians.
      */
     private float yaw;
 
@@ -95,13 +95,13 @@ public class FixedCameraController {
      * @param deltaTime The time in seconds between the last and current frame (used
      *                  to keep movement speed framerate independent).
      */
-    private void rotate(float deltaTime) {
+    private void rotate() {
         // Greatest absolute pitch change is set to the pitch limit.
-        float pitchDegrees = -(float) Math.clamp(controls.getMouseDeltaYNormalized() * (rotateSpeed * deltaTime), -pitchLimit, pitchLimit);
-        float yawDegrees = -controls.getMouseDeltaXNormalized() * (rotateSpeed * deltaTime);
+        float pitch = -controls.getMouseDeltaYNormalized() * rotateSpeed;
+        float yaw = -controls.getMouseDeltaXNormalized() * rotateSpeed;
     
-        Quaternionf pitchQuaternion = pitch(pitchDegrees);
-        Quaternionf yawQuaternion = yaw(yawDegrees);
+        Quaternionf pitchQuaternion = pitch(pitch);
+        Quaternionf yawQuaternion = yaw(yaw);
 
         // Create rotation quaternion by multiplying pitch and yaw quaternions.
         Quaternionf rotation = new Quaternionf();
@@ -116,7 +116,7 @@ public class FixedCameraController {
         camera.setView(camera.getPosition(), newDirection);
     }
 
-    private Quaternionf pitch(float degrees) {
+    private Quaternionf pitch(float radians) {
         // Set pitch axis to be perpendicular to the camera's direction and up vectors.
         Vector3f pitchAxis = new Vector3f();
         camera.getDirection().cross(camera.getUp(), pitchAxis);
@@ -124,10 +124,10 @@ public class FixedCameraController {
 
         Quaternionf pitchQuaternion = new Quaternionf();
 
-        if(pitch + degrees < pitchLimit && pitch + degrees > - pitchLimit) {
-            pitchQuaternion.setAngleAxis(Math.toRadians(degrees), pitchAxis.x, pitchAxis.y, pitchAxis.z);
+        if(pitch + radians < pitchLimit && pitch + radians > - pitchLimit) {
+            pitchQuaternion.setAngleAxis(radians, pitchAxis.x, pitchAxis.y, pitchAxis.z);
 
-            pitch = Math.clamp(pitch + degrees, -pitchLimit, pitchLimit);
+            pitch = Math.clamp(pitch + radians, -pitchLimit, pitchLimit);
         }
         else {
             pitchQuaternion.setAngleAxis(0, pitchAxis.x, pitchAxis.y, pitchAxis.z);
@@ -136,15 +136,14 @@ public class FixedCameraController {
         return pitchQuaternion;
     }
 
-    private Quaternionf yaw(float degrees) {
-        // In this first person camera, yaw is always around the world's up axis (0, 1,
-        // 0) so we can just use the camera's up vector as the yaw axis.
+    private Quaternionf yaw(float radians) {
+        // The yaw axis is relative to the camera. TODO: make sure of this.
         Vector3f yawAxis = new Vector3f();
         yawAxis.set(camera.getUp());
 
         Quaternionf yawQuaternion = new Quaternionf();
-        yawQuaternion.setAngleAxis(Math.toRadians(degrees), yawAxis.x, yawAxis.y, yawAxis.z);
-        yaw = (yaw + degrees) % 360;
+        yawQuaternion.setAngleAxis(radians, yawAxis.x, yawAxis.y, yawAxis.z);
+        yaw = (yaw + radians) % (float)(2.f * Math.PI);
 
         return yawQuaternion;
     }
@@ -159,7 +158,7 @@ public class FixedCameraController {
     public void updateCameraTransform(float deltaTime) {
         if (controls.getFocusNode().isFocused()) {
             if (controls.isFocusButtonPressed()) {
-                rotate(deltaTime);
+                rotate();
             }
             translate(deltaTime);
         }

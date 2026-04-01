@@ -51,15 +51,20 @@ public class ControlManager {
 
             if (keyCode == KeyCode.getKeyCode(forwardKey)) {
                 forwardPressed = true;
-            } else if (keyCode == KeyCode.getKeyCode(leftKey)) {
+            } 
+            if (keyCode == KeyCode.getKeyCode(leftKey)) {
                 leftPressed = true;
-            } else if (keyCode == KeyCode.getKeyCode(backwardKey)) {
+            } 
+            if (keyCode == KeyCode.getKeyCode(backwardKey)) {
                 backwardPressed = true;
-            } else if (keyCode == KeyCode.getKeyCode(rightKey)) {
+            } 
+            if (keyCode == KeyCode.getKeyCode(rightKey)) {
                 rightPressed = true;
-            } else if (keyCode == KeyCode.getKeyCode(upKey)) {
+            } 
+            if (keyCode == KeyCode.getKeyCode(upKey)) {
                 upPressed = true;
-            } else if (keyCode == KeyCode.getKeyCode(downKey)) {
+            } 
+            if (keyCode == KeyCode.getKeyCode(downKey)) {
                 downPressed = true;
             }
         });
@@ -69,15 +74,20 @@ public class ControlManager {
 
             if (keyCode == KeyCode.getKeyCode(forwardKey)) {
                 forwardPressed = false;
-            } else if (keyCode == KeyCode.getKeyCode(leftKey)) {
+            } 
+            if (keyCode == KeyCode.getKeyCode(leftKey)) {
                 leftPressed = false;
-            } else if (keyCode == KeyCode.getKeyCode(backwardKey)) {
+            } 
+            if (keyCode == KeyCode.getKeyCode(backwardKey)) {
                 backwardPressed = false;
-            } else if (keyCode == KeyCode.getKeyCode(rightKey)) {
+            } 
+            if (keyCode == KeyCode.getKeyCode(rightKey)) {
                 rightPressed = false;
-            } else if (keyCode == KeyCode.getKeyCode(upKey)) {
+            } 
+            if (keyCode == KeyCode.getKeyCode(upKey)) {
                 upPressed = false;
-            } else if (keyCode == KeyCode.getKeyCode(downKey)) {
+            } 
+            if (keyCode == KeyCode.getKeyCode(downKey)) {
                 downPressed = false;
             }
         });
