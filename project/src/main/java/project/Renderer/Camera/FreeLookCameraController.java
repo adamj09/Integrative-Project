@@ -20,6 +20,11 @@ public class FreeLookCameraController {
     private float translateSpeed = 0.f;
 
     /**
+     * Scalar dictating speed at which the camera translates.
+     */
+    private float translateAcceleration = 10.f;
+
+    /**
      * Scalar dictating speed at which the camera rotates.
      */
     private float rotateSpeed = 0.005f;
@@ -27,7 +32,7 @@ public class FreeLookCameraController {
     /**
      * Radians to limit pitch to.
      */
-    private float pitchLimit = (float)Math.PI / 2.f;
+    private float pitchLimit = (float) Math.PI / 2.f;
 
     /**
      * Camera pitch angle in radians.
@@ -43,10 +48,6 @@ public class FreeLookCameraController {
      * Defines the maximum distance the camera can travel from the origin.
      */
     private float maxDistance = 100.f;
-
-    private float acceleration = 0.0005f;
-
-    private float maxSpeed = 10.f;
 
     /**
      * Initializes the camera controller with a camera and control manager.
@@ -66,69 +67,32 @@ public class FreeLookCameraController {
      *                  to keep movement speed framerate independent).
      */
     private void translate(float deltaTime) {
-        Vector3f position = camera.getPosition(); 
+        Vector3f position = camera.getPosition();
         Vector3f direction = camera.getDirection().normalize();
         Vector3f up = camera.getUp().normalize();
-        Vector3f forward = new Vector3f((float)Math.sin(yaw), 0.0f, (float)Math.cos(yaw));
+        Vector3f forward = new Vector3f((float) Math.sin(yaw), 0.0f, (float) Math.cos(yaw));
         Vector3f right = new Vector3f();
         direction.cross(up, right);
         right.normalize();
 
-        Vector3f velocity = new Vector3f();
+        Vector3f displacement = new Vector3f();
+        displacement.add(new Vector3f(forward).mul(controls.isBackwardPressed() - controls.isForwardPressed()))
+                .add(new Vector3f(right).mul(controls.isRightPressed() - controls.isLeftPressed()))
+                .add(new Vector3f(up).mul(controls.isUpPressed() - controls.isDownPressed()));
 
-        Vector3f thrustAcceleration = new Vector3f();
-        forward.mul(translateSpeed * deltaTime * ((controls.isForwardPressed() ? 1 : 0) - (controls.isBackwardPressed() ? 1 : 0)), thrustAcceleration);
-
-        Vector3f strafeAcceleration = new Vector3f();
-        right.mul(translateSpeed * deltaTime * ((controls.isLeftPressed() ? 1 : 0) - (controls.isRightPressed() ? 1 : 0)), strafeAcceleration);
-
-        Vector3f floatAcceleration = new Vector3f();
-        up.mul(translateSpeed * deltaTime * ((controls.isUpPressed() ? 1 : 0) - (controls.isDownPressed() ? 1 : 0)), floatAcceleration);
-
-        Vector3f acceleration = new Vector3f(thrustAcceleration.add(strafeAcceleration).add(floatAcceleration));
-
-        float speed = translateSpeed * deltaTime;
-        speed = (float)Math.clamp(speed + this.acceleration, 0, maxSpeed);
-
-        if (controls.isForwardPressed()) { // Thrust forward
-            Vector3f temp = new Vector3f();
-            forward.mul(-speed, temp);
-
-            velocity.add(temp);
+        if (displacement.equals(0, 0, 0)) {
+            translateSpeed = 0.f;
+            return;
         }
-        if (controls.isBackwardPressed()) { // Thrust backward
-            Vector3f temp = new Vector3f();
-            forward.mul(speed, temp);
 
-            velocity.add(temp);
-        }
-        if (controls.isLeftPressed()) { // Strafe left
-            Vector3f temp = new Vector3f();
-            right.mul(-speed, temp);
+        //TODO: add max speed and dampening (decceleration)
 
-            velocity.add(temp);
-        }
-        if (controls.isRightPressed()) { // Strafe right
-            Vector3f temp = new Vector3f();
-            right.mul(speed, temp);
+        translateSpeed += translateAcceleration * deltaTime;
 
-            velocity.add(temp);
-        }
-        if (controls.isUpPressed()) { // Move Up
-            Vector3f temp = new Vector3f();
-            up.mul(speed, temp);
-
-            velocity.add(temp);
-        }
-        if (controls.isDownPressed()) { // Move Up
-            Vector3f temp = new Vector3f();
-            up.mul(-speed, temp);
-
-            velocity.add(temp);
-        }
+        displacement.normalize().mul(translateSpeed).mul(deltaTime);
 
         Vector3f newPosition = new Vector3f();
-        position.add(velocity, newPosition);
+        position.add(displacement, newPosition);
 
         setCameraView(newPosition, direction);
     }
@@ -149,7 +113,7 @@ public class FreeLookCameraController {
         // Greatest absolute pitch change is set to the pitch limit.
         float pitch = -controls.getMouseDeltaYNormalized() * rotateSpeed;
         float yaw = -controls.getMouseDeltaXNormalized() * rotateSpeed;
-    
+
         Quaternionf pitchQuaternion = pitch(pitch);
         Quaternionf yawQuaternion = yaw(yaw);
 
@@ -174,12 +138,11 @@ public class FreeLookCameraController {
 
         Quaternionf pitchQuaternion = new Quaternionf();
 
-        if(pitch + radians < pitchLimit && pitch + radians > - pitchLimit) {
+        if (pitch + radians < pitchLimit && pitch + radians > -pitchLimit) {
             pitchQuaternion.setAngleAxis(radians, pitchAxis.x, pitchAxis.y, pitchAxis.z);
 
             pitch = Math.clamp(pitch + radians, -pitchLimit, pitchLimit);
-        }
-        else {
+        } else {
             pitchQuaternion.setAngleAxis(0, pitchAxis.x, pitchAxis.y, pitchAxis.z);
         }
 
@@ -194,7 +157,7 @@ public class FreeLookCameraController {
 
         Quaternionf yawQuaternion = new Quaternionf();
         yawQuaternion.setAngleAxis(radians, yawAxis.x, yawAxis.y, yawAxis.z);
-        yaw = (yaw + radians) % (float)(2 * Math.PI);
+        yaw = (yaw + radians) % (float) (2 * Math.PI);
 
         return yawQuaternion;
     }
@@ -208,7 +171,7 @@ public class FreeLookCameraController {
      */
     public void updateCameraTransform(float deltaTime) {
         translate(deltaTime);
-        if (controls.isFocusButtonPressed()) {
+        if (controls.isFocusButtonPressed() == 1) {
             rotate();
         }
     }

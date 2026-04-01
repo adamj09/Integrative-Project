@@ -157,7 +157,7 @@ public class FixedCameraController {
      */
     public void updateCameraTransform(float deltaTime) {
         if (controls.getFocusNode().isFocused()) {
-            if (controls.isFocusButtonPressed()) {
+            if (controls.isFocusButtonPressed() == 1) {
                 rotate();
             }
             translate(deltaTime);

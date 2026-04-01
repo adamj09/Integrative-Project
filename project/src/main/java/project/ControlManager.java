@@ -19,14 +19,14 @@ public class ControlManager {
             upKey = "Space",
             downKey = "Shift";
 
-    private boolean forwardPressed = false,
-            leftPressed = false,
-            backwardPressed = false,
-            rightPressed = false,
-            upPressed = false,
-            downPressed = false;
+    private int forwardPressed = 0,
+            leftPressed = 0,
+            backwardPressed = 0,
+            rightPressed = 0,
+            upPressed = 0,
+            downPressed = 0;
 
-    private boolean focusButtonPressed = false;
+    private int focusButtonPressed = 0;
 
     private float mouseDeltaX, mouseDeltaY;
     private float mouseDeltaXNormalized, mouseDeltaYNormalized;
@@ -50,22 +50,22 @@ public class ControlManager {
             KeyCode keyCode = event.getCode();
 
             if (keyCode == KeyCode.getKeyCode(forwardKey)) {
-                forwardPressed = true;
+                forwardPressed = 1;
             } 
             if (keyCode == KeyCode.getKeyCode(leftKey)) {
-                leftPressed = true;
+                leftPressed = 1;
             } 
             if (keyCode == KeyCode.getKeyCode(backwardKey)) {
-                backwardPressed = true;
+                backwardPressed = 1;
             } 
             if (keyCode == KeyCode.getKeyCode(rightKey)) {
-                rightPressed = true;
+                rightPressed = 1;
             } 
             if (keyCode == KeyCode.getKeyCode(upKey)) {
-                upPressed = true;
+                upPressed = 1;
             } 
             if (keyCode == KeyCode.getKeyCode(downKey)) {
-                downPressed = true;
+                downPressed = 1;
             }
         });
 
@@ -73,22 +73,22 @@ public class ControlManager {
             KeyCode keyCode = event.getCode();
 
             if (keyCode == KeyCode.getKeyCode(forwardKey)) {
-                forwardPressed = false;
+                forwardPressed = 0;
             } 
             if (keyCode == KeyCode.getKeyCode(leftKey)) {
-                leftPressed = false;
+                leftPressed = 0;
             } 
             if (keyCode == KeyCode.getKeyCode(backwardKey)) {
-                backwardPressed = false;
+                backwardPressed = 0;
             } 
             if (keyCode == KeyCode.getKeyCode(rightKey)) {
-                rightPressed = false;
+                rightPressed = 0;
             } 
             if (keyCode == KeyCode.getKeyCode(upKey)) {
-                upPressed = false;
+                upPressed = 0;
             } 
             if (keyCode == KeyCode.getKeyCode(downKey)) {
-                downPressed = false;
+                downPressed = 0;
             }
         });
     }
@@ -96,14 +96,14 @@ public class ControlManager {
     private void setUpMouseControls() {
         focusNode.setOnMousePressed(event -> {
             if (event.isPrimaryButtonDown()) {
-                focusButtonPressed = true;
+                focusButtonPressed = 1;
                 focusNode.requestFocus();
             }
         });
 
         focusNode.setOnMouseReleased(event -> {
             if (!event.isPrimaryButtonDown()) {
-                focusButtonPressed = false;
+                focusButtonPressed = 0;
             }
         });
 
@@ -114,12 +114,12 @@ public class ControlManager {
 
     public void handleUnfocus() {
         if (!focusNode.isFocused()) {
-            forwardPressed = false;
-            leftPressed = false;
-            backwardPressed = false;
-            rightPressed = false;
-            upPressed = false;
-            downPressed = false;
+            forwardPressed = 0;
+            leftPressed = 0;
+            backwardPressed = 0;
+            rightPressed = 0;
+            upPressed = 0;
+            downPressed = 0;
         }
     }
 
@@ -217,31 +217,31 @@ public class ControlManager {
         this.upKey = upKey;
     }
 
-    public boolean isForwardPressed() {
+    public int isForwardPressed() {
         return this.forwardPressed;
     }
 
-    public boolean isLeftPressed() {
+    public int isLeftPressed() {
         return this.leftPressed;
     }
 
-    public boolean isBackwardPressed() {
+    public int isBackwardPressed() {
         return this.backwardPressed;
     }
 
-    public boolean isRightPressed() {
+    public int isRightPressed() {
         return this.rightPressed;
     }
 
-    public boolean isDownPressed() {
+    public int isDownPressed() {
         return this.downPressed;
     }
 
-    public boolean isUpPressed() {
+    public int isUpPressed() {
         return this.upPressed;
     }
 
-    public boolean isFocusButtonPressed() {
+    public int isFocusButtonPressed() {
         return this.focusButtonPressed;
     }
 

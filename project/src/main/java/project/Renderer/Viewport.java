@@ -4,7 +4,7 @@ import com.huskerdev.openglfx.canvas.GLCanvas;
 import com.huskerdev.openglfx.lwjgl.LWJGLExecutor;
 
 public class Viewport {
-    public static final double DEFAULT_FPS = 60;
+    public static final double DEFAULT_FPS = 144;
     public static final int DEFAULT_MSAA = 4;
     public static final int DEFAULT_SWAP_BUFFERS = 2;
 
