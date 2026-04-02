@@ -4,6 +4,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import project.ControlManager;
+import project.Renderer.World.World;
 
 /**
  * Class that controls a camera in a first person style (without rolling).
@@ -11,6 +12,7 @@ import project.ControlManager;
  * @author Adam Johnston
  */
 public class FreeLookCameraController {
+    private World world;
     private Camera camera;
     private ControlManager controls;
 
@@ -55,8 +57,9 @@ public class FreeLookCameraController {
      * @param camera   Camera to control.
      * @param controls Control manager to get user input from.
      */
-    public FreeLookCameraController(Camera camera, ControlManager controls) {
-        this.camera = camera;
+    public FreeLookCameraController(World world, ControlManager controls) {
+        this.world = world;
+        this.camera = world.getCamera();
         this.controls = controls;
     }
 
@@ -99,9 +102,9 @@ public class FreeLookCameraController {
         }
 
         Vector3f target = new Vector3f();
-        newPosition.add(camera.getDirection(), target);
+        newPosition.add(direction, target);
 
-        camera.setView(newPosition, target, direction);
+        camera.setView(newPosition, target);
     }
 
     /**
@@ -130,7 +133,7 @@ public class FreeLookCameraController {
         camera.getPosition().add(newDirection, target);
 
         // Update camera's view matrix.
-        camera.setView(camera.getPosition(), target, newDirection);
+        camera.setView(camera.getPosition(), target);
     }
 
     private Quaternionf pitch(float radians) {

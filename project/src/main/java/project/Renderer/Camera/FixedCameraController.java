@@ -3,6 +3,8 @@ package project.Renderer.Camera;
 import org.joml.Vector3f;
 
 import project.ControlManager;
+import project.Renderer.World.World;
+import project.Renderer.World.WorldObject;
 
 /**
  * Class that controls a camera in a first person style (without rolling).
@@ -10,8 +12,10 @@ import project.ControlManager;
  * @author Adam Johnston
  */
 public class FixedCameraController {
+    private World world;
     private Camera camera;
     private ControlManager controls;
+    private WorldObject focusedWorldObject;
 
     /**
      * Scalar dictating speed at which the camera translates.
@@ -21,12 +25,12 @@ public class FixedCameraController {
     /**
      * Scalar dictating speed at which the camera rotates.
      */
-    private float rotateSpeed = 0.0001f;
+    private float rotateSpeed = 0.01f;
 
     /**
      * Radians to limit pitch to.
      */
-    private float pitchLimit = (float) Math.PI / 2.f;
+    private float pitchLimit = (float) Math.toRadians(89.0f);
 
     /**
      * Camera pitch angle in radians.
@@ -45,7 +49,9 @@ public class FixedCameraController {
 
     private Vector3f lookatPosition = new Vector3f();
 
-    private float distanceToOrigin = 10.f;
+    private float radius = 10.f;
+
+    private float minRadius;
 
     /**
      * Initializes the camera controller with a camera and control manager.
@@ -53,8 +59,9 @@ public class FixedCameraController {
      * @param camera   Camera to control.
      * @param controls Control manager to get user input from.
      */
-    public FixedCameraController(Camera camera, ControlManager controls) {
-        this.camera = camera;
+    public FixedCameraController(World world, ControlManager controls) {
+        this.world = world;
+        this.camera = world.getCamera();
         this.controls = controls;
     }
 
@@ -71,19 +78,20 @@ public class FixedCameraController {
         Vector3f displacement = new Vector3f();
 
         // Translation is proportional to distance from lookatPosition
-        float distance = position.distance(lookatPosition);
 
-        float speed = controls.getScrollDeltaY() * translateSpeed * deltaTime * distance;
+        float speed = controls.getScrollDeltaY() * translateSpeed * deltaTime * radius;
 
         direction.mul(speed, displacement);
         position.add(displacement, newPosition);
 
-        if (position.length() > maxDistance) {
+        radius = newPosition.distance(lookatPosition);
+
+        if (position.length() < maxDistance && radius <= minRadius) {
             controls.setScrollDeltaY(0);
             return;
         }
 
-        camera.setView(newPosition, lookatPosition, direction);
+        camera.setView(newPosition, lookatPosition);
         controls.setScrollDeltaY(0);
     }
 
@@ -95,17 +103,22 @@ public class FixedCameraController {
      *                  to keep movement speed framerate independent).
      */
     private void rotate() {
-        //TODO: fix this shit
-        float pitch = Math.clamp(controls.getMouseDeltaYNormalized() * rotateSpeed, 0, (float)Math.PI * 2 - 0.001f);
-        float yaw = Math.clamp(controls.getMouseDeltaXNormalized() * rotateSpeed, 0, (float)Math.PI - 0.001f);
+        float pitch = -controls.getMouseDeltaYNormalized() * rotateSpeed;
+        float yaw = -controls.getMouseDeltaXNormalized() * rotateSpeed;
 
+        float newPitch = Math.clamp((this.pitch + pitch) % (float) Math.PI, -pitchLimit, pitchLimit);
+        float newYaw = (this.yaw + yaw) % ((float) Math.PI * 2.f);
 
-        Vector3f translation = new Vector3f(lookatPosition.x + distanceToOrigin * (float)Math.cos(pitch) * (float)Math.sin(yaw),
-                lookatPosition.y + distanceToOrigin * (float)Math.sin(pitch) * (float)Math.sin(yaw), 
-                lookatPosition.z + distanceToOrigin * (float)Math.cos(yaw));
+        Vector3f translation = new Vector3f(
+                lookatPosition.x + radius * (float) Math.cos(newPitch) * (float) Math.sin(newYaw),
+                lookatPosition.y + radius * (float) Math.sin(newPitch),
+                lookatPosition.z + radius * (float) Math.cos(newPitch) * (float) Math.cos(newYaw));
 
         // Update camera's view matrix.
-        camera.setView(translation, lookatPosition, camera.getDirection());
+        camera.setView(translation, lookatPosition);
+
+        this.pitch = newPitch;
+        this.yaw = newYaw;
     }
 
     /**
@@ -116,12 +129,13 @@ public class FixedCameraController {
      *                  to keep movement speed framerate independent).
      */
     public void updateCameraTransform(float deltaTime) {
-        if (controls.getFocusNode().isFocused()) {
-            if (controls.isFocusButtonPressed() == 1) {
-                rotate();
-            }
-            translate(deltaTime);
+        // Update target as object's position updates
+        camera.setView(camera.getPosition(), focusedWorldObject.getTranslation());
+
+        if (controls.isFocusButtonPressed() == 1) {
+            rotate();
         }
+        translate(deltaTime);
     }
 
     /**
@@ -182,11 +196,20 @@ public class FixedCameraController {
     public void setLookatPosition(Vector3f lookatPosition) {
         this.lookatPosition = lookatPosition;
 
-        Vector3f newPosition = new Vector3f(lookatPosition.x + 10, 0.f, lookatPosition.z + 10);
+        Vector3f newPosition = new Vector3f(lookatPosition.x + radius, 0.f, lookatPosition.z + radius);
 
         Vector3f target = new Vector3f();
         newPosition.add(camera.getDirection(), target);
 
-        camera.setView(newPosition, lookatPosition, camera.getDirection());
+        camera.setView(newPosition, lookatPosition);
+    }
+
+    public void setFocusObject(String name) {
+        // TODO: add check to make sure desired object exists
+        focusedWorldObject = world.getBodies().get(name);
+
+        minRadius = focusedWorldObject.getScale().x + 0.5f;
+        radius = minRadius + 5.f;
+        setLookatPosition(focusedWorldObject.getTranslation());
     }
 }

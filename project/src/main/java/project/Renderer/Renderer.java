@@ -49,10 +49,11 @@ public class Renderer {
             controlManager = new ControlManager(viewport.getGLCanvas());
 
             // Create camera controller
-            //freeLookCameraController = new FreeLookCameraController(world.getCamera(), controlManager);
+            //freeLookCameraController = new FreeLookCameraController(world, controlManager);
 
-            fixedCameraController = new FixedCameraController(world.getCamera(), controlManager);
-            fixedCameraController.setLookatPosition(new Vector3f(0.f, 0.f, 0.f));
+            fixedCameraController = new FixedCameraController(world, controlManager);
+            //fixedCameraController.setLookatPosition(new Vector3f(0.f, 0.f, 0.f));
+            fixedCameraController.setFocusObject("test");
 
             Shader mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
             Shader orbitVertShader = new Shader("project/shaders/orbit.vert", GL_VERTEX_SHADER);

@@ -52,7 +52,7 @@ public class World {
     }
 
     private void loadBodies() {
-        camera.setView(new Vector3f(-1.f, 0.f, 0.f), new Vector3f(0.f, 0.f, 1.f), camera.getDirection());
+        camera.setView(new Vector3f(-1.f, 0.f, 0.f), new Vector3f(0.f, 0.f, 1.f));
         bodyMesh = new SphereGenerator().create(4);
 
         // --- Central Celestial Body ---

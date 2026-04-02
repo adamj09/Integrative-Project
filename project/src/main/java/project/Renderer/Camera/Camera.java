@@ -53,10 +53,12 @@ public class Camera {
      * @param position Position of the camera in world space.
      * @param direction Direction the camera is facing in world space.
      */
-    public void setView(Vector3f position, Vector3f target, Vector3f direction) {
+    public void setView(Vector3f position, Vector3f target) {
         view.setLookAt(position, target, up);
 
-        this.direction.set(direction);
+        target.sub(position, this.direction);
+        this.direction.normalize();
+
         this.position.set(position);
 
         updateInverseView();
@@ -72,7 +74,7 @@ public class Camera {
      * Resets the camera's view to its initial state.
      */
     public void reset() {
-        setView(new Vector3f(), new Vector3f(0.f, 0.f, 1.f), new Vector3f(0.f, 0.f, -1.f));
+        setView(new Vector3f(), new Vector3f(0.f, 0.f, 1.f));
     }
 
     /**
