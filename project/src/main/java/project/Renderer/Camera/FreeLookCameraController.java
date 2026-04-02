@@ -24,10 +24,12 @@ public class FreeLookCameraController {
      */
     private float translateSpeed = 0.f;
 
+    private float maxTranslateSpeed = 10.f;
+
     /**
      * Scalar dictating speed at which the camera translates.
      */
-    private float translateAcceleration = 10.f;
+    private float translateAcceleration = 50.f;
 
     /**
      * Scalar dictating speed at which the camera rotates.
@@ -78,13 +80,14 @@ public class FreeLookCameraController {
         Vector3f position = camera.getPosition();
         Vector3f direction = camera.getDirection().normalize();
         Vector3f up = camera.getUp().normalize();
+
         Vector3f forward = new Vector3f((float) Math.sin(yaw), 0.0f, (float) Math.cos(yaw));
         Vector3f right = new Vector3f();
         direction.cross(up, right);
         right.normalize();
 
         Vector3f displacement = new Vector3f();
-        displacement.add(new Vector3f(forward).mul(controls.isForwardPressed() - controls.isBackwardPressed()))
+        displacement.add(new Vector3f(forward).mul(controls.isBackwardPressed() - controls.isForwardPressed()))
                 .add(new Vector3f(right).mul(controls.isRightPressed() - controls.isLeftPressed()))
                 .add(new Vector3f(up).mul(controls.isUpPressed() - controls.isDownPressed()));
 
@@ -93,7 +96,7 @@ public class FreeLookCameraController {
             return;
         }
 
-        translateSpeed += translateAcceleration * deltaTime;
+        translateSpeed = Math.clamp(translateSpeed + translateAcceleration * deltaTime, 0, maxTranslateSpeed);
 
         displacement.normalize().mul(translateSpeed).mul(deltaTime);
 
@@ -175,7 +178,7 @@ public class FreeLookCameraController {
 
         Quaternionf yawQuaternion = new Quaternionf();
         yawQuaternion.setAngleAxis(radians, yawAxis.x, yawAxis.y, yawAxis.z);
-        yaw = (yaw + radians) % (float) (2 * Math.PI);
+        yaw = (yaw + radians) % (float) (2.f * Math.PI);
 
         return yawQuaternion;
     }
