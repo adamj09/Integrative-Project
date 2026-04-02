@@ -7,6 +7,7 @@ import project.Renderer.Camera.FreeLookCameraController;
 import project.Renderer.RenderSystems.BodyRenderSystem;
 import project.Renderer.RenderSystems.CameraRenderSystem;
 import project.Renderer.RenderSystems.LightRenderSystem;
+import project.Renderer.RenderSystems.OrbitRenderSystem;
 import project.Renderer.World.World;
 
 public class Renderer {
@@ -20,6 +21,7 @@ public class Renderer {
     private CameraRenderSystem cameraRenderSystem;
     private BodyRenderSystem bodyRenderSystem;
     private LightRenderSystem lightRenderSystem;
+    private OrbitRenderSystem orbitRenderSystem;
 
     private ControlManager controlManager;
     private FreeLookCameraController cameraController;
@@ -39,31 +41,35 @@ public class Renderer {
             glFrontFace(GL_CCW);
             glEnable(GL_CULL_FACE);
 
-            world = new World();
+            world = new World("world");
             controlManager = new ControlManager(viewport.getGLCanvas());
 
             // Create camera controller
             cameraController = new FreeLookCameraController(world.getCamera(), controlManager);
 
             Shader mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
+            Shader orbitVertShader = new Shader("project/shaders/orbit.vert", GL_VERTEX_SHADER);
 
             Shader bodyFragShader = new Shader("project/shaders/body.frag", GL_FRAGMENT_SHADER);
-            Shader lightFragShader = new Shader("project/shaders/lightSource.frag", GL_FRAGMENT_SHADER);
+            Shader lightFragShader = new Shader("project/shaders/light_source.frag", GL_FRAGMENT_SHADER);
+            Shader orbitFragShader = new Shader("project/shaders/orbit.frag", GL_FRAGMENT_SHADER);
 
             // Create shader programs
             ShaderProgram bodyShaderProgram = new ShaderProgram(mainVertShader.getShader(), bodyFragShader.getShader());
             ShaderProgram lightShaderProgram = new ShaderProgram(mainVertShader.getShader(), lightFragShader.getShader());
+            ShaderProgram orbitShaderProgram = new ShaderProgram(orbitVertShader.getShader(), orbitFragShader.getShader());
 
             // Create render systems
             bodyRenderSystem = new BodyRenderSystem(world, bodyShaderProgram);
             cameraRenderSystem = new CameraRenderSystem(world.getCamera());
             lightRenderSystem = new LightRenderSystem(world, lightShaderProgram);
+            orbitRenderSystem = new OrbitRenderSystem(viewport, world, orbitShaderProgram);
 
             setCameraProjection();
-
-            // TODO: make this a helper method in ShaderProgram class
-            glUniformBlockBinding(bodyShaderProgram.getID(), glGetUniformBlockIndex(bodyShaderProgram.getID(), "CameraMatrices"), 0);
-            glUniformBlockBinding(bodyShaderProgram.getID(), glGetUniformBlockIndex(lightShaderProgram.getID(), "CameraMatrices"), 0);
+            
+            bodyShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
+            lightShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
+            orbitShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
         });
 
         viewport.getGLCanvas().addOnRenderEvent(event -> {
@@ -78,6 +84,7 @@ public class Renderer {
             cameraRenderSystem.loop();
             bodyRenderSystem.loop();
             lightRenderSystem.loop();
+            orbitRenderSystem.loop();
         });
     }
 

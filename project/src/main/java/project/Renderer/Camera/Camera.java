@@ -14,7 +14,8 @@ public class Camera {
      * Projection and view matrices, initially as identity matrices.
      */
     private Matrix4f projection = new Matrix4f(),
-            view = new Matrix4f();
+            view = new Matrix4f(),
+            inverseView = new Matrix4f();
 
     /**
      * Camera position, direction, and up vector in world space.
@@ -65,6 +66,14 @@ public class Camera {
 
         this.direction.set(direction);
         this.position.set(position);
+
+        updateInverseView();
+    }
+
+
+    private void updateInverseView() {
+        inverseView.set(view);
+        inverseView.invert();
     }
 
     /**
@@ -86,6 +95,13 @@ public class Camera {
      */
     public Matrix4f getView() {
         return this.view;
+    }
+
+    /**
+     * @return The camera's inverse view matrix.
+     */
+    public Matrix4f getInverseView() {
+        return this.inverseView;
     }
 
     /**

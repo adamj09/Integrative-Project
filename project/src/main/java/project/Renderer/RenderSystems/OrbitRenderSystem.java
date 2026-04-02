@@ -2,46 +2,36 @@ package project.Renderer.RenderSystems;
 
 import project.Renderer.Renderer;
 import project.Renderer.ShaderProgram;
+import project.Renderer.Viewport;
 import project.Renderer.World.World;
+
 import static org.lwjgl.opengl.GL41.*;
 
-public class BodyRenderSystem {
+import org.joml.Vector2f;
+
+public class OrbitRenderSystem {
+    private Viewport viewport;
     private World world;
-
-    private int vboColors,
-            vboModelMatrices;
-
     private ShaderProgram shaderProgram;
+    private int vboModelMatrices;
 
-    public BodyRenderSystem(World world, ShaderProgram shaderProgram) {
+    public OrbitRenderSystem(Viewport viewport, World world, ShaderProgram shaderProgram) {
+        this.viewport = viewport;
         this.world = world;
         this.shaderProgram = shaderProgram;
+
         init();
     }
 
     public void init() {
         shaderProgram.use();
 
-        shaderProgram.addUniformVec3f("light_color", world.getLightSource().getLightColor());
-        shaderProgram.addUniformVec3f("light_position", world.getLightSource().getTranslation());
-
-        glBindVertexArray(world.getBodyMesh().getVAO());
-
-        // Colors
-        vboColors = glGenBuffers();
-        glBindBuffer(GL_ARRAY_BUFFER, vboColors);
-        glBufferData(GL_ARRAY_BUFFER, world.getColorsBuffer(), GL_STATIC_DRAW);
-        glEnableVertexAttribArray(3);
-
-        glVertexAttribPointer(3, 3, GL_FLOAT, false, Renderer.VEC3F_SIZE, 0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        glVertexAttribDivisor(3, 1);
+        glBindVertexArray(world.getOrbitMesh().getVAO());
 
         // Model Matrices
         vboModelMatrices = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
-        glBufferData(GL_ARRAY_BUFFER, world.getBodyMatrixBuffer(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, world.getOrbitMatrixBuffer(), GL_STATIC_DRAW);
 
         // Model matrix attribute pointers. Note that we need to do this four times,
         // since the maximum size of an attribute is equivalent to a Vector4f. I.e.
@@ -68,23 +58,12 @@ public class BodyRenderSystem {
 
     public void loop() {
         shaderProgram.use();
-        // Update model transformation matrices.
-        world.updateBodyMatrixBuffer();
 
-        glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
-        glBufferData(GL_ARRAY_BUFFER, world.getBodyMatrixBuffer(), GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        shaderProgram.addUniformVec2f("resolution",
+                new Vector2f((float) viewport.getGLCanvas().getWidth(), (float) viewport.getGLCanvas().getHeight()));
 
-        // Draw bodies (instanced)
-        glBindVertexArray(world.getBodyMesh().getVAO());
-        glDrawElementsInstanced(GL_TRIANGLES, world.getBodyMesh().getIndices().size() * 3, GL_UNSIGNED_INT, 0,
-                world.getBodies().size());
-    }
-
-    public void setWorld(World world) {
-        this.world = world;
-        vboColors = 0;
-
-        init();
+        //glClear(GL_DEPTH_BUFFER_BIT);
+        glBindVertexArray(world.getOrbitMesh().getVAO());
+        glDrawArraysInstanced(GL_LINE_LOOP, 0, world.getOrbitMesh().getVertices().size(), world.getOrbits().size() - 1);
     }
 }

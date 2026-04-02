@@ -4,6 +4,7 @@ import static org.lwjgl.opengl.GL41.*;
 
 import java.nio.FloatBuffer;
 
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 public class ShaderProgram {
@@ -33,6 +34,15 @@ public class ShaderProgram {
 
     public void addUniformVec3f(String name, Vector3f vec) {
         glUniform3f(glGetUniformLocation(ID, name), vec.x, vec.y, vec.z);
+    }
+
+    
+    public void addUniformVec2f(String name, Vector2f vec) {
+        glUniform2f(glGetUniformLocation(ID, name), vec.x, vec.y);
+    }
+
+    public void addUniformBlockBinding(String blockName, int blockBinding) {
+        glUniformBlockBinding(ID, glGetUniformBlockIndex(ID, "CameraMatrices"), 0);
     }
 
     public int getID() {

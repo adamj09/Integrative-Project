@@ -144,7 +144,8 @@ public class SphereGenerator {
         }
 
         // Note: for a sphere, normals are just the sphere's vertices divided by the
-        // radius (radius here is 1 so just pass in vertices)
-        return new Mesh(this.vertices, this.indices, vertices);
+        // radius (radius here is 1 so just pass in vertices). Texture coordinates are
+        // not calculated. Maybe this should be implemented in the future.
+        return new Mesh(this.vertices, this.indices, vertices, new ArrayList<>());
     }
 }

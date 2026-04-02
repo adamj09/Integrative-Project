@@ -1,42 +1,56 @@
 #version 410 core
 
-uniform vec3 lightColor;
-uniform vec3 lightPosition;
-uniform vec3 viewPosition;
+uniform vec3 light_color;
+uniform vec3 light_position;
+uniform vec2 resolution;
 
-in vec3 outColor;
-in vec3 outNormal;
-in vec3 outFragmentPosition;
+layout(std140) uniform CameraMatrices {
+  mat4 projection;
+  mat4 view;
+  mat4 inverse_view;
+}
+camera_matrices;
 
-out vec4 fragColor;
+in vec3 out_color;
+in vec3 out_normal;
+in vec3 out_fragment_position;
 
-void main() {
-  vec3 normal = normalize(outNormal);
+out vec4 frag_color;
 
-  // Light direction is always the light's position (directional lighting) to
-  // simulate an infinitely distant light source (ex: Sun)
-  vec3 lightDirection = normalize(lightPosition);
+vec3 phong_lighting() {
+  // Surface normal vector
+  vec3 normal = normalize(out_normal);
+
+  // Camera's position
+  vec3 view_position = vec3(camera_matrices.inverse_view[3][0],
+                            camera_matrices.inverse_view[3][1],
+                            camera_matrices.inverse_view[3][2]);
+
+  // Light direction (vector between light's position and the fragment's
+  // position)
+  vec3 light_direction = normalize(light_position - out_fragment_position);
 
   // Ambient Lighting
-  float ambientStrength = 0.01;
-  vec3 ambient = ambientStrength * lightColor;
+  float ambient_strength = 0.01;
+  vec3 ambient = ambient_strength * light_color;
 
   // Diffuse Lighting
   // Note: A normal matrix is not used because non-uniform scaling will not be
   // used to render objects. If non-uniform scaling IS used, the normals will
   // become incorrect without implementing a normal matrix to transform them.
-  float diffuseIntensity = max(dot(normal, lightDirection), 0.0);
-  vec3 diffuse = diffuseIntensity * lightColor;
+  float diffuse_intensity = max(dot(normal, light_direction), 0.0);
+  vec3 diffuse = diffuse_intensity * light_color;
 
   // Specular Lighting
-  float specularStrength = 0.5;
-  vec3 viewDirection = normalize(viewPosition - outFragmentPosition);
-  vec3 reflectDirection = reflect(-lightDirection, normal);
-  float specularIntensity =
-      pow(max(dot(viewDirection, reflectDirection), 0.0), 8);
-  vec3 specular = specularStrength * specularIntensity * lightColor;
+  float specular_strength = 0.5;
+  vec3 view_direction = normalize(view_position - out_fragment_position);
+  vec3 reflect_direction = reflect(-light_direction, normal);
+  float specular_intensity =
+      pow(max(dot(view_direction, reflect_direction), 0.0), 8);
+  vec3 specular = specular_strength * specular_intensity * light_color;
 
-  vec3 result = (ambient + diffuse + specular) * outColor;
-
-  fragColor = vec4(result, 1.0);
+  // Result is the sum of all the above.
+  return vec3(ambient + diffuse + specular);
 }
+
+void main() { frag_color = vec4(phong_lighting() * out_color, 1.0); }
