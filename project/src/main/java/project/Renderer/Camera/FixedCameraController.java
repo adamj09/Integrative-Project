@@ -81,9 +81,6 @@ public class FixedCameraController {
         Vector3f newPosition = new Vector3f();
         Vector3f displacement = new Vector3f();
 
-        // TODO: check for collision with other bodies to prevent going through them
-        // (implement the same in the free look camera)
-
         // Translation is proportional to distance from lookatPosition
         float speed = controls.getScrollDeltaY() * translateSpeed * deltaTime * radius;
 
@@ -106,8 +103,11 @@ public class FixedCameraController {
                 return;
             }
         }
+
+        Vector3f newDirection = new Vector3f();
+        lookatPosition.sub(newPosition, newDirection);
     
-        camera.setView(newPosition, lookatPosition);
+        camera.setView(newPosition, newDirection);
         controls.setScrollDeltaY(0);
     }
 
@@ -125,13 +125,16 @@ public class FixedCameraController {
         float newPitch = Math.clamp((this.pitch + pitch) % (float) Math.PI, -pitchLimit, pitchLimit);
         float newYaw = (this.yaw + yaw) % ((float) Math.PI * 2.f);
 
-        Vector3f translation = new Vector3f(
+        Vector3f newPosition = new Vector3f(
                 lookatPosition.x + radius * (float) Math.cos(newPitch) * (float) Math.sin(newYaw),
                 lookatPosition.y + radius * (float) Math.sin(newPitch),
                 lookatPosition.z + radius * (float) Math.cos(newPitch) * (float) Math.cos(newYaw));
 
+        Vector3f newDirection = new Vector3f();
+        lookatPosition.sub(newPosition, newDirection);
+
         // Update camera's view matrix.
-        camera.setView(translation, lookatPosition);
+        camera.setView(newPosition, newDirection);
 
         this.pitch = newPitch;
         this.yaw = newYaw;
@@ -146,7 +149,7 @@ public class FixedCameraController {
      */
     public void updateCameraTransform(float deltaTime) {
         // Update target as object's position updates
-        camera.setView(camera.getPosition(), focusedWorldObject.getTranslation());
+        lookatPosition = focusedWorldObject.getTranslation();
 
         if (controls.isFocusButtonPressed() == 1) {
             rotate();
@@ -217,7 +220,10 @@ public class FixedCameraController {
         Vector3f target = new Vector3f();
         newPosition.add(camera.getDirection(), target);
 
-        camera.setView(newPosition, lookatPosition);
+        Vector3f newDirection = new Vector3f();
+        lookatPosition.sub(newPosition, newDirection);
+
+        camera.setView(newPosition, newDirection);
     }
 
     public void setFocusObject(String name) {
