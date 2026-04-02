@@ -1,6 +1,5 @@
 package project.Renderer.Camera;
 
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import project.ControlManager;
@@ -22,12 +21,12 @@ public class FixedCameraController {
     /**
      * Scalar dictating speed at which the camera rotates.
      */
-    private float rotateSpeed = 0.005f;
+    private float rotateSpeed = 0.0001f;
 
     /**
      * Radians to limit pitch to.
      */
-    private float pitchLimit = (float)Math.PI / 2.f;
+    private float pitchLimit = (float) Math.PI / 2.f;
 
     /**
      * Camera pitch angle in radians.
@@ -45,6 +44,8 @@ public class FixedCameraController {
     private float maxDistance = 100.f;
 
     private Vector3f lookatPosition = new Vector3f();
+
+    private float distanceToOrigin = 10.f;
 
     /**
      * Initializes the camera controller with a camera and control manager.
@@ -64,7 +65,7 @@ public class FixedCameraController {
      *                  to keep movement speed framerate independent).
      */
     private void translate(float deltaTime) {
-        Vector3f position = camera.getPosition(); 
+        Vector3f position = camera.getPosition();
         Vector3f direction = camera.getDirection().normalize();
         Vector3f newPosition = new Vector3f();
         Vector3f displacement = new Vector3f();
@@ -77,15 +78,13 @@ public class FixedCameraController {
         direction.mul(speed, displacement);
         position.add(displacement, newPosition);
 
-        setCameraView(newPosition, direction);
-        controls.setScrollDeltaY(0);
-    }
-
-    private void setCameraView(Vector3f position, Vector3f direction) {
         if (position.length() > maxDistance) {
+            controls.setScrollDeltaY(0);
             return;
         }
-        camera.setView(position, direction);
+
+        camera.setView(newPosition, lookatPosition, direction);
+        controls.setScrollDeltaY(0);
     }
 
     /**
@@ -96,56 +95,17 @@ public class FixedCameraController {
      *                  to keep movement speed framerate independent).
      */
     private void rotate() {
-        // Greatest absolute pitch change is set to the pitch limit.
-        float pitch = -controls.getMouseDeltaYNormalized() * rotateSpeed;
-        float yaw = -controls.getMouseDeltaXNormalized() * rotateSpeed;
-    
-        Quaternionf pitchQuaternion = pitch(pitch);
-        Quaternionf yawQuaternion = yaw(yaw);
+        //TODO: fix this shit
+        float pitch = Math.clamp(controls.getMouseDeltaYNormalized() * rotateSpeed, 0, (float)Math.PI * 2 - 0.001f);
+        float yaw = Math.clamp(controls.getMouseDeltaXNormalized() * rotateSpeed, 0, (float)Math.PI - 0.001f);
 
-        // Create rotation quaternion by multiplying pitch and yaw quaternions.
-        Quaternionf rotation = new Quaternionf();
-        pitchQuaternion.mul(yawQuaternion, rotation);
-        rotation.normalize(); // Normalize the quaternion to make sure rotation speed remains consistent
-                              // regardless of rotation angle.
 
-        Vector3f newDirection = new Vector3f();
-        camera.getDirection().rotate(rotation, newDirection);
+        Vector3f translation = new Vector3f(lookatPosition.x + distanceToOrigin * (float)Math.cos(pitch) * (float)Math.sin(yaw),
+                lookatPosition.y + distanceToOrigin * (float)Math.sin(pitch) * (float)Math.sin(yaw), 
+                lookatPosition.z + distanceToOrigin * (float)Math.cos(yaw));
 
         // Update camera's view matrix.
-        camera.setView(camera.getPosition(), newDirection);
-    }
-
-    private Quaternionf pitch(float radians) {
-        // Set pitch axis to be perpendicular to the camera's direction and up vectors.
-        Vector3f pitchAxis = new Vector3f();
-        camera.getDirection().cross(camera.getUp(), pitchAxis);
-        pitchAxis.normalize();
-
-        Quaternionf pitchQuaternion = new Quaternionf();
-
-        if(pitch + radians < pitchLimit && pitch + radians > - pitchLimit) {
-            pitchQuaternion.setAngleAxis(radians, pitchAxis.x, pitchAxis.y, pitchAxis.z);
-
-            pitch = Math.clamp(pitch + radians, -pitchLimit, pitchLimit);
-        }
-        else {
-            pitchQuaternion.setAngleAxis(0, pitchAxis.x, pitchAxis.y, pitchAxis.z);
-        }
-
-        return pitchQuaternion;
-    }
-
-    private Quaternionf yaw(float radians) {
-        // The yaw axis is relative to the camera. TODO: make sure of this.
-        Vector3f yawAxis = new Vector3f();
-        yawAxis.set(camera.getUp());
-
-        Quaternionf yawQuaternion = new Quaternionf();
-        yawQuaternion.setAngleAxis(radians, yawAxis.x, yawAxis.y, yawAxis.z);
-        yaw = (yaw + radians) % (float)(2.f * Math.PI);
-
-        return yawQuaternion;
+        camera.setView(translation, lookatPosition, camera.getDirection());
     }
 
     /**
@@ -218,5 +178,15 @@ public class FixedCameraController {
     public void setPitchLimit(float pitchLimit) {
         this.pitchLimit = pitchLimit;
     }
-}
 
+    public void setLookatPosition(Vector3f lookatPosition) {
+        this.lookatPosition = lookatPosition;
+
+        Vector3f newPosition = new Vector3f(lookatPosition.x + 10, 0.f, lookatPosition.z + 10);
+
+        Vector3f target = new Vector3f();
+        newPosition.add(camera.getDirection(), target);
+
+        camera.setView(newPosition, lookatPosition, camera.getDirection());
+    }
+}

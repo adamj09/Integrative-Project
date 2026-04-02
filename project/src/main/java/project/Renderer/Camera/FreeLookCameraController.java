@@ -94,14 +94,14 @@ public class FreeLookCameraController {
         Vector3f newPosition = new Vector3f();
         position.add(displacement, newPosition);
 
-        setCameraView(newPosition, direction);
-    }
-
-    private void setCameraView(Vector3f position, Vector3f direction) {
-        if (position.length() > maxDistance) {
+        if (newPosition.length() > maxDistance) {
             return;
         }
-        camera.setView(position, direction);
+
+        Vector3f target = new Vector3f();
+        newPosition.add(camera.getDirection(), target);
+
+        camera.setView(newPosition, target, direction);
     }
 
     /**
@@ -126,8 +126,11 @@ public class FreeLookCameraController {
         Vector3f newDirection = new Vector3f();
         camera.getDirection().rotate(rotation, newDirection);
 
+        Vector3f target = new Vector3f();
+        camera.getPosition().add(newDirection, target);
+
         // Update camera's view matrix.
-        camera.setView(camera.getPosition(), newDirection);
+        camera.setView(camera.getPosition(), target, newDirection);
     }
 
     private Quaternionf pitch(float radians) {
