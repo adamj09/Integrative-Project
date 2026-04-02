@@ -88,8 +88,6 @@ public class FreeLookCameraController {
             return;
         }
 
-        //TODO: add max speed and dampening (decceleration)
-
         translateSpeed += translateAcceleration * deltaTime;
 
         displacement.normalize().mul(translateSpeed).mul(deltaTime);

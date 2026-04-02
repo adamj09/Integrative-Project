@@ -77,8 +77,10 @@ public class FixedCameraController {
         Vector3f newPosition = new Vector3f();
         Vector3f displacement = new Vector3f();
 
-        // Translation is proportional to distance from lookatPosition
+        // TODO: check for collision with other bodies to prevent going through them
+        // (implement the same in the free look camera)
 
+        // Translation is proportional to distance from lookatPosition
         float speed = controls.getScrollDeltaY() * translateSpeed * deltaTime * radius;
 
         direction.mul(speed, displacement);
@@ -205,7 +207,10 @@ public class FixedCameraController {
     }
 
     public void setFocusObject(String name) {
-        // TODO: add check to make sure desired object exists
+        if (!world.getBodies().containsKey(name)) {
+            return;
+        }
+
         focusedWorldObject = world.getBodies().get(name);
 
         minRadius = focusedWorldObject.getScale().x + 0.5f;
