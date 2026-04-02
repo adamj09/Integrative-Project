@@ -56,10 +56,12 @@ public class Camera {
     public void setView(Vector3f position, Vector3f target) {
         view.setLookAt(position, target, up);
 
-        target.sub(position, this.direction);
+        Vector3f newDirection = new Vector3f();
+        target.sub(position, newDirection);
         this.direction.normalize();
 
         this.position.set(position);
+        this.direction.set(newDirection);
 
         updateInverseView();
     }

@@ -1,10 +1,13 @@
 package project.Renderer.Camera;
 
+import java.util.Map;
+
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import project.ControlManager;
 import project.Renderer.World.World;
+import project.Renderer.World.WorldObject;
 
 /**
  * Class that controls a camera in a first person style (without rolling).
@@ -49,7 +52,9 @@ public class FreeLookCameraController {
     /**
      * Defines the maximum distance the camera can travel from the origin.
      */
-    private float maxDistance = 100.f;
+    private float maxDistance = 500.f;
+
+    private float padding = 0.5f;
 
     /**
      * Initializes the camera controller with a camera and control manager.
@@ -79,7 +84,7 @@ public class FreeLookCameraController {
         right.normalize();
 
         Vector3f displacement = new Vector3f();
-        displacement.add(new Vector3f(forward).mul(controls.isBackwardPressed() - controls.isForwardPressed()))
+        displacement.add(new Vector3f(forward).mul(controls.isForwardPressed() - controls.isBackwardPressed()))
                 .add(new Vector3f(right).mul(controls.isRightPressed() - controls.isLeftPressed()))
                 .add(new Vector3f(up).mul(controls.isUpPressed() - controls.isDownPressed()));
 
@@ -95,8 +100,17 @@ public class FreeLookCameraController {
         Vector3f newPosition = new Vector3f();
         position.add(displacement, newPosition);
 
+        // Limit camera distance from origin
         if (newPosition.length() > maxDistance) {
             return;
+        }
+
+        // Make sure camera doesn't pass through other objects
+        for (Map.Entry<String, WorldObject> item : world.getBodies().entrySet()) {
+            WorldObject object = item.getValue();
+            if(object.getTranslation().distance(newPosition) < object.getScale().x + padding) {
+                return;
+            }
         }
 
         Vector3f target = new Vector3f();

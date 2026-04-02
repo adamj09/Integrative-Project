@@ -1,5 +1,7 @@
 package project.Renderer.Camera;
 
+import java.util.Map;
+
 import org.joml.Vector3f;
 
 import project.ControlManager;
@@ -53,6 +55,8 @@ public class FixedCameraController {
 
     private float minRadius;
 
+    private float padding = 0.5f;
+
     /**
      * Initializes the camera controller with a camera and control manager.
      * 
@@ -88,11 +92,21 @@ public class FixedCameraController {
 
         radius = newPosition.distance(lookatPosition);
 
-        if (position.length() < maxDistance && radius <= minRadius) {
+        // Limit camera distance from object
+        if (newPosition.length() > maxDistance) {
             controls.setScrollDeltaY(0);
             return;
         }
 
+        // Make sure camera doesn't pass through other objects
+        for (Map.Entry<String, WorldObject> item : world.getBodies().entrySet()) {
+            WorldObject object = item.getValue();
+            if(object.getTranslation().distance(newPosition) < object.getScale().x + padding) {
+                controls.setScrollDeltaY(0);
+                return;
+            }
+        }
+    
         camera.setView(newPosition, lookatPosition);
         controls.setScrollDeltaY(0);
     }
@@ -213,7 +227,7 @@ public class FixedCameraController {
 
         focusedWorldObject = world.getBodies().get(name);
 
-        minRadius = focusedWorldObject.getScale().x + 0.5f;
+        minRadius = focusedWorldObject.getScale().x + padding;
         radius = minRadius + 5.f;
         setLookatPosition(focusedWorldObject.getTranslation());
     }

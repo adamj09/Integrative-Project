@@ -49,11 +49,11 @@ public class Renderer {
             controlManager = new ControlManager(viewport.getGLCanvas());
 
             // Create camera controller
-            //freeLookCameraController = new FreeLookCameraController(world, controlManager);
+            freeLookCameraController = new FreeLookCameraController(world, controlManager);
 
-            fixedCameraController = new FixedCameraController(world, controlManager);
+            //fixedCameraController = new FixedCameraController(world, controlManager);
             //fixedCameraController.setLookatPosition(new Vector3f(0.f, 0.f, 0.f));
-            fixedCameraController.setFocusObject("test");
+            //fixedCameraController.setFocusObject("test");
 
             Shader mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
             Shader orbitVertShader = new Shader("project/shaders/orbit.vert", GL_VERTEX_SHADER);
@@ -87,8 +87,8 @@ public class Renderer {
             controlManager.updateMouse();
             controlManager.handleUnfocus();
 
-            //freeLookCameraController.updateCameraTransform((float) event.delta);
-            fixedCameraController.updateCameraTransform((float) event.delta);
+            freeLookCameraController.updateCameraTransform((float) event.delta);
+            //fixedCameraController.updateCameraTransform((float) event.delta);
 
             cameraRenderSystem.loop();
             bodyRenderSystem.loop();
