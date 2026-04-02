@@ -2,7 +2,10 @@ package project.Renderer;
 
 import static org.lwjgl.opengl.GL41.*;
 
+import org.joml.Vector3f;
+
 import project.ControlManager;
+import project.Renderer.Camera.FixedCameraController;
 import project.Renderer.Camera.FreeLookCameraController;
 import project.Renderer.RenderSystems.BodyRenderSystem;
 import project.Renderer.RenderSystems.CameraRenderSystem;
@@ -24,7 +27,8 @@ public class Renderer {
     private OrbitRenderSystem orbitRenderSystem;
 
     private ControlManager controlManager;
-    private FreeLookCameraController cameraController;
+    private FreeLookCameraController freeLookCameraController;
+    private FixedCameraController fixedCameraController;
 
     public Renderer() {
         initOpenGLRenderEventHandlers();
@@ -45,7 +49,10 @@ public class Renderer {
             controlManager = new ControlManager(viewport.getGLCanvas());
 
             // Create camera controller
-            cameraController = new FreeLookCameraController(world.getCamera(), controlManager);
+            //freeLookCameraController = new FreeLookCameraController(world, controlManager);
+
+            fixedCameraController = new FixedCameraController(world, controlManager);
+            fixedCameraController.setFocusObject("test");
 
             Shader mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
             Shader orbitVertShader = new Shader("project/shaders/orbit.vert", GL_VERTEX_SHADER);
@@ -76,10 +83,11 @@ public class Renderer {
             glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            controlManager.updateMousePosition();
+            controlManager.updateMouse();
             controlManager.handleUnfocus();
 
-            cameraController.updateCameraTransform((float) event.delta);
+            //freeLookCameraController.updateCameraTransform((float) event.delta);
+            fixedCameraController.updateCameraTransform((float) event.delta);
 
             cameraRenderSystem.loop();
             bodyRenderSystem.loop();
