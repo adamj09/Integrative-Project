@@ -8,10 +8,10 @@ public class Main {
     // Actual main method is here in order to be able to run the app via
     // commandline.
     public static void main(String[] args) {
-        App.main(args);
+       // App.main(args);
 
         //call this if want to test the satellite calculation with terminal logging
-        //testSatelliteCalculation();
+        testSatelliteCalculation();
     }
 
     /**
@@ -28,13 +28,29 @@ public class Main {
         // International Space Station approximate values
         // Orbital radius: ~6778 km from Earth's center (407 km altitude)
         // Orbital velocity: ~7670 m/s
-        Satellite satellite = new Satellite(
-            "hell", 20,
+        Satellite satellite = new Satellite();
+
+        /*
+        if(!satellite.initialiseSatelliteValuesVectors(
+            "hell", 20,earth.getName(),
             5.972e24,           // mass of Earth
             3000.0, 0, 0,         // position: x=6778km, y=0, z=0 (in km)
             0, 300, 0         // velocity: vx=0, vy=340 m/s, vz=0 (in m/s)
-        );
-        satellite.getData().name = "TestSatellite";
+        )) {
+            System.err.println("Failed to initialise satellite values");
+            return;
+        } */
+
+        
+        if(!satellite.initialiseSatelliteValuesAngles(
+            "hell", 20,earth.getName(),
+            5.972e24,           // mass of Earth
+            3000.0, 0.8, 0,         
+            0, 20, 0     
+        )) {
+            System.err.println("Failed to initialise satellite values");
+            return;
+        }
 
         // Add satellite to Earth
         if (!earth.addStellite(satellite)) {

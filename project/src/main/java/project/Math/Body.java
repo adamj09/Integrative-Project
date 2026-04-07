@@ -6,6 +6,7 @@ public class Body extends OrbitsTime{
     private String name;
     private double mass;
     private double radius;
+    private String latestError = "null";
     private HashMap<String, Satellite> satellites;
     private HashMap<String, Thread> satelliteThreads;
 
@@ -24,14 +25,10 @@ public class Body extends OrbitsTime{
      */
     public boolean addStellite(Satellite sat){
         if(satellites.size()+1 > Constant.MAXIMUM_NUMBER_OF_SATELITE){
+            this.latestError = "maximum number of satelite reach";
             return false;
         }else{
             String name = sat.getData().name;
-            boolean prob = sat.initialiseSatelliteInfo(); // initialise info
-            if(prob){
-                System.out.println("Problemo!!: "+sat.getLatestError());
-                return false;
-            }
             this.satellites.put(name, sat);
             return true;
         }
@@ -91,6 +88,10 @@ public class Body extends OrbitsTime{
 
     public void setRadius(double radius) {
         this.radius = radius;
+    }
+
+    public String getLatestError(){
+        return this.latestError;
     }
 
 

@@ -11,7 +11,7 @@ public class MathOrbits {
      * @param massOfCelestialBody 
      * @param satellite
      */
-    public static void getStaticInfo(double massOfCelestialBody, Satellite satellite){
+    public static boolean getStaticInfo(double massOfCelestialBody, Satellite satellite){
     
         Vector3d initialPosition = satellite.getData().initialPosition;
         Vector3d initialVelocity = satellite.getData().initialVelocity;
@@ -52,8 +52,7 @@ public class MathOrbits {
 
         if(eccentricity >= 1 || eccentricity <= 0){
             satellite.setLatestError("eccentricity not supported "+eccentricity+" energy "+(kineticEnergy + gravitationalPotEnergy));
-            satellite.setatestErrorActive(true);
-            return;
+            return false;
         }
 
         //semi-latus rectum
@@ -148,6 +147,8 @@ public class MathOrbits {
         //excess velocity
         satellite.getData().excessSpeed = Math.sqrt((2*mu)/distance);
 
+        return true;
+
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -206,6 +207,27 @@ public class MathOrbits {
 
         satellite.getData().lastTime = currentTime;
 
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //
+    public static void constructSatelliteUsingAngle(Satellite satellite,double massOfCelestialBody,
+         double distance, double eccentricity, double trueAnomaly,
+          double longitudeAscendingNode, double inclination, double argumentOfPeriapsis
+    ){
+        double p = distance + (distance*eccentricity*Math.cos(trueAnomaly));
+        double mu = Constant.GRAVITATIONAL_CONSTANT * massOfCelestialBody;
+
+        satellite.getData().longitudeOfAscendingNode = Math.toRadians(longitudeAscendingNode);
+        satellite.getData().inclination = Math.toRadians(inclination);
+        satellite.getData().argumentOfPeriapsis = Math.toRadians(argumentOfPeriapsis);
+
+
+        Vector3d distanceECI = rotationPQWtoECI(satellite,constructDistancePQWvect(distance,trueAnomaly));
+        Vector3d velocityECI = rotationPQWtoECI(satellite,constructVelocityPQWvect(mu,p,eccentricity,trueAnomaly));
+
+        satellite.getData().initialPosition = distanceECI;
+        satellite.getData().initialVelocity = velocityECI;
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
