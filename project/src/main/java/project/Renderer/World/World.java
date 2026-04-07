@@ -52,6 +52,7 @@ public class World {
     }
 
     private void loadBodies() {
+        camera.setView(new Vector3f(10.f, 10.f, 10.f), camera.getDirection());
         bodyMesh = new SphereGenerator().create(4);
 
         // --- Central Celestial Body ---
@@ -68,7 +69,7 @@ public class World {
     }
 
     private void loadOrbits() {
-        orbitMesh = new RingGenerator().create(5);
+        orbitMesh = new RingGenerator().create(2);
 
         for (Map.Entry<String, WorldObject> body : bodies.entrySet()) {
             WorldObject orbit = new WorldObject(body.getKey(), orbitMesh);
@@ -127,6 +128,7 @@ public class World {
     public void removeBody(String name) {
         if (name != this.name) {
             bodies.remove(name);
+            // body.removeSatellite(name);
         }
 
         updateBodyMatrixBuffer();

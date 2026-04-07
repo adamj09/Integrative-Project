@@ -2,7 +2,6 @@ package project.Renderer.Camera;
 
 import java.util.Map;
 
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import project.ControlManager;
@@ -14,32 +13,26 @@ import project.Renderer.World.WorldObject;
  * 
  * @author Adam Johnston
  */
-public class FreeLookCameraController {
+public class FixedCameraController {
     private World world;
     private Camera camera;
     private ControlManager controls;
+    private WorldObject focusedWorldObject;
 
     /**
      * Scalar dictating speed at which the camera translates.
      */
-    private float translateSpeed = 0.f;
-
-    private float maxTranslateSpeed = 10.f;
-
-    /**
-     * Scalar dictating speed at which the camera translates.
-     */
-    private float translateAcceleration = 50.f;
+    private float translateSpeed = 0.1f;
 
     /**
      * Scalar dictating speed at which the camera rotates.
      */
-    private float rotateSpeed = 0.005f;
+    private float rotateSpeed = 0.01f;
 
     /**
      * Radians to limit pitch to.
      */
-    private float pitchLimit = (float) Math.PI / 2.f;
+    private float pitchLimit = (float) Math.toRadians(89.0f);
 
     /**
      * Camera pitch angle in radians.
@@ -54,7 +47,13 @@ public class FreeLookCameraController {
     /**
      * Defines the maximum distance the camera can travel from the origin.
      */
-    private float maxDistance = 500.f;
+    private float maxDistance = 100.f;
+
+    private Vector3f lookatPosition = new Vector3f();
+
+    private float radius = 10.f;
+
+    private float minRadius;
 
     private float padding = 0.5f;
 
@@ -64,7 +63,7 @@ public class FreeLookCameraController {
      * @param camera   Camera to control.
      * @param controls Control manager to get user input from.
      */
-    public FreeLookCameraController(World world, ControlManager controls) {
+    public FixedCameraController(World world, ControlManager controls) {
         this.world = world;
         this.camera = world.getCamera();
         this.controls = controls;
@@ -79,32 +78,20 @@ public class FreeLookCameraController {
     private void translate(float deltaTime) {
         Vector3f position = camera.getPosition();
         Vector3f direction = camera.getDirection().normalize();
-        Vector3f up = camera.getUp().normalize();
-
-        Vector3f forward = new Vector3f((float) Math.sin(yaw), 0.0f, (float) Math.cos(yaw));
-        Vector3f right = new Vector3f();
-        direction.cross(up, right);
-        right.normalize();
-
-        Vector3f displacement = new Vector3f();
-        displacement.add(new Vector3f(forward).mul(controls.isBackwardPressed() - controls.isForwardPressed()))
-                .add(new Vector3f(right).mul(controls.isRightPressed() - controls.isLeftPressed()))
-                .add(new Vector3f(up).mul(controls.isUpPressed() - controls.isDownPressed()));
-
-        if (displacement.equals(0, 0, 0)) {
-            translateSpeed = 0.f;
-            return;
-        }
-
-        translateSpeed = Math.clamp(translateSpeed + translateAcceleration * deltaTime, 0, maxTranslateSpeed);
-
-        displacement.normalize().mul(translateSpeed).mul(deltaTime);
-
         Vector3f newPosition = new Vector3f();
+        Vector3f displacement = new Vector3f();
+
+        // Translation is proportional to distance from lookatPosition
+        float speed = controls.getScrollDeltaY() * translateSpeed * deltaTime * radius;
+
+        direction.mul(speed, displacement);
         position.add(displacement, newPosition);
 
-        // Limit camera distance from origin
+        radius = newPosition.distance(lookatPosition);
+
+        // Limit camera distance from object
         if (newPosition.length() > maxDistance) {
+            controls.setScrollDeltaY(0);
             return;
         }
 
@@ -112,69 +99,45 @@ public class FreeLookCameraController {
         for (Map.Entry<String, WorldObject> item : world.getBodies().entrySet()) {
             WorldObject object = item.getValue();
             if(object.getTranslation().distance(newPosition) < object.getScale().x + padding) {
+                controls.setScrollDeltaY(0);
                 return;
             }
         }
 
-        camera.setView(newPosition, direction);
+        Vector3f newDirection = new Vector3f();
+        lookatPosition.sub(newPosition, newDirection);
+    
+        camera.setView(newPosition, newDirection);
+        controls.setScrollDeltaY(0);
     }
 
     /**
      * Applies rotation to the camera using quaternions. Rotation is controlled by
      * mouse movement.
      * 
+     * @param deltaTime The time in seconds between the last and current frame (used
+     *                  to keep movement speed framerate independent).
      */
     private void rotate() {
-        // Greatest absolute pitch change is set to the pitch limit.
         float pitch = -controls.getMouseDeltaYNormalized() * rotateSpeed;
         float yaw = -controls.getMouseDeltaXNormalized() * rotateSpeed;
 
-        Quaternionf pitchQuaternion = pitch(pitch);
-        Quaternionf yawQuaternion = yaw(yaw);
+        float newPitch = Math.clamp((this.pitch + pitch) % (float) Math.PI, -pitchLimit, pitchLimit);
+        float newYaw = (this.yaw + yaw) % ((float) Math.PI * 2.f);
 
-        // Create rotation quaternion by multiplying pitch and yaw quaternions.
-        Quaternionf rotation = new Quaternionf();
-        pitchQuaternion.mul(yawQuaternion, rotation);
-        rotation.normalize(); // Normalize the quaternion to make sure rotation speed remains consistent
-                              // regardless of rotation angle.
+        Vector3f newPosition = new Vector3f(
+                lookatPosition.x + radius * (float) Math.cos(newPitch) * (float) Math.sin(newYaw),
+                lookatPosition.y + radius * (float) Math.sin(newPitch),
+                lookatPosition.z + radius * (float) Math.cos(newPitch) * (float) Math.cos(newYaw));
 
         Vector3f newDirection = new Vector3f();
-        camera.getDirection().rotate(rotation, newDirection);
+        lookatPosition.sub(newPosition, newDirection);
 
         // Update camera's view matrix.
-        camera.setView(camera.getPosition(), newDirection);
-    }
+        camera.setView(newPosition, newDirection);
 
-    private Quaternionf pitch(float radians) {
-        // Set pitch axis to be perpendicular to the camera's direction and up vectors.
-        Vector3f pitchAxis = new Vector3f();
-        camera.getDirection().cross(camera.getUp(), pitchAxis);
-        pitchAxis.normalize();
-
-        Quaternionf pitchQuaternion = new Quaternionf();
-
-        if (pitch + radians < pitchLimit && pitch + radians > -pitchLimit) {
-            pitchQuaternion.setAngleAxis(radians, pitchAxis.x, pitchAxis.y, pitchAxis.z);
-
-            pitch = Math.clamp(pitch + radians, -pitchLimit, pitchLimit);
-        } else {
-            pitchQuaternion.setAngleAxis(0, pitchAxis.x, pitchAxis.y, pitchAxis.z);
-        }
-
-        return pitchQuaternion;
-    }
-
-    private Quaternionf yaw(float radians) {
-        // In this first person camera, yaw is always around the world's up axis (0, 1,
-        // 0) so we can just use the camera's up vector as the yaw axis.
-        Vector3f yawAxis = new Vector3f();
-        yawAxis.set(camera.getUp());
-
-        Quaternionf yawQuaternion = new Quaternionf();
-        yawQuaternion.setAngleAxis(radians, yawAxis.x, yawAxis.y, yawAxis.z);
-        yaw = (yaw + radians) % (float) (2.f * Math.PI);
-
-        return yawQuaternion;
+        this.pitch = newPitch;
+        this.yaw = newYaw;
     }
 
     /**
@@ -185,10 +148,13 @@ public class FreeLookCameraController {
      *                  to keep movement speed framerate independent).
      */
     public void updateCameraTransform(float deltaTime) {
-        translate(deltaTime);
+        // Update target as object's position updates
+        lookatPosition = focusedWorldObject.getTranslation();
+
         if (controls.isFocusButtonPressed() == 1) {
             rotate();
         }
+        translate(deltaTime);
     }
 
     /**
@@ -244,5 +210,31 @@ public class FreeLookCameraController {
      */
     public void setPitchLimit(float pitchLimit) {
         this.pitchLimit = pitchLimit;
+    }
+
+    public void setLookatPosition(Vector3f lookatPosition) {
+        this.lookatPosition = lookatPosition;
+
+        Vector3f newPosition = new Vector3f(lookatPosition.x + radius, 0.f, lookatPosition.z + radius);
+
+        Vector3f target = new Vector3f();
+        newPosition.add(camera.getDirection(), target);
+
+        Vector3f newDirection = new Vector3f();
+        lookatPosition.sub(newPosition, newDirection);
+
+        camera.setView(newPosition, newDirection);
+    }
+
+    public void setFocusObject(String name) {
+        if (!world.getBodies().containsKey(name)) {
+            return;
+        }
+
+        focusedWorldObject = world.getBodies().get(name);
+
+        minRadius = focusedWorldObject.getScale().x + padding;
+        radius = minRadius + 5.f;
+        setLookatPosition(focusedWorldObject.getTranslation());
     }
 }

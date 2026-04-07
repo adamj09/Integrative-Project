@@ -35,19 +35,17 @@ public class CameraRenderSystem {
     }
 
     public void loop() {
-        projectionMatrixBuffer.clear();
         glBindBuffer(GL_UNIFORM_BUFFER, uboCameraMatrices);
+        
+        projectionMatrixBuffer.clear();
         glBufferSubData(GL_UNIFORM_BUFFER, 0, camera.getProjection().get(projectionMatrixBuffer));
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         viewMatrixBuffer.clear();
-        glBindBuffer(GL_UNIFORM_BUFFER, uboCameraMatrices);
         glBufferSubData(GL_UNIFORM_BUFFER, Renderer.MAT4F_SIZE, camera.getView().get(viewMatrixBuffer));
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         inverseViewMatrixBuffer.clear();
-        glBindBuffer(GL_UNIFORM_BUFFER, uboCameraMatrices);
         glBufferSubData(GL_UNIFORM_BUFFER, 2 * Renderer.MAT4F_SIZE, camera.getInverseView().get(inverseViewMatrixBuffer));
+
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 }
