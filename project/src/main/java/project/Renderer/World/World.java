@@ -33,6 +33,7 @@ public class World {
     private FloatBuffer orbitMatrixBuffer;
 
     private float unitScale = 1000.f; // 1 AU is equal to this many renderer units.
+    private double AU = 1.496e+8d; // 1 AU in kilometers.
 
     private Mesh bodyMesh;
     private Mesh orbitMesh;
@@ -59,7 +60,7 @@ public class World {
         lightSource = new WorldObject("light", new SphereGenerator().create(4));
         lightSource.setTranslation(new Vector3f(1000.f, 0.f, 0.f));
 
-        float lightSourceScale = (float) (0.00465046726d * unitScale); // Sun's radius in AUs times scale
+        float lightSourceScale = (float) (696_340d / AU * unitScale); // Sun's radius in AUs times scale
 
         lightSource.setScale(new Vector3f(lightSourceScale, lightSourceScale, lightSourceScale));
         lightSource.setLightColor(new Vector3f(1.f, 1.f, 1.f));
@@ -69,7 +70,7 @@ public class World {
         bodyMesh = new SphereGenerator().create(4);
         WorldObject bodyObject = new WorldObject(name, bodyMesh, new Vector3f(1.0f, 1.0f, 1.0f));
 
-        float planetScale = (float) (body.getRadius() / 1.496e+8d * unitScale);
+        float planetScale = (float) (body.getRadius() / AU * unitScale);
         bodyObject.setScale(new Vector3f(planetScale, planetScale, planetScale));
 
         // Add objects to world.
