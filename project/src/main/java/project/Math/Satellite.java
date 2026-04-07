@@ -40,6 +40,19 @@ public class Satellite implements Runnable{
             return false;
         }
 
+        if(px < Constant.MINIMUM_DISTANCE_TO_BODY){
+            latestError = "initial position in x is too close to the body: "+px+" km. Minimum distance is "+Constant.MINIMUM_DISTANCE_TO_BODY+" km";
+            return false;
+        }
+        if(py < Constant.MINIMUM_DISTANCE_TO_BODY){
+            latestError = "initial position in y is too close to the body: "+py+" km. Minimum distance is "+Constant.MINIMUM_DISTANCE_TO_BODY+" km";
+            return false;
+        }
+        if(pz < Constant.MINIMUM_DISTANCE_TO_BODY){
+            latestError = "initial position in z is too close to the body: "+pz+" km. Minimum distance is "+Constant.MINIMUM_DISTANCE_TO_BODY+" km";
+            return false;
+        }
+
         this.massOfBody = massOfBody;
         this.getData().mass = massOfSatellite;
         this.getData().initialPosition = new Vector3d(px*1000,py*1000,pz*1000);
@@ -58,12 +71,12 @@ public class Satellite implements Runnable{
      * @param massOfSatellite mass of the the satellite in kg
      * @param bodyName name (and id) of the body that the satellite is orbiting
      * @param massOfBody mass of the body in kg
-     * @param distance distance of the satellite to the body in km
-     * @param ecentricity of the orbit (between 0 and 1 for elliptical orbits)
-     * @param trueAnomaly true anomaly at the initial position in degrees
-     * @param longitudeAscendingNode longitude of the ascending node in degrees
-     * @param inclination of the orbit in degrees
-     * @param argumentOfPeriapisis argument of periapsis in degrees
+     * @param distance distance of the satellite to the body in km 
+     * @param ecentricity of the orbit (between 0 and 1 for elliptical orbits) 0 >= ecentricity || ecentricity >= 1
+     * @param trueAnomaly true anomaly at the initial position in degrees between 0 to 360
+     * @param longitudeAscendingNode longitude of the ascending node in degrees between 0 to 360
+     * @param inclination of the orbit in degrees 0 to 360
+     * @param argumentOfPeriapisis argument of periapsis in degrees between 0 to 360
      * @return
      */
     public boolean initialiseSatelliteValuesAngles(String satName, double massOfSatellite, String bodyName, double massOfBody,
@@ -86,6 +99,13 @@ public class Satellite implements Runnable{
             this.latestError = "eccentricity not supported "+ecentricity;
             return false;
         }
+
+        if(distance < Constant.MINIMUM_DISTANCE_TO_BODY){
+            latestError = "initial position is too close to the body: "+distance+" km. Minimum distance is "+Constant.MINIMUM_DISTANCE_TO_BODY+" km";
+            return false;
+        }
+
+        distance *= 1000; //convert to meters
 
         MathOrbits.constructSatelliteUsingAngle(this,massOfBody,distance,ecentricity,trueAnomaly,
             longitudeAscendingNode,inclination,argumentOfPeriapisis);

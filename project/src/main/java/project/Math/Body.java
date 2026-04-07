@@ -5,7 +5,7 @@ import java.util.HashMap;
 public class Body extends OrbitsTime{
     private String name;
     private double mass;
-    private double radius;
+    private double radius; //in km
     private String latestError = "null";
     private HashMap<String, Satellite> satellites;
     private HashMap<String, Thread> satelliteThreads;

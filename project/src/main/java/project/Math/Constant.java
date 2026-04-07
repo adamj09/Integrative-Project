@@ -8,6 +8,9 @@ public class Constant {
     // main body
     public static final int MAXIMUM_NUMBER_OF_SATELITE = 10;
 
+    //satellite
+    public static final int MINIMUM_DISTANCE_TO_BODY = 160; //in km (minimum distance of the satellite to the body)
+
     //time
     public static final int UPDATE_TIME = 8; //in miliseconds (120FPS) (time between each calculation of the sitelittes info)
 }
