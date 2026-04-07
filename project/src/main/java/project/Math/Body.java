@@ -46,6 +46,10 @@ public class Body extends OrbitsTime{
        return this.satellites.get(name);
     }
 
+    public HashMap<String, Satellite> getSatellites() {
+        return this.satellites;
+    }
+
     /**
      * remove a satellite of the body
      * @param name name of the satellite
