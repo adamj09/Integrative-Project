@@ -70,7 +70,7 @@ public class PresetFileService {
         for (int index = 0; index < bodiesCount; index++) {
             String prefix = BODIES_PREFIX + index + ".";
             String name = properties.getProperty(prefix + "name", "Body-" + index);
-            Color color = parseColor(properties, prefix + "color", Color.TOMATO);
+            Color color = parseColor(properties, prefix + "color", Color.web("#7a4a36")); // Dark muted orange
             boolean preset = Boolean.parseBoolean(properties.getProperty(prefix + "preset", "false"));
             bodies.add(new BodyPreset(name, color, preset));
         }
@@ -79,7 +79,7 @@ public class PresetFileService {
         for (int index = 0; index < satellitesCount; index++) {
             String prefix = SATELLITES_PREFIX + index + ".";
             String name = properties.getProperty(prefix + "name", "Sat-" + index);
-            Color color = parseColor(properties, prefix + "color", Color.CORNFLOWERBLUE);
+            Color color = parseColor(properties, prefix + "color", Color.web("#39506a")); // Dark muted blue
             satellites.add(new SatellitePreset(name, color));
         }
 

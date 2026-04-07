@@ -64,152 +64,152 @@ public enum UiTheme {
         "#1b303d",
         "#5f899f",
         "#ff7b7b"
-    ),
-    MERCURY(
+    );
+    /*MERCURY(
         "Mercury",
-        "#A9A9A9", // main
-        "#C0C0C0",
-        "#D3D3D3",
+        "#6E6E6E", // main
         "#808080",
+        "#9A9A9A",
+        "#555555",
+        "#707070",
         "#B0B0B0",
-        "#E0E0E0",
-        "#FFFFFF",
-        "#6E6E6E",
-        "#F5F5F5",
-        "#BEBEBE",
-        "#E8E8E8",
-        "#B0B0B0",
-        "#FF5C5C"
+        "#C8C8C8",
+        "#404040",
+        "#D0D0D0",
+        "#888888",
+        "#B8B8B8",
+        "#707070",
+        "#CC3333"
     ),
     VENUS(
         "Venus",
-        "#e78121e4", // main
-        "#d67616",
-        "#FFD180",
-        "#b6520b",
-        "#FFB84D",
-        "#FFE0B2",
-        "#FFF3E0",
-        "#B25C00",
-        "#FFF8E1",
-        "#FFB300",
-        "#FFECB3",
-        "#FF9800",
-        "#FF7262"
+        "#6B3608", // main
+        "#A85A0A",
+        "#CC9900",
+        "#7A3A05",
+        "#CC8800",
+        "#CC9966",
+        "#E8C880",
+        "#7A3A00",
+        "#EDD890",
+        "#BB8800",
+        "#CC9933",
+        "#CC6600",
+        "#CC3333"
     ),
     EARTH(
         "Earth",
-        "#3A7BD5", // main
-        "#5CA9FA",
-        "#A7C7E7",
-        "#2C5AA0",
-        "#6EC6FF",
-        "#B3E5FC",
-        "#E1F5FE",
-        "#1B3A5B",
-        "#F0F8FF",
-        "#1976D2",
-        "#B0C4DE",
-        "#64B5F6",
-        "#FF7F6E"
+        "#1A4A8A", // main — ocean blue
+        "#2E6BBB", // mid blue
+        "#4A8C6A", // ocean-land mix
+        "#133870", // deep ocean
+        "#3A88CC", // sky blue
+        "#4A7A55", // landmass green
+        "#7AAD6A", // lighter green
+        "#0A2240", // deep sea
+        "#A8C8A0", // pale green highlight
+        "#2A6E3A", // forest green
+        "#6A9A70", // muted green
+        "#2A7ACC", // bright ocean
+        "#CC4444"  // accent
     ),
     MARS(
         "Mars",
-        "#C1440E", // main
-        "#E25822",
-        "#FF7F50",
-        "#A63A00",
-        "#FF8C69",
-        "#FFDAB9",
-        "#FFF5EE",
-        "#8B2C02",
-        "#FFF0E1",
-        "#FF7043",
-        "#E9967A",
-        "#FF5722",
-        "#FF7262"
+        "#8A2800", // main
+        "#B03A10",
+        "#CC5520",
+        "#6E2200",
+        "#CC5533",
+        "#CC8855",
+        "#E8C0A0",
+        "#601800",
+        "#E8C090",
+        "#CC4422",
+        "#BB6644",
+        "#CC3311",
+        "#CC3333"
     ),
     JUPITER(
         "Jupiter",
-        "#C2B280", // main
-        "#E5D9B6",
-        "#F5F5DC",
-        "#A89F68",
-        "#D2B48C",
-        "#FFF8DC",
-        "#FAF0E6",
-        "#8B7B3A",
-        "#FFF9E3",
-        "#BDB76B",
-        "#F0E68C",
-        "#EEDD82",
-        "#FF6666"
+        "#7A6A40", // main
+        "#AA9060",
+        "#C8B880",
+        "#666040",
+        "#997755",
+        "#CCB880",
+        "#DDD0A0",
+        "#554A20",
+        "#EEE0A0",
+        "#888844",
+        "#BBAA44",
+        "#AAAA44",
+        "#CC2222"
     ),
     SATURN(
         "Saturn",
-        "#D2C295", // main
-        "#EDE3B9",
-        "#F5F5DC",
-        "#B8A77A",
-        "#E6D8AD",
-        "#FFF8DC",
-        "#FAF0E6",
-        "#A89F68",
-        "#FFF9E3",
-        "#D2B48C",
-        "#F0E68C",
-        "#EEDD82",
-        "#FF5C5C"
+        "#8A7A55", // main
+        "#AAAA66",
+        "#C8B880",
+        "#706050",
+        "#AA9966",
+        "#CCB880",
+        "#DDD0A0",
+        "#665040",
+        "#EEE0A0",
+        "#997755",
+        "#BBAA44",
+        "#AAAA44",
+        "#CC2222"
     ),
     URANUS(
         "Uranus",
-        "#7FDBFF", // main
-        "#B2EBF2",
-        "#E0FFFF",
-        "#00B8D4",
-        "#4DD0E1",
-        "#B2EBF2",
-        "#E0F7FA",
-        "#00838F",
-        "#F0FFFF",
-        "#00ACC1",
-        "#B2DFDB",
-        "#4DD0E1",
-        "#FF7F6E"
+        "#007799", // main
+        "#4499AA",
+        "#88CCCC",
+        "#006688",
+        "#22AAAA",
+        "#44AAAA",
+        "#66BBBB",
+        "#005566",
+        "#99DDDD",
+        "#007788",
+        "#449999",
+        "#22AAAA",
+        "#CC4433"
     ),
     NEPTUNE(
         "Neptune",
-        "#4169E1", // main
-        "#5A9BF6",
-        "#B0C4DE",
-        "#27408B",
-        "#6495ED",
-        "#B0E0E6",
-        "#E6F0FA",
-        "#27408B",
-        "#F0F8FF",
-        "#4682B4",
-        "#B0C4DE",
-        "#64B5F6",
-        "#FF6666"
+        "#1A3A80", // main
+        "#2A5599",
+        "#5577AA",
+        "#112860",
+        "#3355AA",
+        "#446688",
+        "#6688AA",
+        "#112860",
+        "#88AACC",
+        "#224488",
+        "#445577",
+        "#2255AA",
+        "#CC2222"
     ),
-
     PLUTO(
         "Pluto",
-        "#B0B0B0", // main
-        "#D3D3D3",
-        "#E0E0E0",
-        "#A9A9A9",
-        "#C0C0C0",
-        "#E8E8E8",
-        "#F5F5F5",
-        "#6E6E6E",
-        "#F0F0F0",
-        "#BEBEBE",
-        "#E8E8E8",
-        "#B0B0B0",
-        "#FF5C5C"
+        "#666666", // main
+        "#888888",
+        "#AAAAAA",
+        "#555555",
+        "#777777",
+        "#BBBBBB",
+        "#CCCCCC",
+        "#444444",
+        "#C8C8C8",
+        "#888888",
+        "#BBBBBB",
+        "#777777",
+        "#CC2222"
     );
+    */
 
     private final String label;
     private final String bgColor;

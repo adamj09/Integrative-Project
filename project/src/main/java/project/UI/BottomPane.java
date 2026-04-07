@@ -21,7 +21,8 @@ public class BottomPane extends VBox {
 
     private final TextField specificTimeField;
     private final ComboBox<String> timescaleDropdown;
-    private final Button startStopButton;
+    private final Button startButton;
+    private final Button stopButton;
     private final Button resetButton;
     private boolean running = false;
 
@@ -61,6 +62,7 @@ public class BottomPane extends VBox {
         timescaleLabel.getStyleClass().add("body");
 
         timescaleDropdown = new ComboBox<>();
+        // Placeholder values for timescale options - can be adjusted as needed
         timescaleDropdown.getItems().addAll(
             "0.1x", "0.5x", "1x", "2x", "5x", "10x",
             "100x", "1000x", "10000x", "100000x"
@@ -70,26 +72,36 @@ public class BottomPane extends VBox {
         timescaleDropdown.getStyleClass().add("combo-box");
         timescaleDropdown.setPrefWidth(90);
 
-        startStopButton = new Button("Start/Stop");
-        startStopButton.getStyleClass().add("control-button");
-        startStopButton.setOnAction(e -> {
-            running = !running;
-            updateStartStopButtonLabel();
-            System.out.println("Simulation running: " + running);
+        startButton = new Button("START");
+        startButton.getStyleClass().add("start-button");
+        startButton.setOnAction(e -> {
+            running = true;
+            updateButtonStates();
+            System.out.println("Simulation started");
         });
-        updateStartStopButtonLabel();
+
+        stopButton = new Button("STOP");
+        stopButton.getStyleClass().add("stop-button");
+        stopButton.setOnAction(e -> {
+            running = false;
+            updateButtonStates();
+            System.out.println("Simulation stopped");
+        });
 
         resetButton = new Button("RESET");
-        resetButton.getStyleClass().add("control-button");
+        resetButton.getStyleClass().add("reset-button");
         resetButton.setOnAction(e -> {
+            running = false;
             applyPresetState(new BottomPanePreset("", "1x", false));
             System.out.println("Simulation reset");
         });
 
+        updateButtonStates();
+
         HBox controlsRow = new HBox(10,
             infoLabel, timeLabel, specificTimeField,
             timescaleLabel, timescaleDropdown,
-            startStopButton, resetButton
+            startButton, stopButton, resetButton
         );
         controlsRow.setPadding(new Insets(6, 10, 6, 10));
         controlsRow.setAlignment(Pos.CENTER_LEFT);
@@ -304,14 +316,28 @@ public class BottomPane extends VBox {
         timescaleDropdown.setValue(timescale);
 
         running = preset.running();
-        updateStartStopButtonLabel();
+        updateButtonStates();
+    }
+
+    public void removeSatelliteColumn(String title) {
+        dataGrid.getChildren().removeIf(node -> {
+            if (node instanceof VBox col && !col.getChildren().isEmpty()) {
+                if (col.getChildren().get(0) instanceof HBox headerRow && !headerRow.getChildren().isEmpty()) {
+                    if (headerRow.getChildren().get(0) instanceof Label label) {
+                        return label.getText().equals(title);
+                    }
+                }
+            }
+            return false;
+        });
     }
 
     public void updateSatelliteData(int index, String[][] keyValuePairs) {
         // TODO: implement live data updates once data layer exists
     }
 
-    private void updateStartStopButtonLabel() {
-        startStopButton.setText(running ? "Stop" : "Start");
+    private void updateButtonStates() {
+        startButton.setDisable(running);
+        stopButton.setDisable(!running);
     }
 }

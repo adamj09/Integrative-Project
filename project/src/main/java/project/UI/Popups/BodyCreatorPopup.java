@@ -37,7 +37,7 @@ public class BodyCreatorPopup extends Stage {
 
         // --- 3D Preview ---
         // TODO: add actual 3D preview
-        previewCircle = new Circle(40, Color.TOMATO);
+        previewCircle = new Circle(40, Color.web("#7a4a36")); // Dark muted orange
         StackPane preview = new StackPane(previewCircle);
         preview.setStyle("-fx-background-color: #12121f; -fx-border-color: #444466; -fx-border-width: 1;");
         preview.setPrefSize(200, 160);
@@ -167,12 +167,12 @@ public class BodyCreatorPopup extends Stage {
 
     public Color getBodyColor() {
         return switch (colorDropdown.getValue()) {
-            case "Blue" -> Color.CORNFLOWERBLUE;
-            case "Green" -> Color.MEDIUMSEAGREEN;
-            case "Orange" -> Color.DARKORANGE;
-            case "Purple" -> Color.MEDIUMPURPLE;
-            case "White" -> Color.LIGHTGRAY;
-            default -> Color.TOMATO;
+            case "Blue" -> Color.web("#39506a"); // Dark muted blue
+            case "Green" -> Color.web("#355c3a"); // Dark muted green
+            case "Orange" -> Color.web("#7a5a2e"); // Dark muted orange
+            case "Purple" -> Color.web("#4b4063"); // Dark muted purple
+            case "White" -> Color.web("#b0b0b0"); // Darker soft white
+            default -> Color.web("#7a4a36"); // Dark muted orange-red
         };
     }
 

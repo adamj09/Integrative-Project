@@ -37,7 +37,7 @@ public class SatelliteCreatorPopup extends Stage {
 
         // TODO: make actual 3D preview
         // --- 3D Preview ---
-        Circle planet = new Circle(35, Color.TOMATO);
+        Circle planet = new Circle(35, Color.web("#7a4a36")); // Dark muted orange
         Circle satellite = new Circle(6, Color.CORNFLOWERBLUE);
         satellite.setTranslateX(60);
         StackPane previewPane = new StackPane(planet, satellite);
@@ -182,12 +182,12 @@ public class SatelliteCreatorPopup extends Stage {
 
     public Color getSatelliteColor() {
         return switch (colorDropdown.getValue()) {
-            case "Red" -> Color.TOMATO;
-            case "Green" -> Color.MEDIUMSEAGREEN;
-            case "Orange" -> Color.DARKORANGE;
-            case "Purple" -> Color.MEDIUMPURPLE;
-            case "White" -> Color.LIGHTGRAY;
-            default -> Color.CORNFLOWERBLUE;
+            case "Red" -> Color.web("#7a4a36"); // Dark muted orange-red
+            case "Green" -> Color.web("#355c3a"); // Dark muted green
+            case "Orange" -> Color.web("#7a5a2e"); // Dark muted orange
+            case "Purple" -> Color.web("#4b4063"); // Dark muted purple
+            case "White" -> Color.web("#b0b0b0"); // Darker soft white
+            default -> Color.web("#39506a"); // Dark muted blue
         };
     }
 
