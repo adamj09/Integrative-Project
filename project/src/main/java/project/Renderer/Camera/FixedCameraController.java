@@ -216,9 +216,8 @@ public class FixedCameraController {
         this.pitchLimit = pitchLimit;
     }
 
-    public void setLookatPosition(Vector3f lookatPosition) {
-        // Fix updating position
-        this.lookatPosition = lookatPosition;
+    public void updateLookatPosition() {
+        this.lookatPosition = focusedWorldObject.getTranslation();
 
         Vector3f newPosition = new Vector3f(lookatPosition.x + radius, 0.f, lookatPosition.z + radius);
 
@@ -239,6 +238,14 @@ public class FixedCameraController {
 
         minRadius = focusedWorldObject.getScale().x + padding;
         radius = minRadius + 5.f;
-        setLookatPosition(focusedWorldObject.getTranslation());
+
+        this.lookatPosition = focusedWorldObject.getTranslation();
+
+        Vector3f newPosition = new Vector3f(lookatPosition.x + radius, 0.f, lookatPosition.z + radius);
+
+        Vector3f newDirection = new Vector3f();
+        lookatPosition.sub(newPosition, newDirection);
+
+        camera.setView(newPosition, newDirection);
     }
 }

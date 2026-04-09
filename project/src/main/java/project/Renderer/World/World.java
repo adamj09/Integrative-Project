@@ -80,14 +80,6 @@ public class World {
         }
     }
 
-    public void updateMatrices() {
-        // TODO: focus camera onto newly created satellites
-        // TODO: create algorithm to find ideal camera position
-
-        updateBodyMatrixBuffer();
-        updateOrbitMatrixBuffer();
-    }
-
     public void updateColors() {
         updateColorBuffer();
     }
@@ -100,7 +92,8 @@ public class World {
         loadSatellites();
         loadOrbits();
 
-        updateMatrices();
+        updateBodyMatrixBuffer();
+        updateColorBuffer();
         updateColors();
     }
 
@@ -136,13 +129,13 @@ public class World {
 
             // If the satellite does not already have a WorldObject representation, add it.
             if (!bodies.containsKey(item.getKey())) {
-                WorldObject newObject = new WorldObject(satellite.getData().name, bodyMesh);
+                WorldObject newObject = new WorldObject(satellite.getData().name, bodyMesh, new Vector3f(1.f, 0.f, 0.f));
 
                 newObject.setScale(new Vector3f(satelliteRadius, satelliteRadius, satelliteRadius));
                 newObject.setTranslation(new Vector3f(
-                        (float) (satellite.getData().currentPosition.x / AU * UNIT_SCALE),
-                        (float) (satellite.getData().currentPosition.y / AU * UNIT_SCALE),
-                        (float) (satellite.getData().currentPosition.z / AU * UNIT_SCALE)));
+                        (float) (satellite.getData().currentPosition.x / 1000.d / AU * UNIT_SCALE),
+                        (float) (satellite.getData().currentPosition.y / 1000.d / AU * UNIT_SCALE),
+                        (float) (satellite.getData().currentPosition.z / 1000.d / AU * UNIT_SCALE)));
 
                 bodies.put(newObject.getName(), newObject);
             }
@@ -161,9 +154,9 @@ public class World {
             if (!orbits.containsKey(item.getKey())) {
                 WorldObject orbit = new WorldObject(item.getKey(), orbitMesh);
 
-                float semiMajorAxis = (float) (satellite.getData().a / AU * UNIT_SCALE);
-                float semiMinorAxis = (float) ((satellite.getData().a / AU * UNIT_SCALE)
-                        * Math.sqrt(1.0 - Math.pow(satellite.getData().eccentricity, 2)));
+                float semiMajorAxis = (float) (satellite.getData().a / 1000.d / AU * UNIT_SCALE);
+                float semiMinorAxis = (float) ((satellite.getData().a / 1000.d / AU * UNIT_SCALE)
+                        * Math.sqrt(1.0 - Math.pow(satellite.getData().eccentricity / 1000.d, 2)));
 
                 // Scale orbit according to orbital parameters.
                 float scaleFactor = semiMajorAxis / semiMinorAxis;
@@ -189,10 +182,12 @@ public class World {
 
         for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
             Satellite satellite = item.getValue();
+            //System.out.println(bodies.get(item.getKey()).getTranslation().toString());
+
             bodies.get(item.getKey()).setTranslation(new Vector3f(
-                (float) (satellite.getData().currentPosition.x / AU * UNIT_SCALE),
-                (float) (satellite.getData().currentPosition.y / AU * UNIT_SCALE),
-                (float) (satellite.getData().currentPosition.z / AU * UNIT_SCALE)));
+                (float) (satellite.getData().currentPosition.x / 1000.d / AU * UNIT_SCALE),
+                (float) (satellite.getData().currentPosition.y / 1000.d / AU * UNIT_SCALE),
+                (float) (satellite.getData().currentPosition.z / 1000.d / AU * UNIT_SCALE)));
         }
 
         updateBodyMatrixBuffer();
@@ -206,7 +201,7 @@ public class World {
         bodies.put(satellite.getName(), satellite);
         // TODO: also add associated orbit when adding body
 
-        updateMatrices();
+        //updateMatrices();
     }
 
     public void removeSatellite(String name) {
@@ -214,7 +209,7 @@ public class World {
             bodies.remove(name);
         }
 
-        updateMatrices();
+        //updateMatrices();
     }
 
     public void setLightSourceDistance(double distance) {// Distance in km
