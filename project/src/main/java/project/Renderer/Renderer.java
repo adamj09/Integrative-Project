@@ -16,7 +16,7 @@ import project.Renderer.World.World;
 public class Renderer {
     public Viewport viewport = new Viewport();
 
-    public static final float DEFAULT_FOV = 45.f, DEFAULT_NEAR = 0.001f, DEFAULT_FAR = 10_000.0f;
+    public static final float DEFAULT_FOV = 45.f, DEFAULT_NEAR = 0.001f, DEFAULT_FAR = 100_000.0f;
     public static final int MAT4F_SIZE = 16 * Float.BYTES, VEC4F_SIZE = 4 * Float.BYTES, VEC3F_SIZE = 3 * Float.BYTES;
 
     public World world;

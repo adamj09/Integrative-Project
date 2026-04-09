@@ -32,7 +32,7 @@ public class World {
     private FloatBuffer bodyMatrixBuffer;
     private FloatBuffer orbitMatrixBuffer;
 
-    private float unitScale = 1000.f; // 1 AU is equal to this many renderer units.
+    private final float UNIT_SCALE = 10000.f; // 1 AU is equal to this many renderer units.
     private double AU = 1.496e+8d; // 1 AU in kilometers.
 
     private Mesh bodyMesh;
@@ -43,6 +43,7 @@ public class World {
 
         loadLightSource();
         loadCentralBody(null);
+        loadSatellites(null);
         loadOrbits();
 
         colorsBuffer = BufferUtils.createFloatBuffer(3 * bodies.size());
@@ -58,9 +59,9 @@ public class World {
 
     private void loadLightSource() {
         lightSource = new WorldObject("light", new SphereGenerator().create(4));
-        lightSource.setTranslation(new Vector3f(1000.f, 0.f, 0.f));
+        lightSource.setTranslation(new Vector3f((float) (UNIT_SCALE), 0.f, 0.f));
 
-        float lightSourceScale = (float) (696_340d / AU * unitScale); // Sun's radius in AUs times scale
+        float lightSourceScale = (float) (696_340d / AU * UNIT_SCALE); // Sun's radius in AUs times scale
 
         lightSource.setScale(new Vector3f(lightSourceScale, lightSourceScale, lightSourceScale));
         lightSource.setLightColor(new Vector3f(1.f, 1.f, 1.f));
@@ -70,7 +71,8 @@ public class World {
         bodyMesh = new SphereGenerator().create(4);
         WorldObject bodyObject = new WorldObject(name, bodyMesh, new Vector3f(1.0f, 1.0f, 1.0f));
 
-        float planetScale = (float) (body.getRadius() / AU * unitScale);
+        float planetScale = (float) (71_492.d / AU * UNIT_SCALE);
+        //float planetScale = (float) (body.getRadius() / AU * unitScale);
         bodyObject.setScale(new Vector3f(planetScale, planetScale, planetScale));
 
         // Add objects to world.
@@ -78,21 +80,27 @@ public class World {
     }
 
     private void loadSatellites(Body body) {
-        HashMap<String, Satellite> satellites = body.getSatellites();
+        //HashMap<String, Satellite> satellites = body.getSatellites();
 
-        float satelliteRadius = 160.f / unitScale;
+        float satelliteRadius = (float) (1737.4d / AU * UNIT_SCALE);
 
-        for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
-            Satellite satellite = item.getValue();
+        WorldObject newObject = new WorldObject("test", bodyMesh, new Vector3f(1.f, 0.f, 0.f));
+        newObject.setScale(new Vector3f(satelliteRadius, satelliteRadius, satelliteRadius));
+        newObject.setTranslation(new Vector3f((float)(55_000_000.d / AU * UNIT_SCALE), 0.f, 0.f));
 
-            // If the satellite does not already have a WorldObject representation, add it.
-            if (!bodies.containsKey(item.getKey())) {
-                WorldObject newObject = new WorldObject(satellite.getData().name, bodyMesh);
-                newObject.setScale(new Vector3f(satelliteRadius, satelliteRadius, satelliteRadius));
+        bodies.put(newObject.getName(), newObject);
 
-                bodies.put(item.getKey(), new WorldObject(item.getKey(), bodyMesh));
-            }
-        }
+        // for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
+        //     Satellite satellite = item.getValue();
+
+        //     // If the satellite does not already have a WorldObject representation, add it.
+        //     if (!bodies.containsKey(item.getKey())) {
+        //         WorldObject newObject = new WorldObject(satellite.getData().name, bodyMesh);
+        //         newObject.setScale(new Vector3f(satelliteRadius, satelliteRadius, satelliteRadius));
+
+        //         bodies.put(item.getKey(), new WorldObject(item.getKey(), bodyMesh));
+        //     }
+        // }
     }
 
     private void loadOrbits() {
