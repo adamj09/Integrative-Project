@@ -7,11 +7,18 @@ import java.util.Map;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
+import project.Math.Body;
+import project.Math.Satellite;
 import project.Renderer.Camera.Camera;
 import project.Renderer.Model.Mesh;
 import project.Renderer.Model.RingGenerator;
 import project.Renderer.Model.SphereGenerator;
 
+//TODO: implement updating data based on simulation
+// Notes:
+// - One unit of length is equal to the radius of the central body (take data from math and divide by radius of planet to get the right coordinates)
+// - The central celestial body will always be at (0, 0)
+// 
 public class World {
     private String name;
 
@@ -25,6 +32,9 @@ public class World {
     private FloatBuffer bodyMatrixBuffer;
     private FloatBuffer orbitMatrixBuffer;
 
+    private final float UNIT_SCALE = 10000.f; // 1 AU is equal to this many renderer units.
+    private double AU = 1.496e+8d; // 1 AU in kilometers.
+
     private Mesh bodyMesh;
     private Mesh orbitMesh;
 
@@ -32,12 +42,15 @@ public class World {
         this.name = name;
 
         loadLightSource();
-        loadBodies();
+        loadCentralBody(null);
+        loadSatellites(null);
         loadOrbits();
 
         colorsBuffer = BufferUtils.createFloatBuffer(3 * bodies.size());
         bodyMatrixBuffer = BufferUtils.createFloatBuffer(16 * bodies.size());
         orbitMatrixBuffer = BufferUtils.createFloatBuffer(16 * orbits.size());
+
+        camera.setView(new Vector3f(10.f, 10.f, 10.f), camera.getDirection());
 
         updateBodyMatrixBuffer();
         updateColorBuffer();
@@ -46,26 +59,48 @@ public class World {
 
     private void loadLightSource() {
         lightSource = new WorldObject("light", new SphereGenerator().create(4));
-        lightSource.setTranslation(new Vector3f(990.f, 0.f, 0.f));
-        lightSource.setScale(new Vector3f(10.f, 10.f, 10.f));
+        lightSource.setTranslation(new Vector3f((float) (UNIT_SCALE), 0.f, 0.f));
+
+        float lightSourceScale = (float) (696_340d / AU * UNIT_SCALE); // Sun's radius in AUs times scale
+
+        lightSource.setScale(new Vector3f(lightSourceScale, lightSourceScale, lightSourceScale));
         lightSource.setLightColor(new Vector3f(1.f, 1.f, 1.f));
     }
 
-    private void loadBodies() {
-        camera.setView(new Vector3f(10.f, 10.f, 10.f), camera.getDirection());
+    private void loadCentralBody(Body body) {
         bodyMesh = new SphereGenerator().create(4);
+        WorldObject bodyObject = new WorldObject(name, bodyMesh, new Vector3f(1.0f, 1.0f, 1.0f));
 
-        // --- Central Celestial Body ---
-        WorldObject body = new WorldObject(name, bodyMesh, new Vector3f(1.0f, 1.0f, 1.0f));
-
-        // --- Satellites ---
-        WorldObject satellite = new WorldObject("test", bodyMesh, new Vector3f(1.0f, 0.0f, 0.0f));
-        satellite.setTranslation(new Vector3f(-10.f, 0.f, 0.f));
-        satellite.setScale(new Vector3f(0.5f, 0.5f, 0.5f));
+        float planetScale = (float) (71_492.d / AU * UNIT_SCALE);
+        //float planetScale = (float) (body.getRadius() / AU * unitScale);
+        bodyObject.setScale(new Vector3f(planetScale, planetScale, planetScale));
 
         // Add objects to world.
-        bodies.put(body.getName(), body);
-        bodies.put(satellite.getName(), satellite);
+        bodies.put(bodyObject.getName(), bodyObject);
+    }
+
+    private void loadSatellites(Body body) {
+        //HashMap<String, Satellite> satellites = body.getSatellites();
+
+        float satelliteRadius = (float) (1737.4d / AU * UNIT_SCALE);
+
+        WorldObject newObject = new WorldObject("test", bodyMesh, new Vector3f(1.f, 0.f, 0.f));
+        newObject.setScale(new Vector3f(satelliteRadius, satelliteRadius, satelliteRadius));
+        newObject.setTranslation(new Vector3f((float)(55_000_000.d / AU * UNIT_SCALE), 0.f, 0.f));
+
+        bodies.put(newObject.getName(), newObject);
+
+        // for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
+        //     Satellite satellite = item.getValue();
+
+        //     // If the satellite does not already have a WorldObject representation, add it.
+        //     if (!bodies.containsKey(item.getKey())) {
+        //         WorldObject newObject = new WorldObject(satellite.getData().name, bodyMesh);
+        //         newObject.setScale(new Vector3f(satelliteRadius, satelliteRadius, satelliteRadius));
+
+        //         bodies.put(item.getKey(), new WorldObject(item.getKey(), bodyMesh));
+        //     }
+        // }
     }
 
     private void loadOrbits() {
@@ -111,14 +146,22 @@ public class World {
         }
     }
 
+    public void updateWorld(Body body) {
+        // TODO: focus camera onto newly created satellites
+        // TODO: create algorithm to find ideal camera position
+
+        updateBodyMatrixBuffer();
+        updateColorBuffer();
+        updateOrbitMatrixBuffer();
+    }
+
     public void addBody(WorldObject body) {
         if (bodies.containsKey(body.getName())) {
-            // TODO: handle this case by notifying user a body with this name already exists
-            return;
+            // TODO: handle case of name already taken
         }
 
         bodies.put(body.getName(), body);
-        //TODO: also add associated orbit when adding body
+        // TODO: also add associated orbit when adding body
 
         updateBodyMatrixBuffer();
         updateColorBuffer();

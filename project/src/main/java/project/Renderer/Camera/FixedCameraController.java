@@ -233,6 +233,8 @@ public class FixedCameraController {
 
         focusedWorldObject = world.getBodies().get(name);
 
+        padding = focusedWorldObject.getScale().x / 2.f;
+
         minRadius = focusedWorldObject.getScale().x + padding;
         radius = minRadius + 5.f;
         setLookatPosition(focusedWorldObject.getTranslation());
