@@ -55,9 +55,9 @@ public class Renderer {
             SimulationPool.setCurrentBody(this, "Earth");
 
             // Create camera controllers
-            freeLookCameraController = new FreeLookCameraController(world, controlManager);
+            //freeLookCameraController = new FreeLookCameraController(world, controlManager);
             fixedCameraController = new FixedCameraController(world, controlManager);
-            //fixedCameraController.setFocusObject("test");
+            fixedCameraController.setFocusObject("test");
 
             Shader mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
             Shader orbitVertShader = new Shader("project/shaders/orbit.vert", GL_VERTEX_SHADER);
@@ -85,16 +85,17 @@ public class Renderer {
         });
 
         viewport.getGLCanvas().addOnRenderEvent(event -> {
-            glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             controlManager.updateMouse();
             controlManager.handleUnfocus();
 
-
             //TODO: switch between camera controllers when needed
-            freeLookCameraController.updateCameraTransform((float) event.delta);
-            //fixedCameraController.updateCameraTransform((float) event.delta);
+            //freeLookCameraController.updateCameraTransform((float) event.delta);
+            fixedCameraController.updateCameraTransform((float) event.delta);
+
+            world.updateSatellites();
 
             cameraRenderSystem.loop();
             bodyRenderSystem.loop();

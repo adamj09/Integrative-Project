@@ -16,8 +16,8 @@ public class SimulationPool {
         body.setTimeScale(1.d);
 
         Satellite test = new Satellite();
-        test.initialiseSatelliteValuesAngles(body, "test", 20, // mass of Earth
-                3000.0, 0.8, 0,
+        test.initialiseSatelliteValuesAngles(body, "test", 20,
+                300.0, 0.8, 0,
                 0, 20, 0);
 
         body.addSatellite(test);

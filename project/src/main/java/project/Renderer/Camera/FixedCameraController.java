@@ -153,7 +153,7 @@ public class FixedCameraController {
      */
     public void updateCameraTransform(float deltaTime) {
         // Update target as object's position updates
-        lookatPosition = focusedWorldObject.getTranslation();
+        //camera.setView(newPosition, newDirection);
 
         if (controls.isFocusButtonPressed() == 1) {
             rotate();
@@ -217,12 +217,10 @@ public class FixedCameraController {
     }
 
     public void setLookatPosition(Vector3f lookatPosition) {
+        // Fix updating position
         this.lookatPosition = lookatPosition;
 
         Vector3f newPosition = new Vector3f(lookatPosition.x + radius, 0.f, lookatPosition.z + radius);
-
-        Vector3f target = new Vector3f();
-        newPosition.add(camera.getDirection(), target);
 
         Vector3f newDirection = new Vector3f();
         lookatPosition.sub(newPosition, newDirection);

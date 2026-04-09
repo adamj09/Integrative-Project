@@ -41,47 +41,41 @@ public class World {
         camera.setView(new Vector3f(10.f, 10.f, 10.f), camera.getDirection());
     }
 
-    /**
-     * Update the given buffer with the transform matrices of the given world
-     * objects.
-     * 
-     * @param buffer  The buffer to update. Will be re-created if the capacity is
-     *                not sufficient to hold the new data.
-     * @param objects The world objects to get the data from.
-     * @param step    The number of floats to write for each world object (e.g., 16
-     *                for a 4x4 transform matrix, 3 for a color vector, etc.)
-     */
-    public void updateMatrixBuffer(FloatBuffer buffer, HashMap<String, WorldObject> objects) {
-        if (buffer.capacity() != objects.size() * 16) {
-            buffer = BufferUtils.createFloatBuffer(16 * objects.size());
+    public void updateBodyMatrixBuffer() {
+        if (bodyMatrixBuffer.capacity() != bodies.size() * 16) {
+            bodyMatrixBuffer = BufferUtils.createFloatBuffer(16 * bodies.size());
         }
 
-        buffer.clear();
+        bodyMatrixBuffer.clear();
         int i = 0;
-        for (Map.Entry<String, WorldObject> item : objects.entrySet()) {
-            item.getValue().getTransformMatrix().get(i * 16, buffer);
+        for (Map.Entry<String, WorldObject> item : bodies.entrySet()) {
+            item.getValue().getTransformMatrix().get(i * 16, bodyMatrixBuffer);
             i++;
         }
     }
 
-    /**
-     * Update the given buffer with the color vectors of the given world objects.
-     * 
-     * @param buffer  The buffer to update. Will be re-created if the capacity is
-     *                not sufficient to hold the new data.
-     * @param objects The world objects to get the data from.
-     * @param step    The number of floats to write for each world object (e.g., 16
-     *                for a 4x4 transform matrix, 3 for a color vector, etc.)
-     */
-    public void updateColorBuffer(FloatBuffer buffer, HashMap<String, WorldObject> objects) {
-        if (buffer.capacity() != objects.size() * 3) {
-            buffer = BufferUtils.createFloatBuffer(3 * objects.size());
+    public void updateOrbitMatrixBuffer() {
+        if (orbitMatrixBuffer.capacity() != orbits.size() * 16) {
+            orbitMatrixBuffer = BufferUtils.createFloatBuffer(16 * orbits.size());
         }
 
-        buffer.clear();
+        orbitMatrixBuffer.clear();
         int i = 0;
-        for (Map.Entry<String, WorldObject> item : objects.entrySet()) {
-            item.getValue().getColor().get(i * 3, buffer);
+        for (Map.Entry<String, WorldObject> item : orbits.entrySet()) {
+            item.getValue().getTransformMatrix().get(i * 16, orbitMatrixBuffer);
+            i++;
+        }
+    }
+
+    public void updateColorBuffer() {
+        if (colorsBuffer.capacity() != bodies.size() * 3) {
+            colorsBuffer = BufferUtils.createFloatBuffer(3 * bodies.size());
+        }
+
+        colorsBuffer.clear();
+        int i = 0;
+        for (Map.Entry<String, WorldObject> item : bodies.entrySet()) {
+            item.getValue().getColor().get(i * 3, colorsBuffer);
             i++;
         }
     }
@@ -90,12 +84,12 @@ public class World {
         // TODO: focus camera onto newly created satellites
         // TODO: create algorithm to find ideal camera position
 
-        updateMatrixBuffer(bodyMatrixBuffer, bodies);
-        updateMatrixBuffer(orbitMatrixBuffer, orbits);
+        updateBodyMatrixBuffer();
+        updateOrbitMatrixBuffer();
     }
 
     public void updateColors() {
-        updateColorBuffer(colorsBuffer, bodies);
+        updateColorBuffer();
     }
 
     public void setBody(Body body) {
@@ -135,7 +129,7 @@ public class World {
     private void loadSatellites() {
         HashMap<String, Satellite> satellites = body.getSatellites();
 
-        float satelliteRadius = (float) (160.d / AU * UNIT_SCALE);
+        float satelliteRadius = (float) (1000.d / AU * UNIT_SCALE);
 
         for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
             Satellite satellite = item.getValue();
@@ -195,11 +189,13 @@ public class World {
 
         for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
             Satellite satellite = item.getValue();
-                bodies.get(item.getKey()).setTranslation(new Vector3f(
-                        (float) (satellite.getData().currentPosition.x / AU * UNIT_SCALE),
-                        (float) (satellite.getData().currentPosition.y / AU * UNIT_SCALE),
-                        (float) (satellite.getData().currentPosition.z / AU * UNIT_SCALE)));
+            bodies.get(item.getKey()).setTranslation(new Vector3f(
+                (float) (satellite.getData().currentPosition.x / AU * UNIT_SCALE),
+                (float) (satellite.getData().currentPosition.y / AU * UNIT_SCALE),
+                (float) (satellite.getData().currentPosition.z / AU * UNIT_SCALE)));
         }
+
+        updateBodyMatrixBuffer();
     }
 
     public void addSatellite(WorldObject satellite) {
