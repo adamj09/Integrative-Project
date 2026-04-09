@@ -6,6 +6,7 @@ public class Satellite implements Runnable{
     private SatelliteData data;
     private double massOfBody;
     private String latestError = "null";
+    private boolean simulationRunning = false;
 
 //---------------------------------------------------------------------------------------------------------------------------  
 // constructors;
@@ -20,10 +21,9 @@ public class Satellite implements Runnable{
 
     /**
      * initialise the satellite using a 3d initial position vector and a 3d initial velocity vector
+     * @param body the central body that the satellite is orbiting
      * @param satName name (and id) of the satellite
      * @param massOfSatellite mass of the the satellite in kg
-     * @param bodyName name (and id) of the body that the satellite is orbiting
-     * @param massOfBody mass of the body in kg
      * @param px position in x in km
      * @param py position in y in km
      * @param pz position in z in km
@@ -32,11 +32,11 @@ public class Satellite implements Runnable{
      * @param vz velocity in z in m/s
      * @return false if the initialisation failled / not correct
      */
-    public boolean initialiseSatelliteValuesVectors(String satName, double massOfSatellite, String bodyName, double massOfBody,
+    public boolean initialiseSatelliteValuesVectors(Body body, String satName, double massOfSatellite,
         double px,double py,double pz,double vx,double vy,double vz
     ){
             
-        if(!this.initName(satName, bodyName)){
+        if(!this.initName(satName, body.getName())){
             return false;
         }
 
@@ -53,12 +53,12 @@ public class Satellite implements Runnable{
             return false;
         }
 
-        this.massOfBody = massOfBody;
+        this.massOfBody = body.getMass();
         this.getData().mass = massOfSatellite;
         this.getData().initialPosition = new Vector3d(px*1000,py*1000,pz*1000);
         this.getData().initialVelocity = new Vector3d(vx,vy,vz);
         
-        if(!this.initialiseSatelliteInfo()){
+        if(!this.initialiseSatelliteInfo(body)){
             return false;
         }
 
@@ -67,10 +67,9 @@ public class Satellite implements Runnable{
 
     /**
      * initialise the satellite using classical orbital elements
+     * @param body the central body that the satellite is orbiting
      * @param satName name (and id) of the satellite
      * @param massOfSatellite mass of the the satellite in kg
-     * @param bodyName name (and id) of the body that the satellite is orbiting
-     * @param massOfBody mass of the body in kg
      * @param distance distance of the satellite to the body in km 
      * @param ecentricity of the orbit (between 0 and 1 for elliptical orbits) 0 >= ecentricity || ecentricity >= 1
      * @param trueAnomaly true anomaly at the initial position in degrees between 0 to 360
@@ -79,14 +78,14 @@ public class Satellite implements Runnable{
      * @param argumentOfPeriapisis argument of periapsis in degrees between 0 to 360
      * @return
      */
-    public boolean initialiseSatelliteValuesAngles(String satName, double massOfSatellite, String bodyName, double massOfBody,
+    public boolean initialiseSatelliteValuesAngles(Body body,String satName, double massOfSatellite,
         double distance, double ecentricity, double trueAnomaly, double longitudeAscendingNode, double inclination, double argumentOfPeriapisis
     ){
-        if(!this.initName(satName, bodyName)){
+        if(!this.initName(satName, body.getName())){
             return false;
         }
         
-        this.massOfBody = massOfBody;
+        this.massOfBody = body.getMass();
         this.getData().mass = massOfSatellite;
 
         //normalization of an angle 0 to 360
@@ -108,9 +107,9 @@ public class Satellite implements Runnable{
         distance *= 1000; //convert to meters
 
         MathOrbits.constructSatelliteUsingAngle(this,massOfBody,distance,ecentricity,trueAnomaly,
-            longitudeAscendingNode,inclination,argumentOfPeriapisis);
+            longitudeAscendingNode,inclination,argumentOfPeriapisis);        
         
-        return MathOrbits.getStaticInfo(massOfBody, this);
+        return MathOrbits.getStaticInfo(body, this);
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -153,8 +152,8 @@ public class Satellite implements Runnable{
         return this.latestError;
     }
 
-    public boolean initialiseSatelliteInfo(){
-        return MathOrbits.getStaticInfo(this.massOfBody, this);
+    public boolean initialiseSatelliteInfo(Body body){
+        return MathOrbits.getStaticInfo(body, this);
     
     }
 
@@ -162,18 +161,33 @@ public class Satellite implements Runnable{
         return this.data;
     }
 
+    public synchronized boolean getThreadState(){
+        return this.simulationRunning;
+    }
+
     @Override
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
-            MathOrbits.getRelativeInfo(this);
+            if(!this.simulationRunning){
+                this.simulationRunning = true;
+            }
+            boolean res = MathOrbits.getRelativeInfo(this);
+
+            if(!res){
+                this.latestError = this.latestError+" Simulation stopped for this satellite.";
+                this.simulationRunning = false;
+                Thread.currentThread().interrupt();
+            }
             
             try {
                 Thread.sleep(Constant.UPDATE_TIME);
             } catch (InterruptedException e) {
+                this.simulationRunning = false;
                 Thread.currentThread().interrupt();
                 break;
             }
                  
         }
+        this.simulationRunning = false;
     }
 }
