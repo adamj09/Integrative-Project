@@ -398,6 +398,41 @@
     -fx-cursor: hand;
 }
 
+/* --- Small icon buttons (⟳ randomize) --- */
+.icon-button {
+    -fx-background-color: -button-color;
+    -fx-text-fill: -text-color;
+    -fx-font-size: 13px;
+    -fx-padding: 2 4 2 4;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
+
+.icon-button:hover {
+    -fx-background-color: -light-accent-color;
+}
+
+/* --- Lock toggle button (🔓/🔒) --- */
+.lock-button {
+    -fx-background-color: -button-color;
+    -fx-text-fill: -text-color;
+    -fx-font-size: 13px;
+    -fx-padding: 2 4 2 4;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
+
+.lock-button:hover {
+    -fx-background-color: -light-accent-color;
+}
+
+.lock-button:selected {
+    -fx-background-color: #4b4063;
+    -fx-border-color: #8888ff;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+}
+
 .style-button-small {
     -fx-background-color: -button-color;
     -fx-text-fill: -text-color;

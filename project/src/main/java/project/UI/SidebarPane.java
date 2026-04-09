@@ -55,6 +55,8 @@ public class SidebarPane extends VBox {
     private Circle selectedBodyIndicator = null;
     private Button selectedBodyFocus = null;
     private VBox selectedBodyCard = null;
+    private double selectedBodyMass   = 5.972e24; // kg  — defaulting to Earth
+    private double selectedBodyRadius = 6371.0;   // km
 
     public SidebarPane(BottomPane bottom) {
         this.bottom = bottom;
@@ -122,19 +124,21 @@ public class SidebarPane extends VBox {
         this.setOnMouseClicked(_ -> this.requestFocus());
 
         // Add a placeholder body so it's not empty
-        addBodyCard("Earth (default)", Color.RED, true);
+        addBodyCard("Earth (default)", Color.RED, true, 5.972e24, 6371.0);
     }
 
-    public void openNewBodyPopup(Stage owner) {
-        BodyCreatorPopup popup = new BodyCreatorPopup(owner);
+    public void openNewBodyPopup(Stage owner, String themeStyle) {
+        BodyCreatorPopup popup = new BodyCreatorPopup(owner, themeStyle);
         popup.showAndWait();
         if (popup.wasConfirmed()) {
-            addBodyCard(popup.getBodyName(), popup.getBodyColor(), false);
+            addBodyCard(popup.getBodyName(), popup.getBodyColor(), false,
+                popup.getBodyMass(), popup.getBodyRadius());
         }
     }
 
-    public void openNewSatellitePopup(Stage owner) {
-        SatelliteCreatorPopup popup = new SatelliteCreatorPopup(owner);
+    public void openNewSatellitePopup(Stage owner, String themeStyle) {
+        SatelliteCreatorPopup popup = new SatelliteCreatorPopup(
+            owner, themeStyle, selectedBodyMass, selectedBodyRadius);
         popup.showAndWait();
         if (popup.wasConfirmed()) {
             addSatelliteCard(popup.getSatelliteName(), popup.getSatelliteColor());
@@ -158,10 +162,12 @@ public class SidebarPane extends VBox {
         // TODO: center camera on this body/satellite in renderer
     }
 
-    private void addBodyCard(String name, Color color, boolean isPreset) {
+    private void addBodyCard(String name, Color color, boolean isPreset, double mass, double radius) {
         bodyNames.add(name);
-        BodyPreset entry = new BodyPreset(name, color, isPreset);
+        BodyPreset entry = new BodyPreset(name, color, isPreset, mass, radius);
         bodyEntries.add(entry);
+
+        final double[] bodyProps = {mass, radius};
 
         // Active state tracking
         final boolean[] active = {true};
@@ -230,6 +236,8 @@ public class SidebarPane extends VBox {
                 selectedBodyIndicator = activeIndicator;
                 selectedBodyFocus = focusButton;
                 selectedBodyCard = card;
+                selectedBodyMass   = bodyProps[0];
+                selectedBodyRadius = bodyProps[1];
                 // TODO: add body back to renderer visualization
             }
         });
@@ -243,6 +251,8 @@ public class SidebarPane extends VBox {
             selectedBodyName = nameLabel;
             selectedBodyIndicator = activeIndicator;
             selectedBodyFocus = focusButton;
+            selectedBodyMass   = bodyProps[0];
+            selectedBodyRadius = bodyProps[1];
         } else if (!isPreset) {
             // Additional bodies start deselected
             active[0] = false;
@@ -395,7 +405,7 @@ public class SidebarPane extends VBox {
         bottom.applyPresetState(configuration.getBottomPanePreset());
 
         for (BodyPreset body : configuration.getBodies()) {
-            addBodyCard(body.name(), body.color(), body.preset());
+            addBodyCard(body.name(), body.color(), body.preset(), body.mass(), body.radius());
         }
         for (SatellitePreset satellite : configuration.getSatellites()) {
             addSatelliteCard(satellite.name(), satellite.color());

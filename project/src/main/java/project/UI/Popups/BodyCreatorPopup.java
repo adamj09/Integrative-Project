@@ -1,5 +1,8 @@
 package project.UI.Popups;
 
+import java.util.Random;
+
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -7,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -27,7 +31,19 @@ public class BodyCreatorPopup extends Stage {
 
     private Circle previewCircle;
 
-    public BodyCreatorPopup(Stage owner) {
+    // Realistic planet/body randomiser ranges
+    private static final double MASS_MIN   = 1e23;   // kg  — small moon
+    private static final double MASS_MAX   = 2e27;   // kg  — super-Jupiter
+    private static final double RADIUS_MIN = 1_000;  // km  — small rocky body
+    private static final double RADIUS_MAX = 70_000; // km  — large gas giant
+
+    private final Random rand = new Random();
+
+    private boolean massLocked   = false;
+    private boolean radiusLocked = false;
+    private static int bodyCounter = 0;
+
+    public BodyCreatorPopup(Stage owner, String themeStyle) {
         initOwner(owner);
         initModality(Modality.APPLICATION_MODAL);
         setTitle("Create new celestial body");
@@ -44,7 +60,6 @@ public class BodyCreatorPopup extends Stage {
 
         // ^^^ TEMPORARY ^^^
 
-
         Label scaleLabel = new Label("Scale (km)");
         scaleLabel.getStyleClass().add("key");
 
@@ -52,8 +67,8 @@ public class BodyCreatorPopup extends Stage {
         previewBox.setAlignment(Pos.TOP_RIGHT);
 
         // --- Form fields ---
-        nameField = entryField("e.g. Earth");
-        massField = entryField("e.g. 5.972e24");
+        nameField   = entryField(String.format("Body-%02d", bodyCounter + 1));
+        massField   = entryField("e.g. 5.972e24");
         radiusField = entryField("e.g. 6.371e6");
 
         colorDropdown = new ComboBox<>();
@@ -62,21 +77,59 @@ public class BodyCreatorPopup extends Stage {
         colorDropdown.getStyleClass().add("combo-box");
         colorDropdown.setOnAction(e -> updatePreviewColor());
 
+        // --- Mass row: field + randomize + lock ---
+        ToggleButton massLockBtn = lockButton();
+        Button massRandBtn = randButton();
+        massRandBtn.setOnAction(e -> {
+            if (!massLocked) randomizeMass();
+        });
+        massLockBtn.setOnAction(e -> {
+            massLocked = massLockBtn.isSelected();
+            massLockBtn.setText(massLocked ? "\uD83D\uDD12" : "\uD83D\uDD13");
+        });
+        HBox massRow = new HBox(5, massField, massRandBtn, massLockBtn);
+        massRow.setAlignment(Pos.CENTER_LEFT);
+
+        // --- Radius row: field + randomize + lock ---
+        ToggleButton radiusLockBtn = lockButton();
+        Button radiusRandBtn = randButton();
+        radiusRandBtn.setOnAction(e -> {
+            if (!radiusLocked) randomizeRadius();
+        });
+        radiusLockBtn.setOnAction(e -> {
+            radiusLocked = radiusLockBtn.isSelected();
+            radiusLockBtn.setText(radiusLocked ? "\uD83D\uDD12" : "\uD83D\uDD13");
+        });
+        HBox radiusRow = new HBox(5, radiusField, radiusRandBtn, radiusLockBtn);
+        radiusRow.setAlignment(Pos.CENTER_LEFT);
+
         GridPane form = new GridPane();
         form.setHgap(10);
         form.setVgap(12);
         form.setPadding(new Insets(14));
 
-        form.add(formLabel("Name :"), 0, 0);
-        form.add(nameField, 1, 0);
-        form.add(formLabel("Mass (kg) :"), 0, 1);
-        form.add(massField, 1, 1);
+        form.add(formLabel("Name :"),        0, 0);
+        form.add(nameField,                  1, 0);
+        form.add(formLabel("Mass (kg) :"),   0, 1);
+        form.add(massRow,                    1, 1);
         form.add(formLabel("Radius (km) :"), 0, 2);
-        form.add(radiusField, 1, 2);
-        form.add(formLabel("Color :"), 0, 3);
-        form.add(colorDropdown, 1, 3);
+        form.add(radiusRow,                  1, 2);
+        form.add(formLabel("Color :"),       0, 3);
+        form.add(colorDropdown,              1, 3);
 
-        // --- Buttons ---
+        // --- Randomize All button ---
+        Button randAllBtn = new Button("\u27F3  Randomize All");
+        randAllBtn.getStyleClass().add("style-button");
+        randAllBtn.setOnAction(e -> {
+            if (!massLocked)   randomizeMass();
+            if (!radiusLocked) randomizeRadius();
+            randomizeColor();
+        });
+        HBox randAllRow = new HBox(randAllBtn);
+        randAllRow.setAlignment(Pos.CENTER_RIGHT);
+        randAllRow.setPadding(new Insets(0, 14, 4, 14));
+
+        // --- Cancel / Create buttons ---
         Button cancelBtn = new Button("CANCEL");
         Button createBtn = new Button("CREATE");
         cancelBtn.getStyleClass().add("style-button");
@@ -97,7 +150,12 @@ public class BodyCreatorPopup extends Stage {
             close();
         });
 
-        VBox formCol = new VBox(form, errorLabel, buttons);
+        // Pre-populate with randomised defaults on open
+        randomizeMass();
+        randomizeRadius();
+        randomizeColor();
+
+        VBox formCol = new VBox(form, randAllRow, errorLabel, buttons);
 
         // --- Left = form, Right = preview ---
         HBox content = new HBox(10, formCol, previewBox);
@@ -109,11 +167,50 @@ public class BodyCreatorPopup extends Stage {
 
         VBox root = new VBox(titleLabel, content);
         root.getStyleClass().add("small-pane");
+        root.setStyle(themeStyle);
 
         Scene scene = new Scene(root);
         scene.getStylesheets().add(new StyleSheet().styleSheet);
 
         setScene(scene);
+        Platform.runLater(() -> root.requestFocus());
+    }
+
+    // Log-uniform random — appropriate for values spanning many orders of magnitude
+    private double randomLog(double min, double max) {
+        double logMin = Math.log10(min);
+        double logMax = Math.log10(max);
+        return Math.pow(10, logMin + rand.nextDouble() * (logMax - logMin));
+    }
+
+    private void randomizeMass() {
+        massField.setText(String.format("%.3e", randomLog(MASS_MIN, MASS_MAX)));
+    }
+
+    private void randomizeRadius() {
+        radiusField.setText(String.format("%.0f", randomLog(RADIUS_MIN, RADIUS_MAX)));
+    }
+
+    private void randomizeColor() {
+        var items = colorDropdown.getItems();
+        colorDropdown.setValue(items.get(rand.nextInt(items.size())));
+        updatePreviewColor();
+    }
+
+    private Button randButton() {
+        Button btn = new Button("\u27F3");
+        btn.getStyleClass().add("icon-button");
+        btn.setMinWidth(28);
+        btn.setPrefWidth(28);
+        return btn;
+    }
+
+    private ToggleButton lockButton() {
+        ToggleButton btn = new ToggleButton("\uD83D\uDD13"); // 🔓
+        btn.getStyleClass().add("lock-button");
+        btn.setMinWidth(28);
+        btn.setPrefWidth(28);
+        return btn;
     }
 
     private void updatePreviewColor() {
@@ -121,10 +218,6 @@ public class BodyCreatorPopup extends Stage {
     }
 
     private boolean validate(Label errorLabel) {
-        if (nameField.getText().isBlank()) {
-            errorLabel.setText("Name is required.");
-            return false;
-        }
         if (massField.getText().isBlank()) {
             errorLabel.setText("Mass is required.");
             return false;
@@ -154,7 +247,7 @@ public class BodyCreatorPopup extends Stage {
 
     public String getBodyName() {
         String n = nameField.getText().trim();
-        return n.isEmpty() ? "Body-" + colorDropdown.getValue() : n;
+        return n.isEmpty() ? String.format("Body-%02d", ++bodyCounter) : n;
     }
 
     public double getBodyMass() {
