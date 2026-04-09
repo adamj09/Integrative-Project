@@ -8,10 +8,10 @@ public class Main {
     // Actual main method is here in order to be able to run the app via
     // commandline.
     public static void main(String[] args) {
-        App.main(args);
+       // App.main(args);
 
         //call this if want to test the satellite calculation with terminal logging
-        //testSatelliteCalculation();
+        testSatelliteCalculation();
     }
 
     /**
@@ -28,16 +28,32 @@ public class Main {
         // International Space Station approximate values
         // Orbital radius: ~6778 km from Earth's center (407 km altitude)
         // Orbital velocity: ~7670 m/s
-        Satellite satellite = new Satellite(
-            "hell", 20,
-            5.972e24,           // mass of Earth
+        Satellite satellite = new Satellite();
+
+        /*
+        if(!satellite.initialiseSatelliteValuesVectors(
+            earth,"hell", 20,          // mass of Earth
             3000.0, 0, 0,         // position: x=6778km, y=0, z=0 (in km)
             0, 300, 0         // velocity: vx=0, vy=340 m/s, vz=0 (in m/s)
-        );
-        satellite.getData().name = "TestSatellite";
+        )) {
+            System.err.println("Failed to initialise satellite values");
+            return;
+        } */
+
+        
+        if(!satellite.initialiseSatelliteValuesAngles(
+            earth,"hell", 20,        // mass of Earth
+            3000.0, 0.8, 0,         
+            0, 20, 0     
+        )) {
+            System.err.println(satellite.getLatestError());
+            System.err.println("Failed to initialise satellite values");
+            return;
+        }
 
         // Add satellite to Earth
         if (!earth.addStellite(satellite)) {
+            System.err.println(satellite.getLatestError());
             System.err.println("Failed to add satellite to Earth");
             return;
         }
@@ -73,6 +89,7 @@ public class Main {
         System.out.printf("Initial Eccentric Anomaly: %.6f rad%n", data.initialEccentricAnomaly);
         System.out.printf("Initial Mean Anomaly: %.6f rad%n", data.initialMeanAnomaly);
         System.out.printf("Time0: %.3f s | currentTime: %.3f s | lastTime: %.3f s%n", data.time0, data.currentTime, data.lastTime);
+        System.out.printf("Max distance (km): %.6f%n", (data.maximumDistanceToBody/1000));
         System.out.println();
 
         System.out.println("=== Satellite Orbital Calculation Test ===");

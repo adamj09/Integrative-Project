@@ -2,7 +2,7 @@ package project.Math;
 
 public class OrbitsTime implements Runnable{
     private static final long NANOS_PER_MS = 1_000_000L;
-    private static final long NANOS_PER_SECOND = 1_000_000_000L;
+    //private static final long NANOS_PER_SECOND = 1_000_000_000L;
     
     private double timeScale = 1;
     private double finalTime; // in milliseconds (simulation time)

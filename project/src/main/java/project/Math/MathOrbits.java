@@ -8,16 +8,17 @@ public class MathOrbits {
     /**
      * Need to have the initial position and velocity vector for the satelite to call this method
      * Add all constant propreties of the satellite to the satellite data object
-     * @param massOfCelestialBody 
+     * @param celestialBody 
      * @param satellite
      */
-    public static void getStaticInfo(double massOfCelestialBody, Satellite satellite){
+    public static boolean getStaticInfo(Body celestialBody, Satellite satellite){
+
     
         Vector3d initialPosition = satellite.getData().initialPosition;
         Vector3d initialVelocity = satellite.getData().initialVelocity;
         
         //gravitational parameter of the central body
-        double mu = Constant.GRAVITATIONAL_CONSTANT * massOfCelestialBody;
+        double mu = Constant.GRAVITATIONAL_CONSTANT * celestialBody.getMass();
         satellite.getData().mu = mu;
 
         //kinetic energy
@@ -52,9 +53,17 @@ public class MathOrbits {
 
         if(eccentricity >= 1 || eccentricity <= 0){
             satellite.setLatestError("eccentricity not supported "+eccentricity+" energy "+(kineticEnergy + gravitationalPotEnergy));
-            satellite.setatestErrorActive(true);
-            return;
+            return false;
         }
+
+        //hill radius
+        double radius = calculateHillRadius(satellite, celestialBody);
+        if(radius == -1){
+            satellite.setLatestError("Division by zero, mass of the sun can't be zero");
+            return false;
+        }
+
+        satellite.getData().maximumDistanceToBody = radius;
 
         //semi-latus rectum
         double p = Math.pow(angularMomentum,2) / mu;
@@ -142,21 +151,28 @@ public class MathOrbits {
         double distance = p/(1+(eccentricity*Math.cos(initialTrueAnomaly)));
         satellite.getData().distance = distance;
 
+        if(distance > radius){
+            satellite.setLatestError("Satellite is too far from the main body"+" Distance "+(distance/1000)+" radius "+(radius/1000));
+            return false;
+        }
+
         //speed
         satellite.getData().speed = Math.sqrt(mu*((2/distance)-(1/a)));
 
         //excess velocity
         satellite.getData().excessSpeed = Math.sqrt((2*mu)/distance);
 
+        return true;
+
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     //
-    public static void getRelativeInfo(Satellite satellite){
+    public static boolean getRelativeInfo(Satellite satellite){
         double currentTime = satellite.getData().currentTime;
         double lastTime = satellite.getData().lastTime;
         if(currentTime == lastTime){
-            return;
+            return true;
         }
 
         double eccentricity = satellite.getData().eccentricity;
@@ -179,6 +195,11 @@ public class MathOrbits {
         //distance
         double distance = (a*(1-Math.pow(eccentricity, 2)))/(1+(eccentricity*Math.cos(trueAnomaly)));
         satellite.getData().distance = distance;
+
+        if(distance > satellite.getData().maximumDistanceToBody){
+            satellite.setLatestError("Satellite is too far. Orbit is not stable anymore");
+            return false;
+        }
 
         // position in 3D space
         Vector3d currentPosition = rotationPQWtoECI(satellite,constructDistancePQWvect(distance,trueAnomaly));
@@ -206,7 +227,44 @@ public class MathOrbits {
 
         satellite.getData().lastTime = currentTime;
 
+        return true;
     }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //
+    public static void constructSatelliteUsingAngle(Satellite satellite,double massOfCelestialBody,
+         double distance, double eccentricity, double trueAnomaly,
+          double longitudeAscendingNode, double inclination, double argumentOfPeriapsis
+    ){
+        double p = distance + (distance*eccentricity*Math.cos(trueAnomaly));
+        double mu = Constant.GRAVITATIONAL_CONSTANT * massOfCelestialBody;
+
+        satellite.getData().longitudeOfAscendingNode = Math.toRadians(longitudeAscendingNode);
+        satellite.getData().inclination = Math.toRadians(inclination);
+        satellite.getData().argumentOfPeriapsis = Math.toRadians(argumentOfPeriapsis);
+
+
+        Vector3d distanceECI = rotationPQWtoECI(satellite,constructDistancePQWvect(distance,trueAnomaly));
+        Vector3d velocityECI = rotationPQWtoECI(satellite,constructVelocityPQWvect(mu,p,eccentricity,trueAnomaly));
+
+        satellite.getData().initialPosition = distanceECI;
+        satellite.getData().initialVelocity = velocityECI;
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //
+    private static double calculateHillRadius(Satellite satellite, Body centralBody){
+        double a = centralBody.getDistanceToSun()*1000;
+        double e = satellite.getData().eccentricity;
+        double m = centralBody.getMass();
+        double M = centralBody.getMassOfSun();    
+
+        if(M == 0){
+            return -1;
+        }
+
+        return a*(1-e)*Math.cbrt(m/(3*M));
+    } 
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     //Newton-Raphson Method to solve for the eccentric anomaly 
