@@ -76,7 +76,7 @@ public class Body extends OrbitsTime{
      * @param sat the satellite objet that will be added to the list
      * @return true is the operation was succesful and false if it failed (becasue the limit of satellite for the body was reached)
      */
-    public boolean addStellite(Satellite sat){
+    public boolean addSatellite(Satellite sat){
         if(satellites.size()+1 > Constant.MAXIMUM_NUMBER_OF_SATELITE){
             this.latestError = "maximum number of satelite reach";
             return false;

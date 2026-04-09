@@ -5,6 +5,7 @@ import java.util.Map;
 import org.joml.Vector3f;
 
 import project.ControlManager;
+import project.Renderer.Viewport;
 import project.Renderer.World.World;
 import project.Renderer.World.WorldObject;
 
@@ -45,7 +46,7 @@ public class FixedCameraController {
     private float yaw;
 
     /**
-     * Defines the maximum distance the camera can travel from the origin.
+     * Defines the maximum distance the camera can travel from the focused object.
      */
     private float maxDistance = 100.f;
 
@@ -89,8 +90,11 @@ public class FixedCameraController {
 
         radius = newPosition.distance(lookatPosition);
 
+        Vector3f toCamera = new Vector3f();
+        camera.getPosition().sub(newPosition, toCamera);
+
         // Limit camera distance from object
-        if (newPosition.length() > maxDistance) {
+        if (toCamera.length() > maxDistance) {
             controls.setScrollDeltaY(0);
             return;
         }

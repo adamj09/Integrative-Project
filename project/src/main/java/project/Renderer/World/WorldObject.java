@@ -6,7 +6,7 @@ import org.joml.Vector3f;
 import project.Renderer.Model.Mesh;
 
 public class WorldObject {
-    private Vector3f translation = new Vector3f(), scale = new Vector3f(1.0f, 1.0f, 1.0f);
+    private Vector3f translation = new Vector3f(), scale = new Vector3f(1.0f, 1.0f, 1.0f), rotation = new Vector3f();
     private Matrix4f transformMatrix = new Matrix4f();
     private Mesh mesh;
     private String name;
@@ -49,6 +49,15 @@ public class WorldObject {
     public void setScale(Vector3f scale) {
         this.scale = scale;
         transformMatrix.scale(this.scale);
+    }
+
+    public Vector3f getRotation() {
+        return this.rotation;
+    }
+
+    public void setRotation(Vector3f rotation) {
+        this.rotation = rotation;
+        transformMatrix.setRotationXYZ(rotation.x, rotation.y, rotation.z);
     }
 
     public Matrix4f getTransformMatrix() {

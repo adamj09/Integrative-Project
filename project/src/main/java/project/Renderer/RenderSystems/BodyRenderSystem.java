@@ -69,7 +69,7 @@ public class BodyRenderSystem {
     public void loop() {
         shaderProgram.use();
         // Update model transformation matrices.
-        world.updateBodyMatrixBuffer();
+        world.updateMatrices();
 
         glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
         glBufferData(GL_ARRAY_BUFFER, world.getBodyMatrixBuffer(), GL_STATIC_DRAW);

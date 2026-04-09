@@ -14,13 +14,10 @@ import project.Renderer.Model.Mesh;
 import project.Renderer.Model.RingGenerator;
 import project.Renderer.Model.SphereGenerator;
 
-//TODO: implement updating data based on simulation
-// Notes:
-// - One unit of length is equal to the radius of the central body (take data from math and divide by radius of planet to get the right coordinates)
-// - The central celestial body will always be at (0, 0)
-// 
 public class World {
     private String name;
+
+    private Body body;
 
     private WorldObject lightSource;
     private HashMap<String, WorldObject> bodies = new HashMap<>();
@@ -28,11 +25,11 @@ public class World {
 
     private Camera camera = new Camera();
 
-    private FloatBuffer colorsBuffer;
-    private FloatBuffer bodyMatrixBuffer;
-    private FloatBuffer orbitMatrixBuffer;
+    private FloatBuffer colorsBuffer = BufferUtils.createFloatBuffer(0);
+    private FloatBuffer bodyMatrixBuffer = BufferUtils.createFloatBuffer(0);
+    private FloatBuffer orbitMatrixBuffer = BufferUtils.createFloatBuffer(0);
 
-    private final float UNIT_SCALE = 10000.f; // 1 AU is equal to this many renderer units.
+    private final float UNIT_SCALE = 10_000.f; // 1 AU is equal to this many renderer units.
     private double AU = 1.496e+8d; // 1 AU in kilometers.
 
     private Mesh bodyMesh;
@@ -41,142 +38,191 @@ public class World {
     public World(String name) {
         this.name = name;
 
+        camera.setView(new Vector3f(10.f, 10.f, 10.f), camera.getDirection());
+    }
+
+    /**
+     * Update the given buffer with the transform matrices of the given world
+     * objects.
+     * 
+     * @param buffer  The buffer to update. Will be re-created if the capacity is
+     *                not sufficient to hold the new data.
+     * @param objects The world objects to get the data from.
+     * @param step    The number of floats to write for each world object (e.g., 16
+     *                for a 4x4 transform matrix, 3 for a color vector, etc.)
+     */
+    public void updateMatrixBuffer(FloatBuffer buffer, HashMap<String, WorldObject> objects) {
+        if (buffer.capacity() != objects.size() * 16) {
+            buffer = BufferUtils.createFloatBuffer(16 * objects.size());
+        }
+
+        buffer.clear();
+        int i = 0;
+        for (Map.Entry<String, WorldObject> item : objects.entrySet()) {
+            item.getValue().getTransformMatrix().get(i * 16, buffer);
+            i++;
+        }
+    }
+
+    /**
+     * Update the given buffer with the color vectors of the given world objects.
+     * 
+     * @param buffer  The buffer to update. Will be re-created if the capacity is
+     *                not sufficient to hold the new data.
+     * @param objects The world objects to get the data from.
+     * @param step    The number of floats to write for each world object (e.g., 16
+     *                for a 4x4 transform matrix, 3 for a color vector, etc.)
+     */
+    public void updateColorBuffer(FloatBuffer buffer, HashMap<String, WorldObject> objects) {
+        if (buffer.capacity() != objects.size() * 3) {
+            buffer = BufferUtils.createFloatBuffer(3 * objects.size());
+        }
+
+        buffer.clear();
+        int i = 0;
+        for (Map.Entry<String, WorldObject> item : objects.entrySet()) {
+            item.getValue().getColor().get(i * 3, buffer);
+            i++;
+        }
+    }
+
+    public void updateMatrices() {
+        // TODO: focus camera onto newly created satellites
+        // TODO: create algorithm to find ideal camera position
+
+        updateMatrixBuffer(bodyMatrixBuffer, bodies);
+        updateMatrixBuffer(orbitMatrixBuffer, orbits);
+    }
+
+    public void updateColors() {
+        updateColorBuffer(colorsBuffer, bodies);
+    }
+
+    public void setBody(Body body) {
+        this.body = body;
+
         loadLightSource();
-        loadCentralBody(null);
-        loadSatellites(null);
+        loadCentralBody();
+        loadSatellites();
         loadOrbits();
 
-        colorsBuffer = BufferUtils.createFloatBuffer(3 * bodies.size());
-        bodyMatrixBuffer = BufferUtils.createFloatBuffer(16 * bodies.size());
-        orbitMatrixBuffer = BufferUtils.createFloatBuffer(16 * orbits.size());
-
-        camera.setView(new Vector3f(10.f, 10.f, 10.f), camera.getDirection());
-
-        updateBodyMatrixBuffer();
-        updateColorBuffer();
-        updateOrbitMatrixBuffer();
+        updateMatrices();
+        updateColors();
     }
 
     private void loadLightSource() {
-        lightSource = new WorldObject("light", new SphereGenerator().create(4));
-        lightSource.setTranslation(new Vector3f((float) (UNIT_SCALE), 0.f, 0.f));
-
         float lightSourceScale = (float) (696_340d / AU * UNIT_SCALE); // Sun's radius in AUs times scale
 
+        lightSource = new WorldObject("light", new SphereGenerator().create(4));
+
+        lightSource.setTranslation(new Vector3f((float) (body.getDistanceToSun() / AU * UNIT_SCALE), 0.f, 0.f));
         lightSource.setScale(new Vector3f(lightSourceScale, lightSourceScale, lightSourceScale));
         lightSource.setLightColor(new Vector3f(1.f, 1.f, 1.f));
     }
 
-    private void loadCentralBody(Body body) {
+    private void loadCentralBody() {
         bodyMesh = new SphereGenerator().create(4);
         WorldObject bodyObject = new WorldObject(name, bodyMesh, new Vector3f(1.0f, 1.0f, 1.0f));
 
-        float planetScale = (float) (71_492.d / AU * UNIT_SCALE);
-        //float planetScale = (float) (body.getRadius() / AU * unitScale);
+        float planetScale = (float) (body.getRadius() / AU * UNIT_SCALE);
+        // float planetScale = (float) (body.getRadius() / AU * unitScale);
         bodyObject.setScale(new Vector3f(planetScale, planetScale, planetScale));
 
         // Add objects to world.
         bodies.put(bodyObject.getName(), bodyObject);
     }
 
-    private void loadSatellites(Body body) {
-        //HashMap<String, Satellite> satellites = body.getSatellites();
+    private void loadSatellites() {
+        HashMap<String, Satellite> satellites = body.getSatellites();
 
-        float satelliteRadius = (float) (1737.4d / AU * UNIT_SCALE);
+        float satelliteRadius = (float) (160.d / AU * UNIT_SCALE);
 
-        WorldObject newObject = new WorldObject("test", bodyMesh, new Vector3f(1.f, 0.f, 0.f));
-        newObject.setScale(new Vector3f(satelliteRadius, satelliteRadius, satelliteRadius));
-        newObject.setTranslation(new Vector3f((float)(55_000_000.d / AU * UNIT_SCALE), 0.f, 0.f));
+        for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
+            Satellite satellite = item.getValue();
 
-        bodies.put(newObject.getName(), newObject);
+            // If the satellite does not already have a WorldObject representation, add it.
+            if (!bodies.containsKey(item.getKey())) {
+                WorldObject newObject = new WorldObject(satellite.getData().name, bodyMesh);
 
-        // for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
-        //     Satellite satellite = item.getValue();
+                newObject.setScale(new Vector3f(satelliteRadius, satelliteRadius, satelliteRadius));
+                newObject.setTranslation(new Vector3f(
+                        (float) (satellite.getData().currentPosition.x / AU * UNIT_SCALE),
+                        (float) (satellite.getData().currentPosition.y / AU * UNIT_SCALE),
+                        (float) (satellite.getData().currentPosition.z / AU * UNIT_SCALE)));
 
-        //     // If the satellite does not already have a WorldObject representation, add it.
-        //     if (!bodies.containsKey(item.getKey())) {
-        //         WorldObject newObject = new WorldObject(satellite.getData().name, bodyMesh);
-        //         newObject.setScale(new Vector3f(satelliteRadius, satelliteRadius, satelliteRadius));
-
-        //         bodies.put(item.getKey(), new WorldObject(item.getKey(), bodyMesh));
-        //     }
-        // }
+                bodies.put(newObject.getName(), newObject);
+            }
+        }
     }
 
     private void loadOrbits() {
+        HashMap<String, Satellite> satellites = body.getSatellites();
+
         orbitMesh = new RingGenerator().create(2);
 
-        for (Map.Entry<String, WorldObject> body : bodies.entrySet()) {
-            WorldObject orbit = new WorldObject(body.getKey(), orbitMesh);
-            // Test transforms
-            orbit.setScale(new Vector3f(15.f, 1.f, 10.f));
-            orbit.setTranslation(new Vector3f(5.f, 0.f, 0.f));
+        for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
+            Satellite satellite = item.getValue();
 
-            // TODO: transform orbit here according to the info associated with the given
-            // celestial body.
+            // If the orbit does not already have a WorldObject representation, add it.
+            if (!orbits.containsKey(item.getKey())) {
+                WorldObject orbit = new WorldObject(item.getKey(), orbitMesh);
 
-            orbits.put(orbit.getName(), orbit);
+                float semiMajorAxis = (float) (satellite.getData().a / AU * UNIT_SCALE);
+                float semiMinorAxis = (float) ((satellite.getData().a / AU * UNIT_SCALE)
+                        * Math.sqrt(1.0 - Math.pow(satellite.getData().eccentricity, 2)));
+
+                // Scale orbit according to orbital parameters.
+                float scaleFactor = semiMajorAxis / semiMinorAxis;
+                orbit.setScale(new Vector3f(scaleFactor, 1.f, 1.f));
+
+                // Translate orbit so that the planet is at a focal point.
+                float focalDistance = (float) Math.sqrt(Math.pow(semiMajorAxis, 2) - Math.pow(semiMinorAxis, 2));
+                orbit.setTranslation(new Vector3f(focalDistance, 0.f, 0.f));
+
+                // Rotate orbits according to orbital parameters.
+                orbit.setRotation(new Vector3f(
+                        (float) satellite.getData().inclination,
+                        (float) satellite.getData().longitudeOfAscendingNode,
+                        (float) satellite.getData().argumentOfPeriapsis));
+
+                orbits.put(orbit.getName(), orbit);
+            }
         }
     }
 
-    public void updateBodyMatrixBuffer() {
-        bodyMatrixBuffer.clear();
-        int i = 0;
-        for (Map.Entry<String, WorldObject> item : bodies.entrySet()) {
-            item.getValue().getTransformMatrix().get(i * 16, bodyMatrixBuffer);
-            i++;
+    public void updateSatellites() {
+        HashMap<String, Satellite> satellites = body.getSatellites();
+
+        for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
+            Satellite satellite = item.getValue();
+                bodies.get(item.getKey()).setTranslation(new Vector3f(
+                        (float) (satellite.getData().currentPosition.x / AU * UNIT_SCALE),
+                        (float) (satellite.getData().currentPosition.y / AU * UNIT_SCALE),
+                        (float) (satellite.getData().currentPosition.z / AU * UNIT_SCALE)));
         }
     }
 
-    public void updateColorBuffer() {
-        colorsBuffer.clear();
-        int i = 0;
-        for (Map.Entry<String, WorldObject> item : bodies.entrySet()) {
-            item.getValue().getColor().get(i * 3, colorsBuffer);
-            i++;
-        }
-    }
-
-    public void updateOrbitMatrixBuffer() {
-        orbitMatrixBuffer.clear();
-        int i = 0;
-        for (Map.Entry<String, WorldObject> item : orbits.entrySet()) {
-            item.getValue().getTransformMatrix().get(i * 16, orbitMatrixBuffer);
-            i++;
-        }
-    }
-
-    public void updateWorld(Body body) {
-        // TODO: focus camera onto newly created satellites
-        // TODO: create algorithm to find ideal camera position
-
-        updateBodyMatrixBuffer();
-        updateColorBuffer();
-        updateOrbitMatrixBuffer();
-    }
-
-    public void addBody(WorldObject body) {
-        if (bodies.containsKey(body.getName())) {
+    public void addSatellite(WorldObject satellite) {
+        if (bodies.containsKey(satellite.getName())) {
             // TODO: handle case of name already taken
         }
 
-        bodies.put(body.getName(), body);
+        bodies.put(satellite.getName(), satellite);
         // TODO: also add associated orbit when adding body
 
-        updateBodyMatrixBuffer();
-        updateColorBuffer();
-        updateOrbitMatrixBuffer();
+        updateMatrices();
     }
 
-    public void removeBody(String name) {
+    public void removeSatellite(String name) {
         if (name != this.name) {
             bodies.remove(name);
-            // body.removeSatellite(name);
         }
 
-        updateBodyMatrixBuffer();
-        updateColorBuffer();
-        updateOrbitMatrixBuffer();
+        updateMatrices();
+    }
+
+    public void setLightSourceDistance(double distance) {// Distance in km
+        this.lightSource.setTranslation(new Vector3f((float) (distance / AU * UNIT_SCALE), 0.f, 0.f));
     }
 
     public HashMap<String, WorldObject> getBodies() {

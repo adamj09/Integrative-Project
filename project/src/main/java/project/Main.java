@@ -8,10 +8,10 @@ public class Main {
     // Actual main method is here in order to be able to run the app via
     // commandline.
     public static void main(String[] args) {
-       // App.main(args);
+        App.main(args);
 
         //call this if want to test the satellite calculation with terminal logging
-        testSatelliteCalculation();
+        //testSatelliteCalculation();
     }
 
     /**
@@ -52,7 +52,7 @@ public class Main {
         }
 
         // Add satellite to Earth
-        if (!earth.addStellite(satellite)) {
+        if (!earth.addSatellite(satellite)) {
             System.err.println(satellite.getLatestError());
             System.err.println("Failed to add satellite to Earth");
             return;
