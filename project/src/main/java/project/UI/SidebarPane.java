@@ -45,6 +45,7 @@ public class SidebarPane extends VBox {
     // Track focused card (only one at a time)
     private VBox focusedCard = null;
     private Label focusedIndicator = null;
+    private Button focusedButton = null;
     private final List<Button> allFocusButtons = new ArrayList<>();
 
     // Track selected celestial body (only one at a time)
@@ -57,6 +58,7 @@ public class SidebarPane extends VBox {
     private VBox selectedBodyCard = null;
     private double selectedBodyMass   = 5.972e24; // kg  — defaulting to Earth
     private double selectedBodyRadius = 6371.0;   // km
+    private Color  selectedBodyColor  = Color.RED; // defaulting to Earth
 
     public SidebarPane(BottomPane bottom) {
         this.bottom = bottom;
@@ -138,7 +140,7 @@ public class SidebarPane extends VBox {
 
     public void openNewSatellitePopup(Stage owner, String themeStyle) {
         SatelliteCreatorPopup popup = new SatelliteCreatorPopup(
-            owner, themeStyle, selectedBodyMass, selectedBodyRadius);
+            owner, themeStyle, selectedBodyMass, selectedBodyRadius, selectedBodyColor);
         popup.showAndWait();
         if (popup.wasConfirmed()) {
             addSatelliteCard(popup.getSatelliteName(), popup.getSatelliteColor());
@@ -149,16 +151,22 @@ public class SidebarPane extends VBox {
         if (focusedIndicator != null) {
             focusedIndicator.setText("");
         }
+        if (focusedButton != null) {
+            focusedButton.setText("Focus");
+        }
         focusedCard = null;
         focusedIndicator = null;
+        focusedButton = null;
     }
 
-    private void setFocusedCard(VBox card, Label indicator) {
+    private void setFocusedCard(VBox card, Label indicator, Button button) {
         // Clear previous focus
         clearFocus();
         focusedCard = card;
         focusedIndicator = indicator;
+        focusedButton = button;
         indicator.setText("\u2605"); // star symbol
+        button.setText("Unfocus");
         // TODO: center camera on this body/satellite in renderer
     }
 
@@ -168,6 +176,7 @@ public class SidebarPane extends VBox {
         bodyEntries.add(entry);
 
         final double[] bodyProps = {mass, radius};
+        final Color capturedColor  = color;
 
         // Active state tracking
         final boolean[] active = {true};
@@ -205,7 +214,7 @@ public class SidebarPane extends VBox {
             if (focusedCard != null && focusedCard == (VBox) focusButton.getParent().getParent()) {
                 clearFocus();
             } else {
-                setFocusedCard((VBox) focusButton.getParent().getParent(), focusIndicatorLabel);
+                setFocusedCard((VBox) focusButton.getParent().getParent(), focusIndicatorLabel, focusButton);
             }
         });
 
@@ -238,6 +247,7 @@ public class SidebarPane extends VBox {
                 selectedBodyCard = card;
                 selectedBodyMass   = bodyProps[0];
                 selectedBodyRadius = bodyProps[1];
+                selectedBodyColor  = capturedColor;
                 // TODO: add body back to renderer visualization
             }
         });
@@ -253,6 +263,7 @@ public class SidebarPane extends VBox {
             selectedBodyFocus = focusButton;
             selectedBodyMass   = bodyProps[0];
             selectedBodyRadius = bodyProps[1];
+            selectedBodyColor  = capturedColor;
         } else if (!isPreset) {
             // Additional bodies start deselected
             active[0] = false;
@@ -336,7 +347,7 @@ public class SidebarPane extends VBox {
             if (focusedCard == card) {
                 clearFocus();
             } else {
-                setFocusedCard(card, focusIndicatorLabel);
+                setFocusedCard(card, focusIndicatorLabel, focusButton);
             }
         });
 

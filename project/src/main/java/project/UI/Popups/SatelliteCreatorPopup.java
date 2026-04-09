@@ -61,11 +61,14 @@ public class SatelliteCreatorPopup extends Stage {
     private final boolean[] orbLocks  = new boolean[7];
     private final boolean[] cartLocks = new boolean[8];
     private static int satCounter = 0;
+    private Circle previewSatellite;
+    private final boolean[] cartColorLock = {false};
+    private final boolean[] orbColorLock  = {false};
 
     private boolean confirmed = false;
     private boolean orbitalElementsMode = false;
 
-    public SatelliteCreatorPopup(Stage owner, String themeStyle, double bodyMass, double bodyRadius) {
+    public SatelliteCreatorPopup(Stage owner, String themeStyle, double bodyMass, double bodyRadius, Color bodyColor) {
         this.bodyMass   = bodyMass;
         this.bodyRadius = bodyRadius;
         initOwner(owner);
@@ -77,10 +80,10 @@ public class SatelliteCreatorPopup extends Stage {
 
         // TODO: make actual 3D preview
         // --- 3D Preview ---
-        Circle planet = new Circle(35, Color.web("#7a4a36")); // Dark muted orange
-        Circle satellite = new Circle(6, Color.CORNFLOWERBLUE);
-        satellite.setTranslateX(60);
-        StackPane previewPane = new StackPane(planet, satellite);
+        Circle planet = new Circle(35, bodyColor);
+        previewSatellite = new Circle(6, Color.CORNFLOWERBLUE);
+        previewSatellite.setTranslateX(60);
+        StackPane previewPane = new StackPane(planet, previewSatellite);
         previewPane.setStyle("-fx-background-color: #12121f; -fx-border-color: #444466; -fx-border-width: 1;");
         previewPane.setPrefSize(420, 150);
 
@@ -121,7 +124,7 @@ public class SatelliteCreatorPopup extends Stage {
         leftForm.add(cartMassLbl,  0, 1);
         leftForm.add(fieldRow(massField, cartLocks, CL_MASS, this::randomizeCartMass), 1, 1);
         leftForm.add(cartColorLbl, 0, 2);
-        leftForm.add(colorDropdown, 1, 2);
+        leftForm.add(colorRow(colorDropdown, cartColorLock), 1, 2);
         leftForm.add(cartSpeedLbl, 0, 3);
         leftForm.add(fieldRow(initialSpeedField, cartLocks, CL_SPEED, this::randomizeCartSpeed), 1, 3);
 
@@ -209,7 +212,7 @@ public class SatelliteCreatorPopup extends Stage {
         orbLeftForm.add(orbMassLbl,     0, 1);
         orbLeftForm.add(fieldRow(massOrbField, orbLocks, OL_MASS, this::randomizeSatMass), 1, 1);
         orbLeftForm.add(orbColorLbl,    0, 2);
-        orbLeftForm.add(colorOrbDropdown, 1, 2);
+        orbLeftForm.add(colorRow(colorOrbDropdown, orbColorLock), 1, 2);
         orbLeftForm.add(orbBodyMassLbl, 0, 3);
         orbLeftForm.add(massOfBodyField, 1, 3);
 
@@ -291,6 +294,7 @@ public class SatelliteCreatorPopup extends Stage {
             cartesianFormRow.setManaged(true);
             orbitalFormRow.setVisible(false);
             orbitalFormRow.setManaged(false);
+            previewSatellite.setFill(getSatelliteColor());
         });
         orbitalBtn.setOnAction(e -> {
             orbitalElementsMode = true;
@@ -298,6 +302,7 @@ public class SatelliteCreatorPopup extends Stage {
             cartesianFormRow.setManaged(false);
             orbitalFormRow.setVisible(true);
             orbitalFormRow.setManaged(true);
+            previewSatellite.setFill(getSatelliteColor());
         });
 
         // ================================================================
@@ -305,6 +310,7 @@ public class SatelliteCreatorPopup extends Stage {
         // Pre-fill body mass and auto-populate all fields on open
         massOfBodyField.setText(String.format("%.3e", this.bodyMass));
         randomizeAll();
+        previewSatellite.setFill(getSatelliteColor());
 
         Button randAllBtn = new Button("\u27F3  Randomize All");
         randAllBtn.getStyleClass().add("style-button");
@@ -518,7 +524,8 @@ public class SatelliteCreatorPopup extends Stage {
             if (!orbLocks[OL_OMEGA]) randomizeAngle360(lonAscNodeField);
             if (!orbLocks[OL_INC])   randomizeInc();
             if (!orbLocks[OL_ARG])   randomizeAngle360(argPeriapsisField);
-            randomizeColor(colorOrbDropdown);
+            if (!orbColorLock[0]) randomizeColor(colorOrbDropdown);
+            if (previewSatellite != null) previewSatellite.setFill(getSatelliteColor());
         } else {
             if (!cartLocks[CL_MASS])  randomizeCartMass();
             if (!cartLocks[CL_POSX])  randomizeCartPosX();  // X first — speed depends on it
@@ -528,7 +535,8 @@ public class SatelliteCreatorPopup extends Stage {
             if (!cartLocks[CL_ROTI])  randomizeAngle360(rotIField);
             if (!cartLocks[CL_ROTL])  randomizeAngle360(rotLField);
             if (!cartLocks[CL_ROTW])  randomizeAngle360(rotWField);
-            randomizeColor(colorDropdown);
+            if (!cartColorLock[0]) randomizeColor(colorDropdown);
+            if (previewSatellite != null) previewSatellite.setFill(getSatelliteColor());
         }
     }
 
@@ -588,6 +596,25 @@ public class SatelliteCreatorPopup extends Stage {
     private void randomizeColor(ComboBox<String> dropdown) {
         var items = dropdown.getItems();
         dropdown.setValue(items.get(rand.nextInt(items.size())));
+    }
+
+    private HBox colorRow(ComboBox<String> dropdown, boolean[] lock) {
+        Button randBtn = randButton();
+        ToggleButton lockBtn = lockButton();
+        randBtn.setOnAction(e -> {
+            if (!lock[0]) {
+                randomizeColor(dropdown);
+                previewSatellite.setFill(getSatelliteColor());
+            }
+        });
+        lockBtn.setOnAction(e -> {
+            lock[0] = lockBtn.isSelected();
+            lockBtn.setText(lock[0] ? "\uD83D\uDD12" : "\uD83D\uDD13");
+        });
+        dropdown.setOnAction(e -> previewSatellite.setFill(getSatelliteColor()));
+        HBox row = new HBox(5, dropdown, randBtn, lockBtn);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
     }
 
     private HBox fieldRow(TextField field, boolean[] locks, int idx, Runnable randomizer) {
