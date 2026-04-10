@@ -45,7 +45,7 @@ public class World {
     public World(String name) {
         this.name = name;
 
-        camera.setView(new Vector3f(10.f, 10.f, 10.f), camera.getDirection());
+        camera.setView(new Vector3f(1.f, 1.f, 1.f), camera.getDirection());
     }
 
     public void updateBodyMatrixBuffer() {

@@ -20,7 +20,7 @@ public class SimulationPool {
         // Test
         Body body = new Body("Earth", Constant.EARTH_DEFAULT_MASS, Constant.EARTH_DEFAULT_RADIUS,
         Constant.EARTH_DEFAULT_DISTANCE_TO_SUN);
-        body.setTimeScale(10000.d);
+        body.setTimeScale(1000.d);
         bodies.put(body.getName(), body);
 
         // TODO: call this function in the UI code to add a body
@@ -36,8 +36,8 @@ public class SimulationPool {
 
         Satellite test = new Satellite();
         test.initialiseSatelliteValuesAngles(body, "test", 20,
-                body.getRadius() + 3000.0, 0.8, 0,
-                180, 75, 180);
+                body.getRadius() + 3000.0, 0.5, 0,
+                0, 0, 0);
 
         body.addSatellite(test);
 
