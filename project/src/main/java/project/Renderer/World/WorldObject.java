@@ -1,6 +1,5 @@
 package project.Renderer.World;
 
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -17,56 +16,56 @@ public class WorldObject {
     public WorldObject(String name, Mesh mesh) {
         this.mesh = mesh;
         this.name = name;
-        
-        updateTransform();
     }
 
     public WorldObject(String name, Mesh mesh, Vector3f color) {
         this.mesh = mesh;
         this.name = name;
         this.color = color;
-
-        updateTransform();
     }
 
-    public void updateTransform() {
-        transformMatrix.setTranslation(translation);
-        transformMatrix.scale(scale);
+    public void translate(Vector3f translation) {
+        Matrix4f translationMatrix = new Matrix4f();
+        translationMatrix.translate(translation);
+
+        this.translation.add(translation);
+
+        transformMatrix.mul(translationMatrix);
     }
 
-    public void transform(Matrix3f matrix) {
-        
-    }
-
-    public Vector3f getTranslation() {
-        return this.translation;
-    }
-
-    public void setTranslation(Vector3f translation) {
-        this.translation = translation;
-        transformMatrix.setTranslation(this.translation);
-    }
-
-    public Vector3f getScale() {
-        return this.scale;
-    }
-
-    public void setScale(Vector3f scale) {
-        this.scale = scale;
-        transformMatrix.scale(this.scale);
-    }
-
-    // Angle is in radians here
     public void rotate(float angle, Vector3f axis) {
-        transformMatrix.rotate(angle, axis);
+        Matrix4f rotationMatrix = new Matrix4f();
+        rotationMatrix.rotate(angle, axis);
+
+        transformMatrix.mul(rotationMatrix);
+    }
+
+    public void scale(Vector3f scale) {
+        Matrix4f scaleMatrix = new Matrix4f();
+        scaleMatrix.scale(scale);
+
+        this.scale.add(scale);
+
+        transformMatrix.mul(scaleMatrix);
+    }
+
+    public void resetTransforms() {
+        translation.zero();
+        scale = new Vector3f(1.0f, 1.0f, 1.0f);
+
+        transformMatrix.identity();
     }
 
     public Matrix4f getTransformMatrix() {
         return this.transformMatrix;
     }
 
-    public void setTransformMatrix(Matrix4f transformMatrix) {
-        this.transformMatrix = transformMatrix;
+    public Vector3f getScale() {
+        return this.scale;
+    }
+
+    public Vector3f getTranslation() {
+        return this.translation;
     }
 
     public Mesh getMesh() {

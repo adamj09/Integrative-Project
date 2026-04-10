@@ -36,7 +36,8 @@ public class World {
     private FloatBuffer orbitMatrixBuffer = BufferUtils.createFloatBuffer(0);
 
     private final float UNIT_SCALE = 10_000.f; // 1 AU is equal to this many renderer units.
-    private double AU = 1.496e+8d; // 1 AU in kilometers.
+    private final double AU = 1.496e+8d; // 1 AU in kilometers.
+    private final float SATELLITE_RADIUS = (float) (1000.d / AU * UNIT_SCALE);
 
     private Mesh bodyMesh;
     private Mesh orbitMesh;
@@ -104,8 +105,8 @@ public class World {
 
         lightSource = new WorldObject("light", new SphereGenerator().create(4));
 
-        lightSource.setTranslation(new Vector3f((float) (body.getDistanceToSun() / AU * UNIT_SCALE), 0.f, 0.f));
-        lightSource.setScale(new Vector3f(lightSourceScale, lightSourceScale, lightSourceScale));
+        lightSource.translate(new Vector3f((float) (body.getDistanceToSun() / AU * UNIT_SCALE), 0.f, 0.f));
+        lightSource.scale(new Vector3f(lightSourceScale, lightSourceScale, lightSourceScale));
         lightSource.setLightColor(new Vector3f(1.f, 1.f, 1.f));
     }
 
@@ -114,8 +115,7 @@ public class World {
         WorldObject bodyObject = new WorldObject(name, bodyMesh, new Vector3f(1.0f, 1.0f, 1.0f));
 
         float planetScale = (float) (body.getRadius() / AU * UNIT_SCALE);
-        // float planetScale = (float) (body.getRadius() / AU * unitScale);
-        bodyObject.setScale(new Vector3f(planetScale, planetScale, planetScale));
+        bodyObject.scale(new Vector3f(planetScale, planetScale, planetScale));
 
         // Add objects to world.
         bodies.put(bodyObject.getName(), bodyObject);
@@ -123,8 +123,6 @@ public class World {
 
     private void loadSatellites() {
         HashMap<String, Satellite> satellites = body.getSatellites();
-
-        float satelliteRadius = (float) (1000.d / AU * UNIT_SCALE);
 
         for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
             Satellite satellite = item.getValue();
@@ -134,11 +132,12 @@ public class World {
                 WorldObject newObject = new WorldObject(satellite.getData().name, bodyMesh,
                         new Vector3f(1.f, 0.f, 0.f));
 
-                newObject.setScale(new Vector3f(satelliteRadius, satelliteRadius, satelliteRadius));
-                newObject.setTranslation(new Vector3f(
-                        (float) (satellite.getData().currentPosition.y / 1000.d / AU * UNIT_SCALE),
-                        (float) (satellite.getData().currentPosition.z / 1000.d / AU * UNIT_SCALE),
-                        (float) (satellite.getData().currentPosition.x / 1000.d / AU * UNIT_SCALE)));
+                newObject.translate(new Vector3f(
+                    (float) (satellite.getData().currentPosition.y / 1000.d / AU * UNIT_SCALE),
+                    (float) (satellite.getData().currentPosition.z / 1000.d / AU * UNIT_SCALE),
+                    (float) (satellite.getData().currentPosition.x / 1000.d / AU * UNIT_SCALE)));
+
+                newObject.scale(new Vector3f(SATELLITE_RADIUS, SATELLITE_RADIUS, SATELLITE_RADIUS));
 
                 bodies.put(newObject.getName(), newObject);
             }
@@ -160,12 +159,9 @@ public class World {
                 double semiMinorAxis = (data.a / 1000.d / AU * UNIT_SCALE)
                         * Math.sqrt(1.0 - Math.pow(data.eccentricity, 2));
 
-                // Scale orbit according to orbital parameters.
-                orbit.setScale(new Vector3f((float) semiMinorAxis, 1.f, (float) semiMajorAxis));
-
-                // // Translate orbit so that the planet is at a focal point.
+                // Translate orbit so that the planet is at a focal point.
                 float focalDistance = (float) Math.sqrt(Math.pow(semiMajorAxis, 2) - Math.pow(semiMinorAxis, 2));
-                orbit.setTranslation(new Vector3f(0.f, 0.f, -focalDistance));
+                orbit.translate(new Vector3f(0.f, 0.f, -focalDistance));
 
                 orbit.rotate(
                         (float) 0,
@@ -189,6 +185,9 @@ public class World {
                                 (float) data.angularMomentumVect.z,
                                 (float) data.angularMomentumVect.x).normalize());
 
+                // Scale orbit according to orbital parameters.
+                orbit.scale(new Vector3f((float) semiMinorAxis, 1.f, (float) semiMajorAxis));
+
                 orbits.put(orbit.getName(), orbit);
             }
         }
@@ -199,12 +198,16 @@ public class World {
 
         for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
             Satellite satellite = item.getValue();
-            // System.out.println(bodies.get(item.getKey()).getTranslation().toString());
+            WorldObject object = bodies.get(item.getKey());
 
-            bodies.get(item.getKey()).setTranslation(new Vector3f(
+            object.resetTransforms();
+
+            object.translate(new Vector3f(
                     (float) (satellite.getData().currentPosition.y / 1000.d / AU * UNIT_SCALE),
                     (float) (satellite.getData().currentPosition.z / 1000.d / AU * UNIT_SCALE),
                     (float) (satellite.getData().currentPosition.x / 1000.d / AU * UNIT_SCALE)));
+            
+            object.scale(new Vector3f(SATELLITE_RADIUS, SATELLITE_RADIUS, SATELLITE_RADIUS));
         }
 
         updateBodyMatrixBuffer();
@@ -230,7 +233,7 @@ public class World {
     }
 
     public void setLightSourceDistance(double distance) {// Distance in km
-        this.lightSource.setTranslation(new Vector3f((float) (distance / AU * UNIT_SCALE), 0.f, 0.f));
+        this.lightSource.translate(new Vector3f((float) (distance / AU * UNIT_SCALE) - this.lightSource.getTranslation().x, 0.f, 0.f));
     }
 
     public HashMap<String, WorldObject> getBodies() {

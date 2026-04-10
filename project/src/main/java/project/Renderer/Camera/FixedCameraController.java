@@ -86,7 +86,6 @@ public class FixedCameraController {
         float speed = controls.getScrollDeltaY() * translateSpeed * deltaTime * radius;
 
         direction.mul(speed, displacement);
-        position.add(displacement, newPosition);
 
         radius = newPosition.distance(lookatPosition);
 
@@ -96,21 +95,39 @@ public class FixedCameraController {
         // Limit camera distance from object
         if (toCamera.length() > maxDistance) {
             controls.setScrollDeltaY(0);
+            displacement.zero();
+
+            position.add(displacement, newPosition);
+
+            Vector3f newDirection = new Vector3f();
+            lookatPosition.sub(newPosition, newDirection);
+
+            camera.setView(newPosition, newDirection);
             return;
         }
 
         // Make sure camera doesn't pass through other objects
         for (Map.Entry<String, WorldObject> item : world.getBodies().entrySet()) {
             WorldObject object = item.getValue();
-            if(object.getTranslation().distance(newPosition) < object.getScale().x + padding) {
-                controls.setScrollDeltaY(0);
+            if (object.getTranslation().distance(newPosition) < object.getScale().x + padding) {
+                displacement.zero();
+
+                position.add(displacement, newPosition);
+
+                Vector3f newDirection = new Vector3f();
+                lookatPosition.sub(newPosition, newDirection);
+
+                camera.setView(newPosition, newDirection);
+                
                 return;
             }
         }
 
+        position.add(displacement, newPosition);
+
         Vector3f newDirection = new Vector3f();
         lookatPosition.sub(newPosition, newDirection);
-    
+
         camera.setView(newPosition, newDirection);
         controls.setScrollDeltaY(0);
     }
@@ -152,13 +169,11 @@ public class FixedCameraController {
      *                  to keep movement speed framerate independent).
      */
     public void updateCameraTransform(float deltaTime) {
-        // Update target as object's position updates
-        //camera.setView(newPosition, newDirection);
+        translate(deltaTime);
 
         if (controls.isFocusButtonPressed() == 1) {
             rotate();
         }
-        translate(deltaTime);
     }
 
     /**
