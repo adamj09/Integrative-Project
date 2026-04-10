@@ -1,274 +1,310 @@
 package project.Math;
 
 import org.joml.Vector3d;
+
 import org.joml.Matrix3d;
 
 public class MathOrbits {
-    
-    /**
-     * Need to have the initial position and velocity vector for the satelite to call this method
-     * Add all constant propreties of the satellite to the satellite data object
-     * @param celestialBody 
-     * @param satellite
-     */
-    public static boolean getStaticInfo(Body celestialBody, Satellite satellite){
 
-    
-        Vector3d initialPosition = satellite.getData().initialPosition;
-        Vector3d initialVelocity = satellite.getData().initialVelocity;
-        
-        //gravitational parameter of the central body
-        double mu = Constant.GRAVITATIONAL_CONSTANT * celestialBody.getMass();
-        satellite.getData().mu = mu;
-
-        //kinetic energy
-        double kineticEnergy =  0.5 * initialVelocity.lengthSquared();
-        satellite.getData().kineticEnergy = kineticEnergy;
-        //gravitational potential energy
-        double gravitationalPotEnergy = -mu / satellite.getData().initialPosition.length();
-        satellite.getData().gravitationalPotentialEnergy = gravitationalPotEnergy;
-        //total energy
-        satellite.getData().initialTotalEnergy = kineticEnergy + gravitationalPotEnergy;
-
-        //angular momentum vector
-        Vector3d angularMomentumVect = new Vector3d();
-        initialPosition.cross(initialVelocity,angularMomentumVect);
-        satellite.getData().angularMomentumVect = angularMomentumVect;
-        //angular momentum
-        double angularMomentum = angularMomentumVect.length();
-        satellite.getData().angularMomentum = angularMomentum;
-
-        //eccentricity vector
-        
-        Vector3d vct1 = new Vector3d();
-        initialVelocity.cross(angularMomentumVect,vct1);
-        Vector3d vct2 = new Vector3d();
-        initialPosition.normalize(vct2);
-        vct2.mul(mu); 
-        Vector3d eccentricityVect =  (vct1.sub(vct2)).mul(1.0 / mu);
-        satellite.getData().eccentricityVect = eccentricityVect;
-        //eccentricity
-        double eccentricity = eccentricityVect.length();
-        satellite.getData().eccentricity = eccentricity;
-
-        if(eccentricity >= 1 || eccentricity <= 0){
-            satellite.setLatestError("eccentricity not supported "+eccentricity+" energy "+(kineticEnergy + gravitationalPotEnergy));
-            return false;
-        }
-
-        //hill radius
-        double radius = calculateHillRadius(satellite, celestialBody);
-        if(radius == -1){
-            satellite.setLatestError("Division by zero, mass of the sun can't be zero");
-            return false;
-        }
-
-        satellite.getData().maximumDistanceToBody = radius;
-
-        //semi-latus rectum
-        double p = Math.pow(angularMomentum,2) / mu;
-        satellite.getData().p = p;
-
-        //radius of periapsis
-        satellite.getData().radiusOfPeriapsis = p / (1 + eccentricity);
-        // TODO point of peiapsis
-
-        //radius of apoapsis
-        satellite.getData().radiusOfApoapsis = p / (1 - eccentricity);
-        // TODO point of apoapsis
-
-        //semis-major axis
-        double a = p / (1 - Math.pow(eccentricity, 2));
-        satellite.getData().a = a;
-
-        //period
-        double period = 2 * Math.PI * Math.sqrt(Math.pow(a, 3) / mu);
-        satellite.getData().period = period;
-
-        //mean motion (n)
-        satellite.getData().meanMotion = 2 * Math.PI / period;
-
-        //line of nodes vector
-        Vector3d lineOfNodesVect = new Vector3d();
-        new Vector3d(0, 0, 1).cross(angularMomentumVect,lineOfNodesVect);
-        satellite.getData().lineOfNodesVect = lineOfNodesVect;
-
-        //longitude of ascending node (Ω)
-        double longitudeOfAscendingNode;
-        if (lineOfNodesVect.length() < 1e-10) {
-            // Equatorial orbit, longitude of ascending node is undefined, set to 0
-            longitudeOfAscendingNode = 0.0;
-        } else {
-            double arg = lineOfNodesVect.x / lineOfNodesVect.length();
-            arg = Math.max(-1.0, Math.min(1.0, arg));
-            longitudeOfAscendingNode = Math.acos(arg); 
-            if (lineOfNodesVect.y < 0) {
-                longitudeOfAscendingNode = 2 * Math.PI - longitudeOfAscendingNode;
-            }
-        }
-        satellite.getData().longitudeOfAscendingNode = longitudeOfAscendingNode;
-
-        //inclination (i)
-        double inclinationArg = angularMomentumVect.z / angularMomentum;
-        inclinationArg = Math.max(-1.0, Math.min(1.0, inclinationArg));
-        satellite.getData().inclination = Math.acos(inclinationArg);
-
-        //argument of periapsis (ω)
-        double argumentOfPeriapsis;
-        if (lineOfNodesVect.length() < 1e-10) {
-            // Equatorial orbit, argument of periapsis is the angle of eccentricity vector in xy plane
-            argumentOfPeriapsis = Math.atan2(eccentricityVect.y, eccentricityVect.x);
-            if (argumentOfPeriapsis < 0) {
-                argumentOfPeriapsis += 2 * Math.PI;
-            }
-        } else {
-            double arg = lineOfNodesVect.dot(eccentricityVect) / (lineOfNodesVect.length() * eccentricity);
-            arg = Math.max(-1.0, Math.min(1.0, arg));
-            argumentOfPeriapsis = Math.acos(arg);
-            if (eccentricityVect.z < 0) {
-                argumentOfPeriapsis = 2 * Math.PI - argumentOfPeriapsis;
-            }
-        }
-        satellite.getData().argumentOfPeriapsis = argumentOfPeriapsis;
-
-        //true anomalay
-        double arg = (p - initialPosition.length()) / (eccentricity * initialPosition.length());
-        arg = Math.max(-1.0, Math.min(1.0, arg));
-        double initialTrueAnomaly = Math.acos(arg);
-        if (initialPosition.dot(initialVelocity) < 0) {
-            initialTrueAnomaly = 2 * Math.PI - initialTrueAnomaly;
-        }
-        satellite.getData().initialTrueAnomaly = initialTrueAnomaly;
-
-        // initial eccentric anomaly
-        double initialEccentricAnomaly = 2*Math.atan(Math.sqrt((1-eccentricity)/(1+eccentricity))*Math.tan(initialTrueAnomaly/2));
-        satellite.getData().initialEccentricAnomaly = initialEccentricAnomaly; 
-
-        // initial mean anomaly
-        satellite.getData().initialMeanAnomaly = initialEccentricAnomaly - (eccentricity*Math.sin(initialEccentricAnomaly));
-
-        //distance at t0
-        double distance = p/(1+(eccentricity*Math.cos(initialTrueAnomaly)));
-        satellite.getData().distance = distance;
-
-        if(distance > radius){
-            satellite.setLatestError("Satellite is too far from the main body"+" Distance "+(distance/1000)+" radius "+(radius/1000));
-            return false;
-        }
-
-        //speed
-        satellite.getData().speed = Math.sqrt(mu*((2/distance)-(1/a)));
-
-        //excess velocity
-        satellite.getData().excessSpeed = Math.sqrt((2*mu)/distance);
-
-        return true;
-
+    private static double kineticEnergy(Vector3d velocity) {
+        return 0.5 * velocity.lengthSquared();
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    private static double gravitationalPotentialEnergy(double mu, Vector3d position) {
+        return -mu / position.length();
+    }
+
+    private static Vector3d angularMomentum(Vector3d position, Vector3d velocity) {
+        Vector3d angularMomentumVect = new Vector3d();
+        position.cross(velocity, angularMomentumVect);
+        return angularMomentumVect;
+    }
+
+    private static Vector3d eccentricity(Vector3d angularMomentum, Vector3d velocity, Vector3d position, double mu) {
+        Vector3d vct1 = new Vector3d();
+        velocity.cross(angularMomentum, vct1);
+
+        Vector3d vct2 = new Vector3d();
+        position.normalize(vct2);
+
+        vct2.mul(mu);
+        Vector3d eccentricityVect = (vct1.sub(vct2)).mul(1.0 / mu);
+
+        double eccentricity = eccentricityVect.length();
+
+        if (eccentricity >= 1 || eccentricity <= 0) {
+            //TODO: handle with exception
+            return null;
+        }
+
+        return eccentricityVect;
+    }
+
+    private static double hillRadius(double distanceToStar, double eccentricity, double centralBodyMass, double starMass) {
+        if (starMass == 0) {
+            return -1;
+        }
+
+        return distanceToStar * (1 - eccentricity) * Math.cbrt(centralBodyMass / (3 * starMass)) * 1000.d;
+    }
+
+    private static double semiLatusRectum(double angularMomentum, double mu) {
+        return Math.pow(angularMomentum, 2) / mu;
+    }
+
+    private static double apoapsis(double semiLatusRectum, double eccentricity) {
+        return semiLatusRectum / (1 + eccentricity);
+    }
+
+    private static double periapsis(double semiLatusRectum, double eccentricity) {
+        return semiLatusRectum / (1 - eccentricity);
+    }
+
+    private static double semiMajorAxis(double semiLatusRectum, double eccentricity) {
+        return semiLatusRectum / (1 - Math.pow(eccentricity, 2));
+    }
+
+    private static double period(double semiMajorAxis, double mu) {
+        return 2 * Math.PI * Math.sqrt(Math.pow(semiMajorAxis, 3) / mu);
+    }
+
+    private static double meanMotion(double semiMajorAxis, double mu) {
+        return 2 * Math.PI / period(semiMajorAxis, mu);
+    }
+
+    private static Vector3d lineOfNodes(Vector3d angularMomentum) {
+        Vector3d lineOfNodesVect = new Vector3d();
+        new Vector3d(0, 0, 1).cross(angularMomentum, lineOfNodesVect);
+        return lineOfNodesVect;
+    }
+
+    private static double longitudeOfAscendingNode(Vector3d lineOfNodes) {
+        if (lineOfNodes.length() < 1e-10) {
+            // Equatorial orbit, longitude of ascending node is undefined, set to 0
+            return 0.0;
+        } 
+            
+        double arg = lineOfNodes.x / lineOfNodes.length();
+        arg = Math.max(-1.0, Math.min(1.0, arg));
+        double longitudeOfAscendingNode = Math.acos(arg);
+
+        if (lineOfNodes.y < 0) {
+            longitudeOfAscendingNode = 2 * Math.PI - longitudeOfAscendingNode;
+        }
+
+        return longitudeOfAscendingNode;
+    }
+
+    private static double inclination(Vector3d angularMomentum) {
+        return Math.acos(Math.max(-1.0, Math.min(1.0, angularMomentum.z / angularMomentum.length())));
+    }
+
+    private static double argumentOfPeriapsis(Vector3d lineOfNodes, Vector3d eccentricity) {
+        // argument of periapsis (ω)
+        double argumentOfPeriapsis;
+        if (lineOfNodes.length() < 1e-10) {
+            // Equatorial orbit, argument of periapsis is the angle of eccentricity vector
+            // in xy plane
+            argumentOfPeriapsis = Math.atan2(eccentricity.y, eccentricity.x);
+            if (argumentOfPeriapsis < 0) {
+                return argumentOfPeriapsis + 2 * Math.PI;
+            }
+        }
+            
+        double arg = lineOfNodes.dot(eccentricity) / (lineOfNodes.length() * eccentricity.length());
+        argumentOfPeriapsis = Math.acos(Math.max(-1.0, Math.min(1.0, arg)));
+
+        if (eccentricity.z < 0) {
+            return 2 * Math.PI - argumentOfPeriapsis;
+        }
+
+        return argumentOfPeriapsis;
+    }
+
+    private static double initialTrueAnomaly(Vector3d position, Vector3d velocity, double eccentricity, double semiLatusRectum) {
+        double arg = (semiLatusRectum - position.length()) / (eccentricity * position.length());
+
+        double trueAnomaly = Math.acos(Math.max(-1.0, Math.min(1.0, arg)));
+        if (position.dot(velocity) < 0) {
+            return 2 * Math.PI - trueAnomaly;
+        }
+
+        return trueAnomaly;
+    }
+
+    private static double trueAnomaly(double eccentricity, double eccentricAnomaly) {
+        return 2 * Math.atan(Math.sqrt((1 + eccentricity) / (1 - eccentricity)) * Math.tan(eccentricAnomaly / 2));
+    }
+
+    private static double initialEccentricAnomaly(double eccentricity, double trueAnomaly) {
+        return 2 * Math.atan(Math.sqrt((1 -eccentricity) / (1 + eccentricity)) * Math.tan(trueAnomaly / 2));
+    }
+
+    private static double initialMeanAnomaly(double eccentricAnomaly, double eccentricity) {
+        return eccentricAnomaly - (eccentricity * Math.sin(eccentricAnomaly));
+    }
+
+    private static double initialDistance(double semiLatusRectum, double eccentricity, double trueAnomaly, double hillRadius) {
+        double distance = semiLatusRectum / (1 + (eccentricity * Math.cos(trueAnomaly)));
+
+        if(distance > hillRadius) {
+            // TODO: exception if distance is larger than hill radius
+            return -1;
+        }
+
+        return distance;
+    }
+
+    private static double distance(double semiMajorAxis, double eccentricity, double trueAnomaly, double hillRadius) {
+        double distance = (semiMajorAxis * (1 - Math.pow(eccentricity, 2))) / (1 + (eccentricity * Math.cos(trueAnomaly)));
+
+        if(distance > hillRadius) {
+            // TODO: exception if distance is larger than hill radius
+            return -1;
+        }
+
+        return distance;
+    }
+
+    private static double speed(double mu, double distance, double semiMajorAxis) {
+        return Math.sqrt(mu * ((2 / distance) - (1 / semiMajorAxis)));
+    }
+
+    private static double excessSpeed(double mu, double distance) {
+        return Math.sqrt((2 * mu) / distance);
+    }
+
+    /**
+     * Need to have the initial position and velocity vector for the satelite to
+     * call this method
+     * 
+     * Adds all constant propreties of the satellite to the satellite data object
+     * 
+     * @param celestialBody
+     * @param satellite
+     */
+    public static boolean getStaticInfo(Body celestialBody, Satellite satellite) {
+        SatelliteData data = satellite.getData();
+
+        Vector3d initialPosition = data.initialPosition;
+        Vector3d initialVelocity = data.initialVelocity;
+
+        // Gravitational parameter of the central body.
+        data.mu = Constant.GRAVITATIONAL_CONSTANT * celestialBody.getMass();
+
+        // Initialize energy.
+        data.kineticEnergy = kineticEnergy(initialVelocity);
+        data.gravitationalPotentialEnergy = gravitationalPotentialEnergy(data.mu, initialPosition);
+        data.initialTotalEnergy = data.kineticEnergy + data.gravitationalPotentialEnergy;
+
+        data.angularMomentumVect = angularMomentum(initialPosition, initialVelocity);
+        data.angularMomentum = data.angularMomentumVect.length();
+
+        data.eccentricityVect = eccentricity(data.angularMomentumVect, initialVelocity, initialPosition, data.mu);
+        data.eccentricity = data.eccentricityVect.length();
+
+        data.maximumDistanceToBody = hillRadius(celestialBody.getDistanceToSun(), data.eccentricity, celestialBody.getMass(), celestialBody.getMassOfSun());
+
+        data.p = semiLatusRectum(data.angularMomentum, data.mu);
+        data.radiusOfPeriapsis = periapsis(data.p, data.eccentricity);
+        data.radiusOfApoapsis = apoapsis(data.p, data.eccentricity);
+
+        data.a = semiMajorAxis(data.p, data.eccentricity);
+        data.period = period(data.a, data.mu);
+        data.meanMotion = meanMotion(data.a, data.mu);
+
+        data.lineOfNodesVect = lineOfNodes(data.angularMomentumVect);
+
+        // Angles describing the orbital plane
+        data.longitudeOfAscendingNode = longitudeOfAscendingNode(data.lineOfNodesVect);
+        data.inclination = inclination(data.angularMomentumVect);
+        data.argumentOfPeriapsis = argumentOfPeriapsis(data.lineOfNodesVect, data.eccentricityVect);
+
+        // Anomalies
+        data.trueAnomaly = initialTrueAnomaly(initialPosition, initialVelocity, data.eccentricity, data.p);
+        data.eccentricAnomaly = initialEccentricAnomaly(data.eccentricity, data.trueAnomaly);
+        data.meanAnomaly = initialMeanAnomaly(data.eccentricAnomaly, data.eccentricity);
+
+        data.distance = initialDistance(data.p, data.eccentricity, data.trueAnomaly, data.maximumDistanceToBody);
+
+        // speed
+        data.speed = speed(data.mu, data.distance, data.a);
+
+        // excess velocity
+        data.excessSpeed = excessSpeed(data.mu, data.distance);
+
+        return true;
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     //
-    public static boolean getRelativeInfo(Satellite satellite){
-        double currentTime = satellite.getData().currentTime;
-        double lastTime = satellite.getData().lastTime;
-        if(currentTime == lastTime){
+    public static boolean getRelativeInfo(Satellite satellite) {
+        SatelliteData data = satellite.getData();
+
+        double currentTime = data.currentTime;
+        double lastTime = data.lastTime;
+        if (currentTime == lastTime) {
             return true;
         }
 
-        double eccentricity = satellite.getData().eccentricity;
-        double a = satellite.getData().a; // semi-major axis
-        double mu = satellite.getData().mu;
-
-        double deltaT = satellite.getData().currentTime - satellite.getData().time0; //TODO check what happens when the deltaT is negetives
-
         // mean anomaly at t2
-        double meanAnomaly = satellite.getData().initialMeanAnomaly + (satellite.getData().meanMotion * deltaT);
+        double meanAnomaly = data.initialMeanAnomaly + (data.meanMotion * (data.currentTime - data.time0));
 
         // eccentric anomaly at t2
-        double eccentricAnomaly = getEccentricAnomaly(meanAnomaly, eccentricity);
-        satellite.getData().eccentricAnomaly = eccentricAnomaly;
+        data.eccentricAnomaly = eccentricAnomaly(meanAnomaly, data.eccentricity);
 
         // true anomaly at t2
-        double trueAnomaly = 2*Math.atan(Math.sqrt((1+eccentricity)/(1-eccentricity))*Math.tan(eccentricAnomaly/2));
-        satellite.getData().trueAnomaly = trueAnomaly;
-        
-        //distance
-        double distance = (a*(1-Math.pow(eccentricity, 2)))/(1+(eccentricity*Math.cos(trueAnomaly)));
-        satellite.getData().distance = distance;
+        data.trueAnomaly = trueAnomaly(data.eccentricity, data.eccentricAnomaly);
 
-        if(distance > satellite.getData().maximumDistanceToBody){
-            satellite.setLatestError("Satellite is too far. Orbit is not stable anymore");
-            return false;
-        }
+        // distance
+        data.distance = distance(data.a, data.eccentricity, data.trueAnomaly, data.maximumDistanceToBody);
 
         // position in 3D space
-        Vector3d currentPosition = rotationPQWtoECI(satellite,constructDistancePQWvect(distance,trueAnomaly));
-        satellite.getData().currentPosition =  currentPosition;
+        data.currentPosition = rotationPQWtoECI(satellite, constructDistancePQWvect(data.distance, data.trueAnomaly));
 
-        //speed
-        double speed = Math.sqrt(mu*((2/distance)-(1/a)));
-        satellite.getData().speed = speed;
+        // speed
+        data.speed = speed(data.mu, data.distance, data.a);
 
         // velocity in 3D space
-        Vector3d currentVelocity = rotationPQWtoECI(satellite,constructVelocityPQWvect(mu,satellite.getData().p,eccentricity,trueAnomaly));
-        satellite.getData().currentVelocity = currentVelocity;
+        data.currentVelocity = rotationPQWtoECI(satellite, constructVelocityPQWvect(data.mu, satellite.getData().p, data.eccentricity, data.trueAnomaly));;
 
-        //excessSpeed
-        satellite.getData().excessSpeed = Math.sqrt((2*mu)/distance);
+        // excessSpeed
+        data.excessSpeed = excessSpeed(data.mu, data.distance);
 
-        //kinetic energy
-        double kineticEnergy =  0.5 * currentVelocity.lengthSquared();
-        satellite.getData().kineticEnergy = kineticEnergy;
-        //gravitational potential energy
-        double gravitationalPotEnergy = -mu / currentPosition.length();
-        satellite.getData().gravitationalPotentialEnergy = gravitationalPotEnergy;
-        //total energy
-        satellite.getData().totalEnergy = kineticEnergy + gravitationalPotEnergy;
+        // kinetic energy
+        data.kineticEnergy = kineticEnergy(data.currentVelocity);
+        // gravitational potential energy
+        data.gravitationalPotentialEnergy = gravitationalPotentialEnergy(data.mu, data.currentPosition);
+        // total energy
+        data.totalEnergy = data.kineticEnergy + data.gravitationalPotentialEnergy;
 
-        satellite.getData().lastTime = currentTime;
+        data.lastTime = currentTime;
 
         return true;
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     //
-    public static void constructSatelliteUsingAngle(Satellite satellite,double massOfCelestialBody,
-         double distance, double eccentricity, double trueAnomaly,
-          double longitudeAscendingNode, double inclination, double argumentOfPeriapsis
-    ){
-        double p = distance + (distance*eccentricity*Math.cos(trueAnomaly));
+    public static void constructSatelliteUsingAngle(Satellite satellite, double massOfCelestialBody,
+            double distance, double eccentricity, double trueAnomaly,
+            double longitudeAscendingNode, double inclination, double argumentOfPeriapsis) {
+        double p = distance + (distance * eccentricity * Math.cos(trueAnomaly));
         double mu = Constant.GRAVITATIONAL_CONSTANT * massOfCelestialBody;
 
         satellite.getData().longitudeOfAscendingNode = Math.toRadians(longitudeAscendingNode);
         satellite.getData().inclination = Math.toRadians(inclination);
         satellite.getData().argumentOfPeriapsis = Math.toRadians(argumentOfPeriapsis);
 
-
-        Vector3d distanceECI = rotationPQWtoECI(satellite,constructDistancePQWvect(distance,trueAnomaly));
-        Vector3d velocityECI = rotationPQWtoECI(satellite,constructVelocityPQWvect(mu,p,eccentricity,trueAnomaly));
+        Vector3d distanceECI = rotationPQWtoECI(satellite, constructDistancePQWvect(distance, trueAnomaly));
+        Vector3d velocityECI = rotationPQWtoECI(satellite, constructVelocityPQWvect(mu, p, eccentricity, trueAnomaly));
 
         satellite.getData().initialPosition = distanceECI;
         satellite.getData().initialVelocity = velocityECI;
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    //
-    private static double calculateHillRadius(Satellite satellite, Body centralBody){
-        double a = centralBody.getDistanceToSun()*1000;
-        double e = satellite.getData().eccentricity;
-        double m = centralBody.getMass();
-        double M = centralBody.getMassOfSun();    
-
-        if(M == 0){
-            return -1;
-        }
-
-        return a*(1-e)*Math.cbrt(m/(3*M));
-    } 
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    //Newton-Raphson Method to solve for the eccentric anomaly 
-    private static double getEccentricAnomaly(double meanAnomaly, double eccentricity){
+    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // Newton-Raphson Method to solve for the eccentric anomaly
+    private static double eccentricAnomaly(double meanAnomaly, double eccentricity) {
         double finalEccentricAnomaly = 0.0;
         double eccentricAnomaly = meanAnomaly;
         double res = 1.0;
@@ -276,9 +312,11 @@ public class MathOrbits {
         int iteration = 0;
 
         do {
-            finalEccentricAnomaly = eccentricAnomaly-((meanAnomaly-eccentricAnomaly+(eccentricity*Math.sin(eccentricAnomaly)))/((eccentricity*Math.cos(eccentricAnomaly))-1));
+            finalEccentricAnomaly = eccentricAnomaly
+                    - ((meanAnomaly - eccentricAnomaly + (eccentricity * Math.sin(eccentricAnomaly)))
+                            / ((eccentricity * Math.cos(eccentricAnomaly)) - 1));
 
-            res = meanAnomaly-finalEccentricAnomaly+(eccentricity*Math.sin(finalEccentricAnomaly));
+            res = meanAnomaly - finalEccentricAnomaly + (eccentricity * Math.sin(finalEccentricAnomaly));
 
             eccentricAnomaly = finalEccentricAnomaly;
             iteration++;
@@ -286,56 +324,53 @@ public class MathOrbits {
 
         if (iteration >= maxIterations) {
             System.err.println("Warning: getEccentricAnomaly did not converge after " + maxIterations + " iterations");
-        }else{
-            //System.out.println("iteration: "+iteration+" res "+res);
+        } else {
+            // System.out.println("iteration: "+iteration+" res "+res);
         }
 
         return finalEccentricAnomaly;
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     //
-    private static Vector3d rotationPQWtoECI(Satellite satellite, Vector3d vector){
-        double longitudeOfAscendingNode = satellite.getData().longitudeOfAscendingNode; //Ω
-        double inclination = satellite.getData().inclination; //i
-        double argumentOfPeriapsis = satellite.getData().argumentOfPeriapsis; //ω
+    private static Vector3d rotationPQWtoECI(Satellite satellite, Vector3d vector) {
+        double longitudeOfAscendingNode = satellite.getData().longitudeOfAscendingNode; // Ω
+        double inclination = satellite.getData().inclination; // i
+        double argumentOfPeriapsis = satellite.getData().argumentOfPeriapsis; // ω
 
         Matrix3d r1 = new Matrix3d(
-            1, 0, 0,
-            0, Math.cos(longitudeOfAscendingNode), -Math.sin(longitudeOfAscendingNode),
-            0, Math.sin(longitudeOfAscendingNode), Math.cos(longitudeOfAscendingNode)
-        );
+                1, 0, 0,
+                0, Math.cos(longitudeOfAscendingNode), -Math.sin(longitudeOfAscendingNode),
+                0, Math.sin(longitudeOfAscendingNode), Math.cos(longitudeOfAscendingNode));
 
         Matrix3d r2 = new Matrix3d(
-            Math.cos(inclination), 0, Math.sin(inclination),
-             0, 1, 0,
-            -Math.sin(inclination), 0, Math.cos(inclination)
-        );
+                Math.cos(inclination), 0, Math.sin(inclination),
+                0, 1, 0,
+                -Math.sin(inclination), 0, Math.cos(inclination));
 
         Matrix3d r3 = new Matrix3d(
-            Math.cos(argumentOfPeriapsis), -Math.sin(argumentOfPeriapsis), 0,
-            Math.sin(argumentOfPeriapsis), Math.cos(argumentOfPeriapsis), 0,
-            0, 0, 1
-        );
+                Math.cos(argumentOfPeriapsis), -Math.sin(argumentOfPeriapsis), 0,
+                Math.sin(argumentOfPeriapsis), Math.cos(argumentOfPeriapsis), 0,
+                0, 0, 1);
 
         Matrix3d rotationMatrix = new Matrix3d();
-        r1.mul(r2,rotationMatrix);
+        r1.mul(r2, rotationMatrix);
         rotationMatrix.mul(r3);
         return rotationMatrix.transform(vector);
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     //
-    private static Vector3d constructDistancePQWvect(double radius, double trueAnomaly){
+    private static Vector3d constructDistancePQWvect(double radius, double trueAnomaly) {
         double x = radius * Math.cos(trueAnomaly);
         double y = radius * Math.sin(trueAnomaly);
 
         return new Vector3d(x, y, 0);
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     //
-    private static Vector3d constructVelocityPQWvect(double mu, double p, double eccentricity, double trueAnomaly){
+    private static Vector3d constructVelocityPQWvect(double mu, double p, double eccentricity, double trueAnomaly) {
         double x = -Math.sqrt(mu / p) * Math.sin(trueAnomaly);
         double y = Math.sqrt(mu / p) * (eccentricity + Math.cos(trueAnomaly));
 

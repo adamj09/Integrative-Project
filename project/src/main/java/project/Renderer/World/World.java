@@ -4,11 +4,14 @@ import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.joml.Matrix3d;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
 import project.Math.Body;
 import project.Math.Satellite;
+import project.Math.SatelliteData;
 import project.Renderer.Camera.Camera;
 import project.Renderer.Model.Mesh;
 import project.Renderer.Model.RingGenerator;
@@ -80,10 +83,6 @@ public class World {
         }
     }
 
-    public void updateColors() {
-        updateColorBuffer();
-    }
-
     public void setBody(Body body) {
         this.body = body;
 
@@ -93,8 +92,8 @@ public class World {
         loadOrbits();
 
         updateBodyMatrixBuffer();
+        updateOrbitMatrixBuffer();
         updateColorBuffer();
-        updateColors();
     }
 
     private void loadLightSource() {
@@ -129,7 +128,8 @@ public class World {
 
             // If the satellite does not already have a WorldObject representation, add it.
             if (!bodies.containsKey(item.getKey())) {
-                WorldObject newObject = new WorldObject(satellite.getData().name, bodyMesh, new Vector3f(1.f, 0.f, 0.f));
+                WorldObject newObject = new WorldObject(satellite.getData().name, bodyMesh,
+                        new Vector3f(1.f, 0.f, 0.f));
 
                 newObject.setScale(new Vector3f(satelliteRadius, satelliteRadius, satelliteRadius));
                 newObject.setTranslation(new Vector3f(
@@ -148,29 +148,43 @@ public class World {
         orbitMesh = new RingGenerator().create(2);
 
         for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
-            Satellite satellite = item.getValue();
-
             // If the orbit does not already have a WorldObject representation, add it.
             if (!orbits.containsKey(item.getKey())) {
                 WorldObject orbit = new WorldObject(item.getKey(), orbitMesh);
+                SatelliteData data = item.getValue().getData();
 
-                float semiMajorAxis = (float) (satellite.getData().a / 1000.d / AU * UNIT_SCALE);
-                float semiMinorAxis = (float) ((satellite.getData().a / 1000.d / AU * UNIT_SCALE)
-                        * Math.sqrt(1.0 - Math.pow(satellite.getData().eccentricity / 1000.d, 2)));
+                double semiMajorAxis = data.a / 1000.d / AU * UNIT_SCALE;
+                double semiMinorAxis = (data.a / 1000.d / AU * UNIT_SCALE)
+                        * Math.sqrt(1.0 - Math.pow(data.eccentricity, 2));
 
                 // Scale orbit according to orbital parameters.
-                float scaleFactor = semiMajorAxis / semiMinorAxis;
-                orbit.setScale(new Vector3f(scaleFactor, 1.f, 1.f));
+                orbit.setScale(new Vector3f((float) semiMinorAxis, 1.f, (float) semiMajorAxis));
 
-                // Translate orbit so that the planet is at a focal point.
+                // // Translate orbit so that the planet is at a focal point.
                 float focalDistance = (float) Math.sqrt(Math.pow(semiMajorAxis, 2) - Math.pow(semiMinorAxis, 2));
-                orbit.setTranslation(new Vector3f(focalDistance, 0.f, 0.f));
+                orbit.setTranslation(new Vector3f(0.f, 0.f, focalDistance));
 
                 // Rotate orbits according to orbital parameters.
-                orbit.setRotation(new Vector3f(
-                        (float) satellite.getData().inclination,
-                        (float) satellite.getData().longitudeOfAscendingNode,
-                        (float) satellite.getData().argumentOfPeriapsis));
+                orbit.rotate(
+                        (float) (data.longitudeOfAscendingNode),
+                        new Vector3f(
+                                0.f,
+                                0.f,
+                                1.f));
+
+                orbit.rotate(
+                        (float) (data.inclination),
+                        new Vector3f(
+                                (float) data.lineOfNodesVect.x,
+                                (float) data.lineOfNodesVect.y,
+                                (float) data.lineOfNodesVect.z).normalize());
+
+                orbit.rotate(
+                        (float) data.argumentOfPeriapsis,
+                        new Vector3f(
+                                (float) data.angularMomentumVect.x,
+                                (float) data.angularMomentumVect.y,
+                                (float) data.angularMomentumVect.z).normalize());
 
                 orbits.put(orbit.getName(), orbit);
             }
@@ -182,12 +196,12 @@ public class World {
 
         for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
             Satellite satellite = item.getValue();
-            //System.out.println(bodies.get(item.getKey()).getTranslation().toString());
+            // System.out.println(bodies.get(item.getKey()).getTranslation().toString());
 
             bodies.get(item.getKey()).setTranslation(new Vector3f(
-                (float) (satellite.getData().currentPosition.x / 1000.d / AU * UNIT_SCALE),
-                (float) (satellite.getData().currentPosition.y / 1000.d / AU * UNIT_SCALE),
-                (float) (satellite.getData().currentPosition.z / 1000.d / AU * UNIT_SCALE)));
+                    (float) (satellite.getData().currentPosition.x / 1000.d / AU * UNIT_SCALE),
+                    (float) (satellite.getData().currentPosition.y / 1000.d / AU * UNIT_SCALE),
+                    (float) (satellite.getData().currentPosition.z / 1000.d / AU * UNIT_SCALE)));
         }
 
         updateBodyMatrixBuffer();
@@ -201,7 +215,7 @@ public class World {
         bodies.put(satellite.getName(), satellite);
         // TODO: also add associated orbit when adding body
 
-        //updateMatrices();
+        // updateMatrices();
     }
 
     public void removeSatellite(String name) {
@@ -209,7 +223,7 @@ public class World {
             bodies.remove(name);
         }
 
-        //updateMatrices();
+        // updateMatrices();
     }
 
     public void setLightSourceDistance(double distance) {// Distance in km
