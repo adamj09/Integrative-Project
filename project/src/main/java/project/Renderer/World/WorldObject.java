@@ -1,5 +1,6 @@
 package project.Renderer.World;
 
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -31,6 +32,10 @@ public class WorldObject {
     public void updateTransform() {
         transformMatrix.setTranslation(translation);
         transformMatrix.scale(scale);
+    }
+
+    public void transform(Matrix3f matrix) {
+        
     }
 
     public Vector3f getTranslation() {

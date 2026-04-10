@@ -136,9 +136,9 @@ public class World {
 
                 newObject.setScale(new Vector3f(satelliteRadius, satelliteRadius, satelliteRadius));
                 newObject.setTranslation(new Vector3f(
-                        (float) (satellite.getData().currentPosition.x / 1000.d / AU * UNIT_SCALE),
                         (float) (satellite.getData().currentPosition.y / 1000.d / AU * UNIT_SCALE),
-                        (float) (satellite.getData().currentPosition.z / 1000.d / AU * UNIT_SCALE)));
+                        (float) (satellite.getData().currentPosition.z / 1000.d / AU * UNIT_SCALE),
+                        (float) (satellite.getData().currentPosition.x / 1000.d / AU * UNIT_SCALE)));
 
                 bodies.put(newObject.getName(), newObject);
             }
@@ -165,55 +165,29 @@ public class World {
 
                 // // Translate orbit so that the planet is at a focal point.
                 float focalDistance = (float) Math.sqrt(Math.pow(semiMajorAxis, 2) - Math.pow(semiMinorAxis, 2));
-                orbit.setTranslation(new Vector3f(0.f, 0.f, focalDistance));
+                orbit.setTranslation(new Vector3f(0.f, 0.f, -focalDistance));
 
-                // Matrix4f xRotation = new Matrix4f(
-                //         1, 0, 0, 0,
-                //         0, (float) Math.cos(data.inclination), -(float) Math.sin(data.inclination), 0,
-                //         0, (float) Math.sin(data.inclination), (float) Math.cos(data.inclination), 0,
-                //         0, 0, 0, 1);
-
-                // Matrix4f yRotation = new Matrix4f(
-                //         (float) Math.cos(data.longitudeOfAscendingNode), 0,
-                //         (float) Math.sin(data.longitudeOfAscendingNode), 0,
-                //         0, 1, 0, 0,
-                //         -(float) Math.sin(data.longitudeOfAscendingNode), 0,
-                //         (float) Math.cos(data.longitudeOfAscendingNode), 0,
-                //         0, 0, 0, 1);
-
-                // Matrix4f zRotation = new Matrix4f(
-                //         (float) Math.cos(data.inclination), -(float) Math.sin(data.inclination), 0, 0,
-                //         (float) Math.sin(data.inclination), (float) Math.cos(data.inclination), 0, 0,
-                //         0, 0, 1, 0,
-                //         0, 0, 0, 1);
-
-                // Matrix4f rotationMatrix = new Matrix4f();
-                // xRotation.mul(yRotation, rotationMatrix);
-                // rotationMatrix.mul(zRotation);
-
-                // orbit.getTransformMatrix().mul(rotationMatrix);
+                orbit.rotate(
+                        (float) 0,
+                        new Vector3f(
+                                (float) 0.f,
+                                (float) 1.f,
+                                (float) 0.f).normalize());
 
                 // // Rotate orbits according to orbital parameters.
                 orbit.rotate(
-                        (float) (data.inclination),
+                        (float) (-data.inclination),
                         new Vector3f(
                                 0.f,
                                 0.f,
                                 1.f));
 
                 orbit.rotate(
-                        (float) (data.argumentOfPeriapsis),
+                        (float) 0,
                         new Vector3f(
-                                (float) data.angularMomentumVect.x,
                                 (float) data.angularMomentumVect.y,
-                                (float) data.angularMomentumVect.z).normalize());
-
-                orbit.rotate(
-                        (float) data.longitudeOfAscendingNode,
-                        new Vector3f(
-                                (float) 0.f,
-                                (float) 1.f,
-                                (float) 0.f).normalize());
+                                (float) data.angularMomentumVect.z,
+                                (float) data.angularMomentumVect.x).normalize());
 
                 orbits.put(orbit.getName(), orbit);
             }
@@ -228,9 +202,9 @@ public class World {
             // System.out.println(bodies.get(item.getKey()).getTranslation().toString());
 
             bodies.get(item.getKey()).setTranslation(new Vector3f(
-                    (float) (satellite.getData().currentPosition.x / 1000.d / AU * UNIT_SCALE),
                     (float) (satellite.getData().currentPosition.y / 1000.d / AU * UNIT_SCALE),
-                    (float) (satellite.getData().currentPosition.z / 1000.d / AU * UNIT_SCALE)));
+                    (float) (satellite.getData().currentPosition.z / 1000.d / AU * UNIT_SCALE),
+                    (float) (satellite.getData().currentPosition.x / 1000.d / AU * UNIT_SCALE)));
         }
 
         updateBodyMatrixBuffer();

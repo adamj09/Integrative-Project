@@ -267,20 +267,17 @@ public class MathOrbits {
         data.distance = distance(data.a, data.eccentricity, data.trueAnomaly, data.maximumDistanceToBody);
 
         // position in 3D space
-        Vector4d position = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
+        data.currentPosition = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
                 data.argumentOfPeriapsis)
-                .transform(new Vector4d(constructDistancePQWvect(data.distance, data.trueAnomaly), 0));
-        data.currentPosition = new Vector3d(position.x, position.y, position.z);
+                .transform(constructDistancePQWvect(data.distance, data.trueAnomaly));
 
         // speed
         data.speed = speed(data.mu, data.distance, data.a);
 
         // velocity in 3D space
-        Vector4d velocity = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
+        data.currentVelocity = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
                 data.argumentOfPeriapsis)
-                .transform(new Vector4d(constructVelocityPQWvect(data.mu, data.p, data.eccentricity, data.trueAnomaly),
-                        0));
-        data.currentVelocity = new Vector3d(velocity.x, velocity.y, velocity.z);
+                .transform(constructVelocityPQWvect(data.mu, data.p, data.eccentricity, data.trueAnomaly));;
 
         // excessSpeed
         data.excessSpeed = excessSpeed(data.mu, data.distance);
@@ -312,11 +309,11 @@ public class MathOrbits {
         data.inclination = Math.toRadians(inclination);
         data.argumentOfPeriapsis = Math.toRadians(argumentOfPeriapsis);
 
-        Vector4d distanceECI = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
-                data.argumentOfPeriapsis).transform(new Vector4d(constructDistancePQWvect(distance, trueAnomaly), 0));
-        Vector4d velocityECI = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
+        Vector3d distanceECI = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
+                data.argumentOfPeriapsis).transform(constructDistancePQWvect(distance, trueAnomaly));
+        Vector3d velocityECI = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
                 data.argumentOfPeriapsis)
-                .transform(new Vector4d(constructVelocityPQWvect(mu, p, eccentricity, trueAnomaly), 0));
+                .transform(constructVelocityPQWvect(mu, p, eccentricity, trueAnomaly));
 
         data.initialPosition = new Vector3d(distanceECI.x, distanceECI.y, distanceECI.z);
         data.initialVelocity = new Vector3d(velocityECI.x, velocityECI.y, velocityECI.z);
@@ -353,57 +350,33 @@ public class MathOrbits {
 
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     //
-    public static Matrix4d rotationPQWtoECI(double longitudeOfAscendingNode, double inclination,
+    public static Matrix3d rotationPQWtoECI(double longitudeOfAscendingNode, double inclination,
             double argumentOfPeriapsis) {
 
-        // TODO: fix these rotations.
+        double m00 = Math.cos(longitudeOfAscendingNode) * Math.cos(argumentOfPeriapsis)
+                - Math.sin(longitudeOfAscendingNode) * Math.cos(inclination) * Math.sin(argumentOfPeriapsis);
+        double m01 = -Math.cos(longitudeOfAscendingNode) * Math.sin(argumentOfPeriapsis)
+                - Math.sin(longitudeOfAscendingNode) * Math.cos(inclination) * Math.cos(argumentOfPeriapsis);
+        double m02 = Math.sin(longitudeOfAscendingNode) * Math.sin(inclination);
 
-        // If we're using a Y up, X right, Z forward coordinate system, this should be
-        // along the Y axis.
-        Matrix4d xRotation = new Matrix4d(
-                1, 0, 0, 0,
-                0, Math.cos(inclination), Math.sin(inclination), 0,
-                0, -Math.sin(inclination), Math.cos(inclination), 0,
-                0, 0, 0, 1);
+        double m10 = Math.sin(longitudeOfAscendingNode) * Math.cos(argumentOfPeriapsis)
+                + Math.cos(longitudeOfAscendingNode) * Math.cos(inclination) * Math.sin(argumentOfPeriapsis);
+        double m11 = -Math.sin(longitudeOfAscendingNode) * Math.sin(argumentOfPeriapsis)
+                + Math.cos(longitudeOfAscendingNode) * Math.cos(inclination) * Math.cos(argumentOfPeriapsis);
+        double m12 = -Math.cos(longitudeOfAscendingNode) * Math.sin(inclination);
 
-        // NOTICE: Inclination rotation should (probably) be done around the line of
-        // nodes vector, though this is acceptable since we assume planets don't have
-        // tilt. If we're using a Y up, X right, Z forward coordinate system, this
-        // should be
-        // along the X axis.
-        Matrix4d yRotation = new Matrix4d(
-                Math.cos(longitudeOfAscendingNode), 0, -Math.sin(longitudeOfAscendingNode), 0,
-                0, 1, 0, 0,
-                Math.sin(longitudeOfAscendingNode), 0, Math.cos(longitudeOfAscendingNode), 0,
-                0, 0, 0, 1);
+        double m20 = Math.sin(inclination) * Math.sin(argumentOfPeriapsis);
+        double m21 = Math.sin(inclination) * Math.cos(argumentOfPeriapsis);
+        double m22 = Math.cos(inclination);
 
-        // NOTICE: This is wrong because the argument of periapsis rotation is being
-        // done around the absolute z-axis, assuming a Z up coordinate system (in
-        // world-space, < 0, 1, 0 >), rather than
-        // around the orbit plane's normal vector. The orbital plane's normal vector
-        // should be the same direction as the angular momentum vector (make sure to
-        // normalize this vector when using as an axis of rotation).
+        Matrix3d rotation = new Matrix3d(
+                m00, m01, m02,
+                m10, m11, m12,
+                m20, m21, m22);
 
-        Matrix4d zRotation = new Matrix4d(
-                Math.cos(argumentOfPeriapsis), 0, -Math.sin(argumentOfPeriapsis), 0,
-                0, 1, 0, 0,
-                Math.sin(argumentOfPeriapsis), 0, Math.cos(argumentOfPeriapsis), 0,
-                0, 0, 0, 1);
-
-        // Matrix4d zRotation = new Matrix4d(
-        //         Math.cos(argumentOfPeriapsis), -Math.sin(argumentOfPeriapsis), 0, 0,
-        //         Math.sin(argumentOfPeriapsis), Math.cos(argumentOfPeriapsis), 0, 0,
-        //         0, 0, 1, 0,
-        //         0, 0, 0, 1);
-
-        Matrix4d rotationMatrix = new Matrix4d();
-        xRotation.mul(yRotation, rotationMatrix);
-        rotationMatrix.mul(zRotation);
-
-        return rotationMatrix;
+        return rotation;
     }
 
-    // TODO: convert these to use Y up, X right, Z forward coordinate system
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     //
     private static Vector3d constructDistancePQWvect(double radius, double trueAnomaly) {
