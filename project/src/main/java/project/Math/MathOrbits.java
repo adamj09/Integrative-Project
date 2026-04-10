@@ -1,8 +1,9 @@
 package project.Math;
 
 import org.joml.Vector3d;
-
+import org.joml.Vector4d;
 import org.joml.Matrix3d;
+import org.joml.Matrix4d;
 
 public class MathOrbits {
 
@@ -33,14 +34,15 @@ public class MathOrbits {
         double eccentricity = eccentricityVect.length();
 
         if (eccentricity >= 1 || eccentricity <= 0) {
-            //TODO: handle with exception
+            // TODO: handle with exception
             return null;
         }
 
         return eccentricityVect;
     }
 
-    private static double hillRadius(double distanceToStar, double eccentricity, double centralBodyMass, double starMass) {
+    private static double hillRadius(double distanceToStar, double eccentricity, double centralBodyMass,
+            double starMass) {
         if (starMass == 0) {
             return -1;
         }
@@ -82,8 +84,8 @@ public class MathOrbits {
         if (lineOfNodes.length() < 1e-10) {
             // Equatorial orbit, longitude of ascending node is undefined, set to 0
             return 0.0;
-        } 
-            
+        }
+
         double arg = lineOfNodes.x / lineOfNodes.length();
         arg = Math.max(-1.0, Math.min(1.0, arg));
         double longitudeOfAscendingNode = Math.acos(arg);
@@ -107,21 +109,23 @@ public class MathOrbits {
             // in xy plane
             argumentOfPeriapsis = Math.atan2(eccentricity.y, eccentricity.x);
             if (argumentOfPeriapsis < 0) {
-                return argumentOfPeriapsis + 2 * Math.PI;
+                return argumentOfPeriapsis + (2 * Math.PI);
             }
+            return argumentOfPeriapsis;
         }
-            
+
         double arg = lineOfNodes.dot(eccentricity) / (lineOfNodes.length() * eccentricity.length());
         argumentOfPeriapsis = Math.acos(Math.max(-1.0, Math.min(1.0, arg)));
 
         if (eccentricity.z < 0) {
-            return 2 * Math.PI - argumentOfPeriapsis;
+            return (2 * Math.PI) - argumentOfPeriapsis;
         }
 
         return argumentOfPeriapsis;
     }
 
-    private static double initialTrueAnomaly(Vector3d position, Vector3d velocity, double eccentricity, double semiLatusRectum) {
+    private static double initialTrueAnomaly(Vector3d position, Vector3d velocity, double eccentricity,
+            double semiLatusRectum) {
         double arg = (semiLatusRectum - position.length()) / (eccentricity * position.length());
 
         double trueAnomaly = Math.acos(Math.max(-1.0, Math.min(1.0, arg)));
@@ -137,17 +141,18 @@ public class MathOrbits {
     }
 
     private static double initialEccentricAnomaly(double eccentricity, double trueAnomaly) {
-        return 2 * Math.atan(Math.sqrt((1 -eccentricity) / (1 + eccentricity)) * Math.tan(trueAnomaly / 2));
+        return 2 * Math.atan(Math.sqrt((1 - eccentricity) / (1 + eccentricity)) * Math.tan(trueAnomaly / 2));
     }
 
     private static double initialMeanAnomaly(double eccentricAnomaly, double eccentricity) {
         return eccentricAnomaly - (eccentricity * Math.sin(eccentricAnomaly));
     }
 
-    private static double initialDistance(double semiLatusRectum, double eccentricity, double trueAnomaly, double hillRadius) {
+    private static double initialDistance(double semiLatusRectum, double eccentricity, double trueAnomaly,
+            double hillRadius) {
         double distance = semiLatusRectum / (1 + (eccentricity * Math.cos(trueAnomaly)));
 
-        if(distance > hillRadius) {
+        if (distance > hillRadius) {
             // TODO: exception if distance is larger than hill radius
             return -1;
         }
@@ -156,9 +161,10 @@ public class MathOrbits {
     }
 
     private static double distance(double semiMajorAxis, double eccentricity, double trueAnomaly, double hillRadius) {
-        double distance = (semiMajorAxis * (1 - Math.pow(eccentricity, 2))) / (1 + (eccentricity * Math.cos(trueAnomaly)));
+        double distance = (semiMajorAxis * (1 - Math.pow(eccentricity, 2)))
+                / (1 + (eccentricity * Math.cos(trueAnomaly)));
 
-        if(distance > hillRadius) {
+        if (distance > hillRadius) {
             // TODO: exception if distance is larger than hill radius
             return -1;
         }
@@ -203,7 +209,8 @@ public class MathOrbits {
         data.eccentricityVect = eccentricity(data.angularMomentumVect, initialVelocity, initialPosition, data.mu);
         data.eccentricity = data.eccentricityVect.length();
 
-        data.maximumDistanceToBody = hillRadius(celestialBody.getDistanceToSun(), data.eccentricity, celestialBody.getMass(), celestialBody.getMassOfSun());
+        data.maximumDistanceToBody = hillRadius(celestialBody.getDistanceToSun(), data.eccentricity,
+                celestialBody.getMass(), celestialBody.getMassOfSun());
 
         data.p = semiLatusRectum(data.angularMomentum, data.mu);
         data.radiusOfPeriapsis = periapsis(data.p, data.eccentricity);
@@ -260,13 +267,20 @@ public class MathOrbits {
         data.distance = distance(data.a, data.eccentricity, data.trueAnomaly, data.maximumDistanceToBody);
 
         // position in 3D space
-        data.currentPosition = rotationPQWtoECI(satellite, constructDistancePQWvect(data.distance, data.trueAnomaly));
+        Vector4d position = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
+                data.argumentOfPeriapsis)
+                .transform(new Vector4d(constructDistancePQWvect(data.distance, data.trueAnomaly), 0));
+        data.currentPosition = new Vector3d(position.x, position.y, position.z);
 
         // speed
         data.speed = speed(data.mu, data.distance, data.a);
 
         // velocity in 3D space
-        data.currentVelocity = rotationPQWtoECI(satellite, constructVelocityPQWvect(data.mu, satellite.getData().p, data.eccentricity, data.trueAnomaly));;
+        Vector4d velocity = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
+                data.argumentOfPeriapsis)
+                .transform(new Vector4d(constructVelocityPQWvect(data.mu, data.p, data.eccentricity, data.trueAnomaly),
+                        0));
+        data.currentVelocity = new Vector3d(velocity.x, velocity.y, velocity.z);
 
         // excessSpeed
         data.excessSpeed = excessSpeed(data.mu, data.distance);
@@ -288,18 +302,24 @@ public class MathOrbits {
     public static void constructSatelliteUsingAngle(Satellite satellite, double massOfCelestialBody,
             double distance, double eccentricity, double trueAnomaly,
             double longitudeAscendingNode, double inclination, double argumentOfPeriapsis) {
+
+        SatelliteData data = satellite.getData();
+
         double p = distance + (distance * eccentricity * Math.cos(trueAnomaly));
         double mu = Constant.GRAVITATIONAL_CONSTANT * massOfCelestialBody;
 
-        satellite.getData().longitudeOfAscendingNode = Math.toRadians(longitudeAscendingNode);
-        satellite.getData().inclination = Math.toRadians(inclination);
-        satellite.getData().argumentOfPeriapsis = Math.toRadians(argumentOfPeriapsis);
+        data.longitudeOfAscendingNode = Math.toRadians(longitudeAscendingNode);
+        data.inclination = Math.toRadians(inclination);
+        data.argumentOfPeriapsis = Math.toRadians(argumentOfPeriapsis);
 
-        Vector3d distanceECI = rotationPQWtoECI(satellite, constructDistancePQWvect(distance, trueAnomaly));
-        Vector3d velocityECI = rotationPQWtoECI(satellite, constructVelocityPQWvect(mu, p, eccentricity, trueAnomaly));
+        Vector4d distanceECI = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
+                data.argumentOfPeriapsis).transform(new Vector4d(constructDistancePQWvect(distance, trueAnomaly), 0));
+        Vector4d velocityECI = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
+                data.argumentOfPeriapsis)
+                .transform(new Vector4d(constructVelocityPQWvect(mu, p, eccentricity, trueAnomaly), 0));
 
-        satellite.getData().initialPosition = distanceECI;
-        satellite.getData().initialVelocity = velocityECI;
+        data.initialPosition = new Vector3d(distanceECI.x, distanceECI.y, distanceECI.z);
+        data.initialVelocity = new Vector3d(velocityECI.x, velocityECI.y, velocityECI.z);
     }
 
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -333,30 +353,54 @@ public class MathOrbits {
 
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     //
-    private static Vector3d rotationPQWtoECI(Satellite satellite, Vector3d vector) {
-        double longitudeOfAscendingNode = satellite.getData().longitudeOfAscendingNode; // Ω
-        double inclination = satellite.getData().inclination; // i
-        double argumentOfPeriapsis = satellite.getData().argumentOfPeriapsis; // ω
+    public static Matrix4d rotationPQWtoECI(double longitudeOfAscendingNode, double inclination,
+            double argumentOfPeriapsis) {
 
-        Matrix3d r1 = new Matrix3d(
-                1, 0, 0,
-                0, Math.cos(longitudeOfAscendingNode), -Math.sin(longitudeOfAscendingNode),
-                0, Math.sin(longitudeOfAscendingNode), Math.cos(longitudeOfAscendingNode));
+        // TODO: fix these rotations.
 
-        Matrix3d r2 = new Matrix3d(
-                Math.cos(inclination), 0, Math.sin(inclination),
-                0, 1, 0,
-                -Math.sin(inclination), 0, Math.cos(inclination));
+        // If we're using a Y up, X right, Z forward coordinate system, this should be
+        // along the Y axis.
+        Matrix4d xRotation = new Matrix4d(
+                1, 0, 0, 0,
+                0, Math.cos(inclination), Math.sin(inclination), 0,
+                0, -Math.sin(inclination), Math.cos(inclination), 0,
+                0, 0, 0, 1);
 
-        Matrix3d r3 = new Matrix3d(
-                Math.cos(argumentOfPeriapsis), -Math.sin(argumentOfPeriapsis), 0,
-                Math.sin(argumentOfPeriapsis), Math.cos(argumentOfPeriapsis), 0,
-                0, 0, 1);
+        // NOTICE: Inclination rotation should (probably) be done around the line of
+        // nodes vector, though this is acceptable since we assume planets don't have
+        // tilt. If we're using a Y up, X right, Z forward coordinate system, this
+        // should be
+        // along the X axis.
+        Matrix4d yRotation = new Matrix4d(
+                Math.cos(longitudeOfAscendingNode), 0, -Math.sin(longitudeOfAscendingNode), 0,
+                0, 1, 0, 0,
+                Math.sin(longitudeOfAscendingNode), 0, Math.cos(longitudeOfAscendingNode), 0,
+                0, 0, 0, 1);
 
-        Matrix3d rotationMatrix = new Matrix3d();
-        r1.mul(r2, rotationMatrix);
-        rotationMatrix.mul(r3);
-        return rotationMatrix.transform(vector);
+        // NOTICE: This is wrong because the argument of periapsis rotation is being
+        // done around the absolute z-axis, assuming a Z up coordinate system (in
+        // world-space, < 0, 1, 0 >), rather than
+        // around the orbit plane's normal vector. The orbital plane's normal vector
+        // should be the same direction as the angular momentum vector (make sure to
+        // normalize this vector when using as an axis of rotation).
+
+        Matrix4d zRotation = new Matrix4d(
+                Math.cos(argumentOfPeriapsis), 0, -Math.sin(argumentOfPeriapsis), 0,
+                0, 1, 0, 0,
+                Math.sin(argumentOfPeriapsis), 0, Math.cos(argumentOfPeriapsis), 0,
+                0, 0, 0, 1);
+
+        // Matrix4d zRotation = new Matrix4d(
+        //         Math.cos(argumentOfPeriapsis), -Math.sin(argumentOfPeriapsis), 0, 0,
+        //         Math.sin(argumentOfPeriapsis), Math.cos(argumentOfPeriapsis), 0, 0,
+        //         0, 0, 1, 0,
+        //         0, 0, 0, 1);
+
+        Matrix4d rotationMatrix = new Matrix4d();
+        xRotation.mul(yRotation, rotationMatrix);
+        rotationMatrix.mul(zRotation);
+
+        return rotationMatrix;
     }
 
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------

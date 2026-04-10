@@ -5,11 +5,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.joml.Matrix3d;
+import org.joml.Matrix4d;
+import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
 import project.Math.Body;
+import project.Math.MathOrbits;
 import project.Math.Satellite;
 import project.Math.SatelliteData;
 import project.Renderer.Camera.Camera;
@@ -164,27 +167,53 @@ public class World {
                 float focalDistance = (float) Math.sqrt(Math.pow(semiMajorAxis, 2) - Math.pow(semiMinorAxis, 2));
                 orbit.setTranslation(new Vector3f(0.f, 0.f, focalDistance));
 
-                // Rotate orbits according to orbital parameters.
+                // Matrix4f xRotation = new Matrix4f(
+                //         1, 0, 0, 0,
+                //         0, (float) Math.cos(data.inclination), -(float) Math.sin(data.inclination), 0,
+                //         0, (float) Math.sin(data.inclination), (float) Math.cos(data.inclination), 0,
+                //         0, 0, 0, 1);
+
+                // Matrix4f yRotation = new Matrix4f(
+                //         (float) Math.cos(data.longitudeOfAscendingNode), 0,
+                //         (float) Math.sin(data.longitudeOfAscendingNode), 0,
+                //         0, 1, 0, 0,
+                //         -(float) Math.sin(data.longitudeOfAscendingNode), 0,
+                //         (float) Math.cos(data.longitudeOfAscendingNode), 0,
+                //         0, 0, 0, 1);
+
+                // Matrix4f zRotation = new Matrix4f(
+                //         (float) Math.cos(data.inclination), -(float) Math.sin(data.inclination), 0, 0,
+                //         (float) Math.sin(data.inclination), (float) Math.cos(data.inclination), 0, 0,
+                //         0, 0, 1, 0,
+                //         0, 0, 0, 1);
+
+                // Matrix4f rotationMatrix = new Matrix4f();
+                // xRotation.mul(yRotation, rotationMatrix);
+                // rotationMatrix.mul(zRotation);
+
+                // orbit.getTransformMatrix().mul(rotationMatrix);
+
+                // // Rotate orbits according to orbital parameters.
                 orbit.rotate(
-                        (float) (data.longitudeOfAscendingNode),
+                        (float) (data.inclination),
                         new Vector3f(
                                 0.f,
                                 0.f,
                                 1.f));
 
                 orbit.rotate(
-                        (float) (data.inclination),
+                        (float) (data.argumentOfPeriapsis),
                         new Vector3f(
                                 (float) data.lineOfNodesVect.x,
                                 (float) data.lineOfNodesVect.y,
                                 (float) data.lineOfNodesVect.z).normalize());
 
                 orbit.rotate(
-                        (float) data.argumentOfPeriapsis,
+                        (float) data.longitudeOfAscendingNode,
                         new Vector3f(
-                                (float) data.angularMomentumVect.x,
-                                (float) data.angularMomentumVect.y,
-                                (float) data.angularMomentumVect.z).normalize());
+                                (float) 0.f,
+                                (float) 1.f,
+                                (float) 0.f).normalize());
 
                 orbits.put(orbit.getName(), orbit);
             }
