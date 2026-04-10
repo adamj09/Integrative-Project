@@ -204,9 +204,9 @@ public class World {
                 orbit.rotate(
                         (float) (data.argumentOfPeriapsis),
                         new Vector3f(
-                                (float) data.lineOfNodesVect.x,
-                                (float) data.lineOfNodesVect.y,
-                                (float) data.lineOfNodesVect.z).normalize());
+                                (float) data.angularMomentumVect.x,
+                                (float) data.angularMomentumVect.y,
+                                (float) data.angularMomentumVect.z).normalize());
 
                 orbit.rotate(
                         (float) data.longitudeOfAscendingNode,

@@ -403,6 +403,7 @@ public class MathOrbits {
         return rotationMatrix;
     }
 
+    // TODO: convert these to use Y up, X right, Z forward coordinate system
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     //
     private static Vector3d constructDistancePQWvect(double radius, double trueAnomaly) {
