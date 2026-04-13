@@ -51,19 +51,19 @@ public class ControlManager {
 
             if (keyCode == KeyCode.getKeyCode(forwardKey)) {
                 forwardPressed = 1;
-            } 
+            }
             if (keyCode == KeyCode.getKeyCode(leftKey)) {
                 leftPressed = 1;
-            } 
+            }
             if (keyCode == KeyCode.getKeyCode(backwardKey)) {
                 backwardPressed = 1;
-            } 
+            }
             if (keyCode == KeyCode.getKeyCode(rightKey)) {
                 rightPressed = 1;
-            } 
+            }
             if (keyCode == KeyCode.getKeyCode(upKey)) {
                 upPressed = 1;
-            } 
+            }
             if (keyCode == KeyCode.getKeyCode(downKey)) {
                 downPressed = 1;
             }
@@ -74,19 +74,19 @@ public class ControlManager {
 
             if (keyCode == KeyCode.getKeyCode(forwardKey)) {
                 forwardPressed = 0;
-            } 
+            }
             if (keyCode == KeyCode.getKeyCode(leftKey)) {
                 leftPressed = 0;
-            } 
+            }
             if (keyCode == KeyCode.getKeyCode(backwardKey)) {
                 backwardPressed = 0;
-            } 
+            }
             if (keyCode == KeyCode.getKeyCode(rightKey)) {
                 rightPressed = 0;
-            } 
+            }
             if (keyCode == KeyCode.getKeyCode(upKey)) {
                 upPressed = 0;
-            } 
+            }
             if (keyCode == KeyCode.getKeyCode(downKey)) {
                 downPressed = 0;
             }
@@ -124,17 +124,19 @@ public class ControlManager {
     }
 
     public void updateMouse() {
-        float mouseNewX = (float) MouseInfo.getPointerInfo().getLocation().getX(),
-                mouseNewY = (float) MouseInfo.getPointerInfo().getLocation().getY();
+        if (focusNode.isFocused()) {
+            float mouseNewX = (float) MouseInfo.getPointerInfo().getLocation().getX(),
+                    mouseNewY = (float) MouseInfo.getPointerInfo().getLocation().getY();
 
-        mouseDeltaX = mouseNewX - mouseCurrentX;
-        mouseDeltaY = mouseNewY - mouseCurrentY;
+            mouseDeltaX = mouseNewX - mouseCurrentX;
+            mouseDeltaY = mouseNewY - mouseCurrentY;
 
-        mouseCurrentX = mouseNewX;
-        mouseCurrentY = mouseNewY;
+            mouseCurrentX = mouseNewX;
+            mouseCurrentY = mouseNewY;
 
-        mouseDeltaXNormalized = mouseDeltaX / (float) focusNode.getScaleX();
-        mouseDeltaYNormalized = mouseDeltaY / (float) focusNode.getScaleY();
+            mouseDeltaXNormalized = mouseDeltaX / (float) focusNode.getScaleX();
+            mouseDeltaYNormalized = mouseDeltaY / (float) focusNode.getScaleY();
+        }
     }
 
     public float getMouseDeltaX() {

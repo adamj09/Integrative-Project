@@ -64,6 +64,6 @@ public class OrbitRenderSystem {
 
         //glClear(GL_DEPTH_BUFFER_BIT);
         glBindVertexArray(world.getOrbitMesh().getVAO());
-        glDrawArraysInstanced(GL_LINE_LOOP, 0, world.getOrbitMesh().getVertices().size(), world.getOrbits().size() - 1);
+        glDrawArraysInstanced(GL_LINE_LOOP, 0, world.getOrbitMesh().getVertices().size(), world.getOrbits().size());
     }
 }

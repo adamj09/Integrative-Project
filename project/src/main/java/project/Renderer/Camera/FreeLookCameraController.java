@@ -56,7 +56,7 @@ public class FreeLookCameraController {
      */
     private float maxDistance = 500.f;
 
-    private float padding = 0.5f;
+    private float padding = 0.05f;
 
     /**
      * Initializes the camera controller with a camera and control manager.

@@ -3,16 +3,70 @@ package project.Math;
 import java.util.HashMap;
 
 public class Body extends OrbitsTime{
-    private String name;
-    private double mass;
-    private double radius;
+    private String name = "earth";
+    private double mass = Constant.EARTH_DEFAULT_MASS; //in kg
+    private double radius = Constant.EARTH_DEFAULT_RADIUS; //in km
+    private double distanceToSun = Constant.EARTH_DEFAULT_DISTANCE_TO_SUN; //in km (distance to the sun, used for the calculation of the solar radiation pressure)
+    private double massOfSun = Constant.SUN_DEFAULT_MASS; //in kg (mass of the sun, used for the calculation of )
+    private String latestError = "null";
+    private boolean simulationRunning = false;
     private HashMap<String, Satellite> satellites;
     private HashMap<String, Thread> satelliteThreads;
 
-    public Body(String name, double mass, double radius){
+
+    /**
+     * constructor for the body object with earth specifcations
+     */
+    public Body() {
+        satellites = new HashMap<>();
+        satelliteThreads = new HashMap<>();
+    }
+
+    /**
+     * constructor for the body object. The mass of the sun is the one for the solar system
+     * and distance to the sun is the distance between earth and the sun
+     * @param name name (and id) of the body
+     * @param mass mass of the body in kg
+     * @param radius radius of the body in km
+     */
+    public Body(String name, double mass, double radius) {
         this.name = name;
         this.mass = mass;
         this.radius = radius;
+        satellites = new HashMap<>();
+        satelliteThreads = new HashMap<>();
+    }
+
+    /**
+     * constructor for the body object. The mass of the sun is the one for the solar system
+     * @param name name (and id) of the body
+     * @param mass mass of the body in kg
+     * @param radius radius of the body in km
+     * @param distanceToSun distance of the body to the sun in km
+     */
+    public Body(String name, double mass, double radius, double distanceToSun) {
+        this.name = name;
+        this.mass = mass;
+        this.radius = radius;
+        this.distanceToSun = distanceToSun;
+        satellites = new HashMap<>();
+        satelliteThreads = new HashMap<>();
+    }
+
+    /**
+     * constructor for the body object
+     * @param name name (and id) of the body
+     * @param mass mass of the body in kg
+     * @param radius radius of the body in km
+     * @param distanceToSun distance of the body to the sun in km
+     * @param massOfSun mass of the sun in kg
+     */
+    public Body(String name, double mass, double radius, double distanceToSun, double massOfSun){
+        this.name = name;
+        this.mass = mass;
+        this.radius = radius;
+        this.distanceToSun = distanceToSun;
+        this.massOfSun = massOfSun;
         satellites = new HashMap<>();
         satelliteThreads = new HashMap<>();
     }
@@ -22,16 +76,12 @@ public class Body extends OrbitsTime{
      * @param sat the satellite objet that will be added to the list
      * @return true is the operation was succesful and false if it failed (becasue the limit of satellite for the body was reached)
      */
-    public boolean addStellite(Satellite sat){
+    public boolean addSatellite(Satellite sat){
         if(satellites.size()+1 > Constant.MAXIMUM_NUMBER_OF_SATELITE){
+            this.latestError = "maximum number of satelite reach";
             return false;
         }else{
             String name = sat.getData().name;
-            boolean prob = sat.initialiseSatelliteInfo(); // initialise info
-            if(prob){
-                System.out.println("Problemo!!: "+sat.getLatestError());
-                return false;
-            }
             this.satellites.put(name, sat);
             return true;
         }
@@ -44,6 +94,10 @@ public class Body extends OrbitsTime{
      */
     public Satellite getSatellite(String name){
        return this.satellites.get(name);
+    }
+
+    public HashMap<String, Satellite> getSatellites() {
+        return this.satellites;
     }
 
     /**
@@ -93,6 +147,25 @@ public class Body extends OrbitsTime{
         this.radius = radius;
     }
 
+    public String getLatestError(){
+        return this.latestError;
+    }
+
+    public double getDistanceToSun() {
+        return distanceToSun;
+    }
+
+    public void setDistanceToSun(double distanceToSun) {
+        this.distanceToSun = distanceToSun;
+    }
+
+    public double getMassOfSun() {
+        return massOfSun;
+    }
+
+    public void setMassOfSun(double massOfSun) {
+        this.massOfSun = massOfSun;
+    }
 
     /**
      * Starts a thread for each satellite in the hash map.
@@ -107,6 +180,7 @@ public class Body extends OrbitsTime{
                 thread.start();
             }
         }
+        this.simulationRunning = true;
     }
 
     /**
@@ -119,6 +193,7 @@ public class Body extends OrbitsTime{
             }
         }
         satelliteThreads.clear();
+        this.simulationRunning = false;
     }
 
     /**

@@ -5,6 +5,7 @@ import java.util.Map;
 import org.joml.Vector3f;
 
 import project.ControlManager;
+import project.Renderer.Viewport;
 import project.Renderer.World.World;
 import project.Renderer.World.WorldObject;
 
@@ -45,7 +46,7 @@ public class FixedCameraController {
     private float yaw;
 
     /**
-     * Defines the maximum distance the camera can travel from the origin.
+     * Defines the maximum distance the camera can travel from the focused object.
      */
     private float maxDistance = 100.f;
 
@@ -69,6 +70,7 @@ public class FixedCameraController {
         this.controls = controls;
     }
 
+    //TODO: fix camera movement
     /**
      * Translates the camera based on user input.
      * 
@@ -83,30 +85,27 @@ public class FixedCameraController {
 
         // Translation is proportional to distance from lookatPosition
         float speed = controls.getScrollDeltaY() * translateSpeed * deltaTime * radius;
-
         direction.mul(speed, displacement);
         position.add(displacement, newPosition);
 
-        radius = newPosition.distance(lookatPosition);
+        Vector3f toCamera = new Vector3f();
+        position.sub(newPosition, toCamera);
 
-        // Limit camera distance from object
-        if (newPosition.length() > maxDistance) {
-            controls.setScrollDeltaY(0);
-            return;
+        if (toCamera.length() > maxDistance) {
+            displacement.zero();
         }
 
         // Make sure camera doesn't pass through other objects
         for (Map.Entry<String, WorldObject> item : world.getBodies().entrySet()) {
             WorldObject object = item.getValue();
-            if(object.getTranslation().distance(newPosition) < object.getScale().x + padding) {
-                controls.setScrollDeltaY(0);
-                return;
+            if (object.getTranslation().distance(newPosition) < object.getScale().x + padding) {
+                displacement.zero();
             }
         }
 
         Vector3f newDirection = new Vector3f();
         lookatPosition.sub(newPosition, newDirection);
-    
+
         camera.setView(newPosition, newDirection);
         controls.setScrollDeltaY(0);
     }
@@ -148,13 +147,11 @@ public class FixedCameraController {
      *                  to keep movement speed framerate independent).
      */
     public void updateCameraTransform(float deltaTime) {
-        // Update target as object's position updates
-        lookatPosition = focusedWorldObject.getTranslation();
+        translate(deltaTime);
 
         if (controls.isFocusButtonPressed() == 1) {
             rotate();
         }
-        translate(deltaTime);
     }
 
     /**
@@ -212,18 +209,19 @@ public class FixedCameraController {
         this.pitchLimit = pitchLimit;
     }
 
-    public void setLookatPosition(Vector3f lookatPosition) {
-        this.lookatPosition = lookatPosition;
+    public void updateLookatPosition() {
+        this.lookatPosition = focusedWorldObject.getTranslation();
 
         Vector3f newPosition = new Vector3f(lookatPosition.x + radius, 0.f, lookatPosition.z + radius);
 
-        Vector3f target = new Vector3f();
-        newPosition.add(camera.getDirection(), target);
+        System.out.println(radius);
 
         Vector3f newDirection = new Vector3f();
         lookatPosition.sub(newPosition, newDirection);
 
         camera.setView(newPosition, newDirection);
+
+        System.out.println(camera.getPosition().toString());
     }
 
     public void setFocusObject(String name) {
@@ -233,8 +231,18 @@ public class FixedCameraController {
 
         focusedWorldObject = world.getBodies().get(name);
 
+        padding = focusedWorldObject.getScale().x / 2.f;
+
         minRadius = focusedWorldObject.getScale().x + padding;
         radius = minRadius + 5.f;
-        setLookatPosition(focusedWorldObject.getTranslation());
+
+        this.lookatPosition = focusedWorldObject.getTranslation();
+
+        Vector3f newPosition = new Vector3f(lookatPosition.x + radius, 0.f, lookatPosition.z + radius);
+
+        Vector3f newDirection = new Vector3f();
+        lookatPosition.sub(newPosition, newDirection);
+
+        camera.setView(newPosition, newDirection);
     }
 }

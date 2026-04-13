@@ -5,6 +5,7 @@ import static org.lwjgl.opengl.GL41.*;
 import org.joml.Vector3f;
 
 import project.ControlManager;
+import project.SimulationPool;
 import project.Renderer.Camera.FixedCameraController;
 import project.Renderer.Camera.FreeLookCameraController;
 import project.Renderer.RenderSystems.BodyRenderSystem;
@@ -16,10 +17,10 @@ import project.Renderer.World.World;
 public class Renderer {
     public Viewport viewport = new Viewport();
 
-    public static final float DEFAULT_FOV = 45.f, DEFAULT_NEAR = 0.001f, DEFAULT_FAR = 1000.0f;
+    public static final float DEFAULT_FOV = 45.f, DEFAULT_NEAR = 0.001f, DEFAULT_FAR = 100_000.0f;
     public static final int MAT4F_SIZE = 16 * Float.BYTES, VEC4F_SIZE = 4 * Float.BYTES, VEC3F_SIZE = 3 * Float.BYTES;
 
-    public World world;
+    private World world;
 
     private CameraRenderSystem cameraRenderSystem;
     private BodyRenderSystem bodyRenderSystem;
@@ -27,6 +28,7 @@ public class Renderer {
     private OrbitRenderSystem orbitRenderSystem;
 
     private ControlManager controlManager;
+
     private FreeLookCameraController freeLookCameraController;
     private FixedCameraController fixedCameraController;
 
@@ -45,14 +47,17 @@ public class Renderer {
             glFrontFace(GL_CCW);
             glEnable(GL_CULL_FACE);
 
-            world = new World("world");
             controlManager = new ControlManager(viewport.getGLCanvas());
 
-            // Create camera controller
-            //freeLookCameraController = new FreeLookCameraController(world, controlManager);
+            world = new World("Earth");
 
-            fixedCameraController = new FixedCameraController(world, controlManager);
-            fixedCameraController.setFocusObject("test");
+            SimulationPool.load();
+            SimulationPool.setCurrentBody(this, "Earth");
+
+            // Create camera controllers
+            freeLookCameraController = new FreeLookCameraController(world, controlManager);
+            //fixedCameraController = new FixedCameraController(world, controlManager);
+            //fixedCameraController.setFocusObject("test");
 
             Shader mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
             Shader orbitVertShader = new Shader("project/shaders/orbit.vert", GL_VERTEX_SHADER);
@@ -80,14 +85,17 @@ public class Renderer {
         });
 
         viewport.getGLCanvas().addOnRenderEvent(event -> {
-            glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             controlManager.updateMouse();
             controlManager.handleUnfocus();
 
-            //freeLookCameraController.updateCameraTransform((float) event.delta);
-            fixedCameraController.updateCameraTransform((float) event.delta);
+            //TODO: switch between camera controllers when needed
+            freeLookCameraController.updateCameraTransform((float) event.delta);
+            //fixedCameraController.updateCameraTransform((float) event.delta);
+
+            world.updateSatellites();
 
             cameraRenderSystem.loop();
             bodyRenderSystem.loop();
@@ -114,5 +122,9 @@ public class Renderer {
 
     public Viewport getViewport() {
         return this.viewport;
+    }
+
+    public World getWorld() {
+        return this.world;
     }
 }

@@ -16,47 +16,56 @@ public class WorldObject {
     public WorldObject(String name, Mesh mesh) {
         this.mesh = mesh;
         this.name = name;
-        
-        updateTransform();
     }
 
     public WorldObject(String name, Mesh mesh, Vector3f color) {
         this.mesh = mesh;
         this.name = name;
         this.color = color;
-
-        updateTransform();
     }
 
-    public void updateTransform() {
-        transformMatrix.setTranslation(translation);
-        transformMatrix.scale(scale);
+    public void translate(Vector3f translation) {
+        Matrix4f translationMatrix = new Matrix4f();
+        translationMatrix.translate(translation);
+
+        this.translation.add(translation);
+
+        transformMatrix.mul(translationMatrix);
     }
 
-    public Vector3f getTranslation() {
-        return this.translation;
+    public void rotate(float angle, Vector3f axis) {
+        Matrix4f rotationMatrix = new Matrix4f();
+        rotationMatrix.rotate(angle, axis);
+
+        transformMatrix.mul(rotationMatrix);
     }
 
-    public void setTranslation(Vector3f translation) {
-        this.translation = translation;
-        transformMatrix.setTranslation(this.translation);
+    public void scale(Vector3f scale) {
+        Matrix4f scaleMatrix = new Matrix4f();
+        scaleMatrix.scale(scale);
+
+        this.scale.add(scale);
+
+        transformMatrix.mul(scaleMatrix);
     }
 
-    public Vector3f getScale() {
-        return this.scale;
-    }
+    public void resetTransforms() {
+        translation.zero();
+        scale = new Vector3f(1.0f, 1.0f, 1.0f);
 
-    public void setScale(Vector3f scale) {
-        this.scale = scale;
-        transformMatrix.scale(this.scale);
+        transformMatrix.identity();
     }
 
     public Matrix4f getTransformMatrix() {
         return this.transformMatrix;
     }
 
-    public void setTransformMatrix(Matrix4f transformMatrix) {
-        this.transformMatrix = transformMatrix;
+    public Vector3f getScale() {
+        return this.scale;
+    }
+
+    public Vector3f getTranslation() {
+        return this.translation;
     }
 
     public Mesh getMesh() {
