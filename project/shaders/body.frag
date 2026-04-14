@@ -53,4 +53,6 @@ vec3 phong_lighting() {
   return vec3(ambient + diffuse + specular);
 }
 
-void main() { frag_color = vec4(phong_lighting() * out_color, 1.0); }
+void main() { 
+  frag_color = vec4(phong_lighting() * out_color, 1.0); 
+}

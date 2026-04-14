@@ -6,6 +6,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import project.ControlManager;
+import project.Renderer.Renderer;
 import project.Renderer.World.World;
 import project.Renderer.World.WorldObject;
 
@@ -56,8 +57,6 @@ public class FreeLookCameraController {
      */
     private float maxDistance = 500.f;
 
-    private float padding = 0.5f;
-
     /**
      * Initializes the camera controller with a camera and control manager.
      * 
@@ -106,14 +105,6 @@ public class FreeLookCameraController {
         // Limit camera distance from origin
         if (newPosition.length() > maxDistance) {
             return;
-        }
-
-        // Make sure camera doesn't pass through other objects
-        for (Map.Entry<String, WorldObject> item : world.getBodies().entrySet()) {
-            WorldObject object = item.getValue();
-            if(object.getTranslation().distance(newPosition) < object.getScale().x + padding) {
-                return;
-            }
         }
 
         camera.setView(newPosition, direction);

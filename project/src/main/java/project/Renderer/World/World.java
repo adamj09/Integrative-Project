@@ -105,7 +105,9 @@ public class World {
 
         lightSource = new WorldObject("light", new SphereGenerator().create(4));
 
-        lightSource.translate(new Vector3f((float) (body.getDistanceToSun() / AU * UNIT_SCALE), 0.f, 0.f));
+        float distance = (float) (body.getDistanceToSun() / AU * UNIT_SCALE);
+
+        lightSource.translate(new Vector3f(-distance, 0.f, 0.f));
         lightSource.scale(new Vector3f(lightSourceScale, lightSourceScale, lightSourceScale));
         lightSource.setLightColor(new Vector3f(1.f, 1.f, 1.f));
     }

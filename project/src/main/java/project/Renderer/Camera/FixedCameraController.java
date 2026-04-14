@@ -5,6 +5,7 @@ import java.util.Map;
 import org.joml.Vector3f;
 
 import project.ControlManager;
+import project.Renderer.Renderer;
 import project.Renderer.Viewport;
 import project.Renderer.World.World;
 import project.Renderer.World.WorldObject;
@@ -78,30 +79,15 @@ public class FixedCameraController {
      *                  to keep movement speed framerate independent).
      */
     private void translate(float deltaTime) {
-        Vector3f position = camera.getPosition();
-        Vector3f direction = camera.getDirection().normalize();
-        Vector3f newPosition = new Vector3f();
-        Vector3f displacement = new Vector3f();
-
         // Translation is proportional to distance from lookatPosition
-        float speed = controls.getScrollDeltaY() * translateSpeed * deltaTime * radius;
-        direction.mul(speed, displacement);
-        position.add(displacement, newPosition);
+        float speed = -controls.getScrollDeltaY() * translateSpeed * deltaTime * radius;
 
-        Vector3f toCamera = new Vector3f();
-        position.sub(newPosition, toCamera);
+        radius = (float)Math.clamp(radius + speed, 0.01d, 100d);
 
-        if (toCamera.length() > maxDistance) {
-            displacement.zero();
-        }
-
-        // Make sure camera doesn't pass through other objects
-        for (Map.Entry<String, WorldObject> item : world.getBodies().entrySet()) {
-            WorldObject object = item.getValue();
-            if (object.getTranslation().distance(newPosition) < object.getScale().x + padding) {
-                displacement.zero();
-            }
-        }
+        Vector3f newPosition = new Vector3f(
+                lookatPosition.x + radius * (float) Math.cos(pitch) * (float) Math.sin(yaw),
+                lookatPosition.y + radius * (float) Math.sin(pitch),
+                lookatPosition.z + radius * (float) Math.cos(pitch) * (float) Math.cos(yaw));
 
         Vector3f newDirection = new Vector3f();
         lookatPosition.sub(newPosition, newDirection);
@@ -209,21 +195,6 @@ public class FixedCameraController {
         this.pitchLimit = pitchLimit;
     }
 
-    public void updateLookatPosition() {
-        this.lookatPosition = focusedWorldObject.getTranslation();
-
-        Vector3f newPosition = new Vector3f(lookatPosition.x + radius, 0.f, lookatPosition.z + radius);
-
-        System.out.println(radius);
-
-        Vector3f newDirection = new Vector3f();
-        lookatPosition.sub(newPosition, newDirection);
-
-        camera.setView(newPosition, newDirection);
-
-        System.out.println(camera.getPosition().toString());
-    }
-
     public void setFocusObject(String name) {
         if (!world.getBodies().containsKey(name)) {
             return;
@@ -231,10 +202,7 @@ public class FixedCameraController {
 
         focusedWorldObject = world.getBodies().get(name);
 
-        padding = focusedWorldObject.getScale().x / 2.f;
-
-        minRadius = focusedWorldObject.getScale().x + padding;
-        radius = minRadius + 5.f;
+        radius = focusedWorldObject.getScale().x + 5.f;
 
         this.lookatPosition = focusedWorldObject.getTranslation();
 
