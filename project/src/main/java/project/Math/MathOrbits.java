@@ -1,27 +1,33 @@
 package project.Math;
 
 import org.joml.Vector3d;
-import org.joml.Vector4d;
 import org.joml.Matrix3d;
-import org.joml.Matrix4d;
 
 public class MathOrbits {
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double kineticEnergy(Vector3d velocity) {
         return 0.5 * velocity.lengthSquared();
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double gravitationalPotentialEnergy(double mu, Vector3d position) {
         return -mu / position.length();
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static Vector3d angularMomentum(Vector3d position, Vector3d velocity) {
         Vector3d angularMomentumVect = new Vector3d();
         position.cross(velocity, angularMomentumVect);
         return angularMomentumVect;
     }
 
-    private static Vector3d eccentricity(Vector3d angularMomentum, Vector3d velocity, Vector3d position, double mu) {
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
+    private static Vector3d eccentricityVect(Vector3d angularMomentum, Vector3d velocity, Vector3d position, double mu) {
         Vector3d vct1 = new Vector3d();
         velocity.cross(angularMomentum, vct1);
 
@@ -31,16 +37,21 @@ public class MathOrbits {
         vct2.mul(mu);
         Vector3d eccentricityVect = (vct1.sub(vct2)).mul(1.0 / mu);
 
-        double eccentricity = eccentricityVect.length();
-
-        if (eccentricity >= 1 || eccentricity <= 0) {
-            // TODO: handle with exception
-            return null;
-        }
-
         return eccentricityVect;
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
+    private static double eccentricity(Vector3d eccentricityVect){
+        double ece = eccentricityVect.length();
+        if(ece >= 1 || ece <= 0) {
+            return Double.NaN;
+        }
+        return ece;
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double hillRadius(double distanceToStar, double eccentricity, double centralBodyMass,
             double starMass) {
         if (starMass == 0) {
@@ -50,36 +61,52 @@ public class MathOrbits {
         return distanceToStar * (1 - eccentricity) * Math.cbrt(centralBodyMass / (3 * starMass)) * 1000.d;
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double semiLatusRectum(double angularMomentum, double mu) {
         return Math.pow(angularMomentum, 2) / mu;
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double apoapsis(double semiLatusRectum, double eccentricity) {
         return semiLatusRectum / (1 + eccentricity);
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double periapsis(double semiLatusRectum, double eccentricity) {
         return semiLatusRectum / (1 - eccentricity);
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double semiMajorAxis(double semiLatusRectum, double eccentricity) {
         return semiLatusRectum / (1 - Math.pow(eccentricity, 2));
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double period(double semiMajorAxis, double mu) {
         return 2 * Math.PI * Math.sqrt(Math.pow(semiMajorAxis, 3) / mu);
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double meanMotion(double semiMajorAxis, double mu) {
         return 2 * Math.PI / period(semiMajorAxis, mu);
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static Vector3d lineOfNodes(Vector3d angularMomentum) {
         Vector3d lineOfNodesVect = new Vector3d();
         new Vector3d(0, 0, 1).cross(angularMomentum, lineOfNodesVect);
         return lineOfNodesVect;
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double longitudeOfAscendingNode(Vector3d lineOfNodes) {
         if (lineOfNodes.length() < 1e-10) {
             // Equatorial orbit, longitude of ascending node is undefined, set to 0
@@ -97,10 +124,14 @@ public class MathOrbits {
         return longitudeOfAscendingNode;
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double inclination(Vector3d angularMomentum) {
         return Math.acos(Math.max(-1.0, Math.min(1.0, angularMomentum.z / angularMomentum.length())));
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double argumentOfPeriapsis(Vector3d lineOfNodes, Vector3d eccentricity) {
         // argument of periapsis (ω)
         double argumentOfPeriapsis;
@@ -124,6 +155,8 @@ public class MathOrbits {
         return argumentOfPeriapsis;
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double initialTrueAnomaly(Vector3d position, Vector3d velocity, double eccentricity,
             double semiLatusRectum) {
         double arg = (semiLatusRectum - position.length()) / (eccentricity * position.length());
@@ -136,46 +169,57 @@ public class MathOrbits {
         return trueAnomaly;
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double trueAnomaly(double eccentricity, double eccentricAnomaly) {
         return 2 * Math.atan(Math.sqrt((1 + eccentricity) / (1 - eccentricity)) * Math.tan(eccentricAnomaly / 2));
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double initialEccentricAnomaly(double eccentricity, double trueAnomaly) {
         return 2 * Math.atan(Math.sqrt((1 - eccentricity) / (1 + eccentricity)) * Math.tan(trueAnomaly / 2));
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double initialMeanAnomaly(double eccentricAnomaly, double eccentricity) {
         return eccentricAnomaly - (eccentricity * Math.sin(eccentricAnomaly));
     }
 
-    private static double initialDistance(double semiLatusRectum, double eccentricity, double trueAnomaly,
-            double hillRadius) {
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
+    private static double initialDistance(double semiLatusRectum, double eccentricity, double trueAnomaly, double hillRadius) {
         double distance = semiLatusRectum / (1 + (eccentricity * Math.cos(trueAnomaly)));
 
         if (distance > hillRadius) {
-            // TODO: exception if distance is larger than hill radius
-            return -1;
+            return Double.NaN;
         }
 
         return distance;
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double distance(double semiMajorAxis, double eccentricity, double trueAnomaly, double hillRadius) {
         double distance = (semiMajorAxis * (1 - Math.pow(eccentricity, 2)))
                 / (1 + (eccentricity * Math.cos(trueAnomaly)));
 
         if (distance > hillRadius) {
-            // TODO: exception if distance is larger than hill radius
-            return -1;
+            return Double.NaN;
         }
 
         return distance;
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double speed(double mu, double distance, double semiMajorAxis) {
         return Math.sqrt(mu * ((2 / distance) - (1 / semiMajorAxis)));
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     private static double excessSpeed(double mu, double distance) {
         return Math.sqrt((2 * mu) / distance);
     }
@@ -206,8 +250,14 @@ public class MathOrbits {
         data.angularMomentumVect = angularMomentum(initialPosition, initialVelocity);
         data.angularMomentum = data.angularMomentumVect.length();
 
-        data.eccentricityVect = eccentricity(data.angularMomentumVect, initialVelocity, initialPosition, data.mu);
-        data.eccentricity = data.eccentricityVect.length();
+        Vector3d eccentricityVect = eccentricityVect(data.angularMomentumVect, initialVelocity, initialPosition, data.mu);
+        double ece = eccentricity(data.eccentricityVect);
+        if(Double.isNaN(ece)) {
+            satellite.setLatestError("Eccentricity of the satellite is invalid. Need to be bigger than 0 and smaller than 1. Current value: "+eccentricityVect.length());
+            return false;
+        }
+        data.eccentricityVect = eccentricityVect;
+        data.eccentricity = ece;
 
         data.maximumDistanceToBody = hillRadius(celestialBody.getDistanceToSun(), data.eccentricity,
                 celestialBody.getMass(), celestialBody.getMassOfSun());
@@ -232,7 +282,12 @@ public class MathOrbits {
         data.eccentricAnomaly = initialEccentricAnomaly(data.eccentricity, data.trueAnomaly);
         data.meanAnomaly = initialMeanAnomaly(data.eccentricAnomaly, data.eccentricity);
 
-        data.distance = initialDistance(data.p, data.eccentricity, data.trueAnomaly, data.maximumDistanceToBody);
+        double distance = initialDistance(data.p, data.eccentricity, data.trueAnomaly, data.maximumDistanceToBody);
+        if(Double.isNaN(distance)) {
+            satellite.setLatestError("Initial distance of the satellite is larger than the hill radius. The orbit is not stable");
+            return false;
+        }
+        data.distance = distance;
 
         // speed
         data.speed = speed(data.mu, data.distance, data.a);
@@ -264,7 +319,13 @@ public class MathOrbits {
         data.trueAnomaly = trueAnomaly(data.eccentricity, data.eccentricAnomaly);
 
         // distance
-        data.distance = distance(data.a, data.eccentricity, data.trueAnomaly, data.maximumDistanceToBody);
+        double distance = distance(data.a, data.eccentricity, data.trueAnomaly, data.maximumDistanceToBody);
+        if(Double.isNaN(distance)) {
+            satellite.setLatestError("Distance of the satellite is larger than the hill radius. The orbit is not stable");
+            return false;
+        }
+        data.distance = distance;
+        
 
         // position in 3D space
         data.currentPosition = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
@@ -352,22 +413,29 @@ public class MathOrbits {
     //
     public static Matrix3d rotationPQWtoECI(double longitudeOfAscendingNode, double inclination,
             double argumentOfPeriapsis) {
+            
+        double cosLongitudeOfAscendingNode = Math.cos(longitudeOfAscendingNode);
+        double sinLongitudeOfAscendingNode = Math.sin(longitudeOfAscendingNode);
+        double cosInclination = Math.cos(inclination);
+        double sinInclination = Math.sin(inclination);
+        double cosArgumentOfPeriapsis = Math.cos(argumentOfPeriapsis);
+        double sinArgumentOfPeriapsis = Math.sin(argumentOfPeriapsis);
 
-        double m00 = Math.cos(longitudeOfAscendingNode) * Math.cos(argumentOfPeriapsis)
-                - Math.sin(longitudeOfAscendingNode) * Math.cos(inclination) * Math.sin(argumentOfPeriapsis);
-        double m01 = -Math.cos(longitudeOfAscendingNode) * Math.sin(argumentOfPeriapsis)
-                - Math.sin(longitudeOfAscendingNode) * Math.cos(inclination) * Math.cos(argumentOfPeriapsis);
-        double m02 = Math.sin(longitudeOfAscendingNode) * Math.sin(inclination);
+        double m00 = cosLongitudeOfAscendingNode * cosArgumentOfPeriapsis
+                - sinLongitudeOfAscendingNode * cosInclination * sinArgumentOfPeriapsis;
+        double m01 = -cosLongitudeOfAscendingNode * sinArgumentOfPeriapsis
+                - sinLongitudeOfAscendingNode * cosInclination * cosArgumentOfPeriapsis;
+        double m02 = sinLongitudeOfAscendingNode * sinInclination;
 
-        double m10 = Math.sin(longitudeOfAscendingNode) * Math.cos(argumentOfPeriapsis)
-                + Math.cos(longitudeOfAscendingNode) * Math.cos(inclination) * Math.sin(argumentOfPeriapsis);
-        double m11 = -Math.sin(longitudeOfAscendingNode) * Math.sin(argumentOfPeriapsis)
-                + Math.cos(longitudeOfAscendingNode) * Math.cos(inclination) * Math.cos(argumentOfPeriapsis);
-        double m12 = -Math.cos(longitudeOfAscendingNode) * Math.sin(inclination);
+        double m10 = sinLongitudeOfAscendingNode * cosArgumentOfPeriapsis
+                + cosLongitudeOfAscendingNode * cosInclination * sinArgumentOfPeriapsis;
+        double m11 = -sinLongitudeOfAscendingNode * sinArgumentOfPeriapsis
+                + cosLongitudeOfAscendingNode * cosInclination * cosArgumentOfPeriapsis;
+        double m12 = -cosLongitudeOfAscendingNode * sinInclination;
 
-        double m20 = Math.sin(inclination) * Math.sin(argumentOfPeriapsis);
-        double m21 = Math.sin(inclination) * Math.cos(argumentOfPeriapsis);
-        double m22 = Math.cos(inclination);
+        double m20 = sinInclination * sinArgumentOfPeriapsis;
+        double m21 = sinInclination * cosArgumentOfPeriapsis;
+        double m22 = cosInclination;
 
         Matrix3d rotation = new Matrix3d(
                 m00, m01, m02,
