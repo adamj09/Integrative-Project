@@ -250,13 +250,13 @@ public class MathOrbits {
         data.angularMomentumVect = angularMomentum(initialPosition, initialVelocity);
         data.angularMomentum = data.angularMomentumVect.length();
 
-        Vector3d eccentricityVect = eccentricityVect(data.angularMomentumVect, initialVelocity, initialPosition, data.mu);
+        data.eccentricityVect = eccentricityVect(data.angularMomentumVect, initialVelocity, initialPosition, data.mu);
         double ece = eccentricity(data.eccentricityVect);
+
         if(Double.isNaN(ece)) {
-            satellite.setLatestError("Eccentricity of the satellite is invalid. Need to be bigger than 0 and smaller than 1. Current value: "+eccentricityVect.length());
+            satellite.setLatestError("Eccentricity of the satellite is invalid. Need to be bigger than 0 and smaller than 1. Current value: " + data.eccentricityVect.length());
             return false;
         }
-        data.eccentricityVect = eccentricityVect;
         data.eccentricity = ece;
 
         data.maximumDistanceToBody = hillRadius(celestialBody.getDistanceToSun(), data.eccentricity,
