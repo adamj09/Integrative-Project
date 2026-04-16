@@ -2,8 +2,6 @@ package project.Renderer;
 
 import static org.lwjgl.opengl.GL41.*;
 
-import org.joml.Vector3f;
-
 import project.ControlManager;
 import project.SimulationPool;
 import project.Renderer.Camera.FixedCameraController;
@@ -90,12 +88,13 @@ public class Renderer {
 
             controlManager.updateMouse();
             controlManager.handleUnfocus();
+        
+            // Note: always update world before camera.
+            world.updateSatellites();
 
             //TODO: switch between camera controllers when needed
-            //freeLookCameraController.updateCameraTransform((float) event.delta);
-            fixedCameraController.updateCameraTransform((float) event.delta);
-
-            world.updateSatellites();
+            //freeLookCameraController.updateCameraTransform(event.delta);
+            fixedCameraController.updateCameraTransform(event.delta);
 
             cameraRenderSystem.loop();
             bodyRenderSystem.loop();

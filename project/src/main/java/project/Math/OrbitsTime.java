@@ -1,9 +1,9 @@
 package project.Math;
 
-public class OrbitsTime implements Runnable{
+public class OrbitsTime implements Runnable {
     private static final long NANOS_PER_MS = 1_000_000L;
-    //private static final long NANOS_PER_SECOND = 1_000_000_000L;
-    
+    // private static final long NANOS_PER_SECOND = 1_000_000_000L;
+
     private double timeScale = 1;
     private double finalTime; // in milliseconds (simulation time)
     private long startTimeReal; // when simulation started in nanoseconds
@@ -12,8 +12,7 @@ public class OrbitsTime implements Runnable{
     private boolean runningStatus = false;
     private Thread timeThread; // thread for time calculations
 
-
-    public OrbitsTime(){
+    public OrbitsTime() {
         this.startTimeReal = 0;
         this.totalPausedTime = 0;
         this.pauseStartTime = 0;
@@ -22,13 +21,14 @@ public class OrbitsTime implements Runnable{
 
     /**
      * time scale like 0.2,1,2,...
+     * 
      * @param timeScale
      */
-    public void setTimeScale(double timeScale){
+    public void setTimeScale(double timeScale) {
         this.timeScale = timeScale;
     }
 
-    public void resetTime(){
+    public void resetTime() {
         this.finalTime = 0;
         this.startTimeReal = System.nanoTime();
         this.totalPausedTime = 0;
@@ -37,17 +37,18 @@ public class OrbitsTime implements Runnable{
 
     /**
      * Set the time to a specific value (in seconds)
+     * 
      * @param timeSeconds the time value in seconds
      */
-    public void setTime(double timeSeconds){
+    public void setTime(double timeSeconds) {
         long currentRealTime = System.nanoTime();
         this.finalTime = timeSeconds * 1000; // convert to milliseconds
         // Adjust startTimeReal so that next calculateTime() produces the desired time
-        this.startTimeReal = currentRealTime - this.totalPausedTime - (long)(this.finalTime / this.timeScale * NANOS_PER_MS);
+        this.startTimeReal = currentRealTime - this.totalPausedTime
+                - (long) (this.finalTime / this.timeScale * NANOS_PER_MS);
     }
 
-
-    public void start(){
+    public void start() {
         if (!this.runningStatus) {
             // If we're resuming from a pause, accumulate the pause duration
             if (this.pauseStartTime > 0) {
@@ -61,7 +62,7 @@ public class OrbitsTime implements Runnable{
         this.runningStatus = true;
     }
 
-    public void stop(){
+    public void stop() {
         this.runningStatus = false;
         if (this.pauseStartTime == 0) {
             this.pauseStartTime = System.nanoTime();
@@ -72,18 +73,18 @@ public class OrbitsTime implements Runnable{
      * 
      * @return true if the time is runing or false if it's stop
      */
-    public boolean getRunningSatus(){
+    public boolean getRunningSatus() {
         return this.runningStatus;
     }
 
-    public double getTimeSeconds(){
-        return this.finalTime/1000;
+    public double getTimeSeconds() {
+        return this.finalTime / 1000;
     }
 
     /**
      * Starts the time calculation thread
      */
-    public void startTimeThread(){
+    public void startTimeThread() {
         if (this.timeThread == null || !this.timeThread.isAlive()) {
             this.timeThread = new Thread(this);
             this.timeThread.start();
@@ -93,7 +94,7 @@ public class OrbitsTime implements Runnable{
     /**
      * Stops the time calculation thread
      */
-    public void stopTimeThread(){
+    public void stopTimeThread() {
         if (this.timeThread != null && this.timeThread.isAlive()) {
             this.timeThread.interrupt();
             try {
@@ -109,10 +110,9 @@ public class OrbitsTime implements Runnable{
      * Updates all satellites with the current simulation time.
      * This method should be overridden in subclasses that manage satellites.
      */
-    protected void updateSatellitesTime(){
+    protected void updateSatellitesTime() {
         // This method will be overridden in Body class
     }
-
 
     @Override
     public void run() {
@@ -125,19 +125,20 @@ public class OrbitsTime implements Runnable{
     /**
      * Calculates the elapsed time with support for pause/resume and time scaling.
      * Called repeatedly in the run method to update the simulation time.
-     * Derives simulation time directly from real elapsed time to avoid accumulation errors.
+     * Derives simulation time directly from real elapsed time to avoid accumulation
+     * errors.
      * Properly accounts for paused periods. Uses nanosecond precision.
      */
-    private void calculateTime(){
+    private void calculateTime() {
         if (startTimeReal > 0) {
-            // Calculate elapsed real time since simulation started, minus paused periods (in nanoseconds)
+            // Calculate elapsed real time since simulation started, minus paused periods
+            // (in nanoseconds)
             long currentRealTime = System.nanoTime();
             long elapsedRealTimeNanos = currentRealTime - startTimeReal - totalPausedTime;
-            
+
             // Convert to milliseconds and apply time scale
             double elapsedRealTimeMs = elapsedRealTimeNanos / (double) NANOS_PER_MS;
             this.finalTime = elapsedRealTimeMs * this.timeScale;
         }
     }
 }
- 

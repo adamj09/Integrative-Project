@@ -19,7 +19,7 @@ public class SimulationPool {
     public static void addBody() {
         // Test
         Body body = new Body("Earth", Constant.EARTH_DEFAULT_MASS, Constant.EARTH_DEFAULT_RADIUS,
-        Constant.EARTH_DEFAULT_DISTANCE_TO_SUN);
+                Constant.EARTH_DEFAULT_DISTANCE_TO_SUN);
         body.setTimeScale(10000.d);
         bodies.put(body.getName(), body);
 
@@ -28,7 +28,7 @@ public class SimulationPool {
 
     public static void addSatellite(String bodyName) {
         // Test
-        if(!bodies.containsKey(bodyName)) {
+        if (!bodies.containsKey(bodyName)) {
             // TODO: handle case of non-existent body
         }
 
@@ -39,14 +39,21 @@ public class SimulationPool {
                 body.getRadius() + 3000.0, 0.8, 0,
                 180, 75, 180);
 
+        Satellite test2 = new Satellite();
+        test2.initialiseSatelliteValuesAngles(body, "test2", 20,
+                body.getRadius() + 3000.0, 0.8, 0,
+                180, 75, 180);
+
+
         body.addSatellite(test);
+        body.addSatellite(test2);
 
         // TODO: call this function in the UI code to add a satellite to a specified
         // body
     }
 
     public static void runBody(String bodyName) {
-        if(!bodies.containsKey(bodyName)) {
+        if (!bodies.containsKey(bodyName)) {
             // TODO: handle case of non-existent body
         }
 
@@ -56,11 +63,6 @@ public class SimulationPool {
 
         body.start();
 
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } // Wait 1 second before printing
         body.resetTime();
     }
 
