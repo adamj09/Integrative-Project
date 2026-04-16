@@ -50,7 +50,7 @@ public class FixedCameraController {
 
     private double radius = 10.d;
 
-    private double minRadius = 5d, maxRadius = 100d;
+    private double minRadius, maxRadius;
 
     /**
      * Initializes the camera controller with a camera and control manager.
@@ -193,6 +193,7 @@ public class FixedCameraController {
         focusedWorldObject = world.getBodies().get(name);
 
         minRadius = focusedWorldObject.getScale().x + Renderer.DEFAULT_NEAR;
+        maxRadius = focusedWorldObject.getScale().x + 100d;
         radius = minRadius + 5.f;
 
         this.lookatPosition = new Vector3d(focusedWorldObject.getTranslation());

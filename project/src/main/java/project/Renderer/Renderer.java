@@ -47,15 +47,13 @@ public class Renderer {
 
             controlManager = new ControlManager(viewport.getGLCanvas());
 
-            world = new World("Earth");
-
             SimulationPool.load();
-            SimulationPool.setCurrentBody(this, "Earth");
+            world = SimulationPool.getWorld("Earth");
 
             // Create camera controllers
             //freeLookCameraController = new FreeLookCameraController(world, controlManager);
             fixedCameraController = new FixedCameraController(world, controlManager);
-            fixedCameraController.setFocusObject("test");
+            fixedCameraController.setFocusObject("test2");
 
             Shader mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
             Shader orbitVertShader = new Shader("project/shaders/orbit.vert", GL_VERTEX_SHADER);
@@ -121,6 +119,10 @@ public class Renderer {
 
     public Viewport getViewport() {
         return this.viewport;
+    }
+
+    public void setWorld(World world) {
+        this.world = world;
     }
 
     public World getWorld() {
