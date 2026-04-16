@@ -51,9 +51,9 @@ public class Renderer {
             world = SimulationPool.getWorld("Earth");
 
             // Create camera controllers
-            freeLookCameraController = new FreeLookCameraController(world, controlManager);
-            //fixedCameraController = new FixedCameraController(world, controlManager);
-            //fixedCameraController.setFocusObject("test");
+            //freeLookCameraController = new FreeLookCameraController(world, controlManager);
+            fixedCameraController = new FixedCameraController(world, controlManager);
+            fixedCameraController.setFocusObject("test");
 
             Shader mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
             Shader orbitVertShader = new Shader("project/shaders/orbit.vert", GL_VERTEX_SHADER);
