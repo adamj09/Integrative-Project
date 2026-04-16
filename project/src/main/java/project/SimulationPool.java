@@ -43,7 +43,7 @@ public class SimulationPool {
         Satellite test = new Satellite();
         test.initialiseSatelliteValuesAngles(body, "test", 20,
                 body.getRadius() + 3000.0, 0.8, 0,
-                75, 75, 75);
+                35, 75, 10);
 
         Satellite test2 = new Satellite();
         test2.initialiseSatelliteValuesAngles(body, "test2", 20,

@@ -80,55 +80,11 @@ public class MathOrbits {
         return lineOfNodesVect;
     }
 
-    private static double longitudeOfAscendingNode(Vector3d lineOfNodes) {
-        if (lineOfNodes.length() < 1e-10) {
-            // Equatorial orbit, longitude of ascending node is undefined, set to 0
-            return 0.0;
-        }
-
-        double arg = lineOfNodes.x / lineOfNodes.length();
-        arg = Math.max(-1.0, Math.min(1.0, arg));
-        double longitudeOfAscendingNode = Math.acos(arg);
-
-        if (lineOfNodes.y < 0) {
-            longitudeOfAscendingNode = 2 * Math.PI - longitudeOfAscendingNode;
-        }
-
-        return longitudeOfAscendingNode;
-    }
-
-    private static double inclination(Vector3d angularMomentum) {
-        return Math.acos(Math.max(-1.0, Math.min(1.0, angularMomentum.z / angularMomentum.length())));
-    }
-
-    private static double argumentOfPeriapsis(Vector3d lineOfNodes, Vector3d eccentricity) {
-        // argument of periapsis (ω)
-        double argumentOfPeriapsis;
-        if (lineOfNodes.length() < 1e-10) {
-            // Equatorial orbit, argument of periapsis is the angle of eccentricity vector
-            // in xy plane
-            argumentOfPeriapsis = Math.atan2(eccentricity.y, eccentricity.x);
-            if (argumentOfPeriapsis < 0) {
-                return argumentOfPeriapsis + (2 * Math.PI);
-            }
-            return argumentOfPeriapsis;
-        }
-
-        double arg = lineOfNodes.dot(eccentricity) / (lineOfNodes.length() * eccentricity.length());
-        argumentOfPeriapsis = Math.acos(Math.max(-1.0, Math.min(1.0, arg)));
-
-        if (eccentricity.z < 0) {
-            return (2 * Math.PI) - argumentOfPeriapsis;
-        }
-
-        return argumentOfPeriapsis;
-    }
-
     private static double initialTrueAnomaly(Vector3d position, Vector3d velocity, double eccentricity,
             double semiLatusRectum) {
         double arg = (semiLatusRectum - position.length()) / (eccentricity * position.length());
 
-        double trueAnomaly = Math.acos(Math.max(-1.0, Math.min(1.0, arg)));
+        double trueAnomaly = Math.acos(Math.clamp(arg, -1.0, 1.0));
         if (position.dot(velocity) < 0) {
             return 2 * Math.PI - trueAnomaly;
         }
@@ -222,11 +178,6 @@ public class MathOrbits {
 
         data.lineOfNodesVect = lineOfNodes(data.angularMomentumVect);
 
-        // Angles describing the orbital plane
-        data.longitudeOfAscendingNode = longitudeOfAscendingNode(data.lineOfNodesVect);
-        data.inclination = inclination(data.angularMomentumVect);
-        data.argumentOfPeriapsis = argumentOfPeriapsis(data.lineOfNodesVect, data.eccentricityVect);
-
         // Anomalies
         data.trueAnomaly = initialTrueAnomaly(initialPosition, initialVelocity, data.eccentricity, data.p);
         data.eccentricAnomaly = initialEccentricAnomaly(data.eccentricity, data.trueAnomaly);
@@ -277,7 +228,8 @@ public class MathOrbits {
         // velocity in 3D space
         data.currentVelocity = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
                 data.argumentOfPeriapsis)
-                .transform(constructVelocityPQWvect(data.mu, data.p, data.eccentricity, data.trueAnomaly));;
+                .transform(constructVelocityPQWvect(data.mu, data.p, data.eccentricity, data.trueAnomaly));
+        ;
 
         // excessSpeed
         data.excessSpeed = excessSpeed(data.mu, data.distance);

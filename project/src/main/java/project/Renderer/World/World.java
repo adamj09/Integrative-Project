@@ -177,19 +177,24 @@ public class World {
         eccentricityVect.mul(focalDistance, displacement);
         displacement.negate();
 
-        orbit.translate(new Vector3f((float) displacement.y, (float) displacement.z, (float) displacement.x));
+        orbit.rotate((float) (-data.argumentOfPeriapsis),
+                new Vector3f(
+                    (float) data.angularMomentumVect.y,
+                    (float) data.angularMomentumVect.z, 
+                    (float) data.angularMomentumVect.x).normalize());
 
-        // Rotate orbits according to orbital parameters.
-        orbit.rotate((float) data.argumentOfPeriapsis,
-                new Vector3f((float) data.angularMomentumVect.y, (float) data.angularMomentumVect.z,
-                        (float) data.angularMomentumVect.x).normalize().negate());
+        orbit.rotate((float) (data.inclination), new Vector3f(
+            (float) data.lineOfNodesVect.y, 
+            (float) data.lineOfNodesVect.z,
+            (float) data.lineOfNodesVect.x).normalize());
 
-        orbit.rotate((float) (data.inclination),
-                new Vector3f((float) data.lineOfNodesVect.y, (float) data.lineOfNodesVect.z,
-                        (float) data.lineOfNodesVect.x).normalize());
+        orbit.rotate((float) (-data.longitudeOfAscendingNode),
+                new Vector3f(
+                    0.f, 
+                    1.f, 
+                    0.f));
 
-        orbit.rotate((float) data.longitudeOfAscendingNode,
-                new Vector3f((float) 0.f, (float) 1.f, (float) 0.f));
+        orbit.translate(new Vector3f((float) 0, 0, -focalDistance));
 
         // Scale orbit according to orbital parameters.
         orbit.scale(new Vector3f((float) semiMinorAxis, 1.f, (float) semiMajorAxis));
