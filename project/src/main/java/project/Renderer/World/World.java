@@ -118,22 +118,22 @@ public class World {
         HashMap<String, Satellite> satellites = body.getSatellites();
 
         for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
-            Satellite satellite = item.getValue();
+            SatelliteData data = item.getValue().getData();
+
             WorldObject object = bodyObjects.get(item.getKey());
 
             object.resetTransforms();
 
             object.translate(new Vector3f(
-                    (float) (satellite.getData().currentPosition.y / 1000.d / AU * UNIT_SCALE),
-                    (float) (satellite.getData().currentPosition.z / 1000.d / AU * UNIT_SCALE),
-                    (float) (satellite.getData().currentPosition.x / 1000.d / AU * UNIT_SCALE)));
+                    (float) (data.currentPosition.y / 1000.d / AU * UNIT_SCALE),
+                    (float) (data.currentPosition.z / 1000.d / AU * UNIT_SCALE),
+                    (float) (data.currentPosition.x / 1000.d / AU * UNIT_SCALE)));
 
             object.scale(new Vector3f(SATELLITE_RADIUS, SATELLITE_RADIUS, SATELLITE_RADIUS));
         }
 
-        // TODO: update orbits too
-
         updateBodyMatrixBuffer();
+        updateOrbitMatrixBuffer();
     }
 
     public void addSatellite(Satellite satellite, Vector3f color) {
@@ -169,7 +169,7 @@ public class World {
 
         // Translate orbit so that the planet is at a focal point.
         float focalDistance = (float) Math.sqrt(Math.pow(semiMajorAxis, 2) - Math.pow(semiMinorAxis, 2));
-        
+
         Vector3d eccentricityVect = new Vector3d();
         data.eccentricityVect.normalize(eccentricityVect);
 
@@ -181,13 +181,15 @@ public class World {
 
         // Rotate orbits according to orbital parameters.
         orbit.rotate((float) data.argumentOfPeriapsis,
-            new Vector3f((float) data.angularMomentumVect.y, (float)  data.angularMomentumVect.z, (float) data.angularMomentumVect.x).normalize());
+                new Vector3f((float) data.angularMomentumVect.y, (float) data.angularMomentumVect.z,
+                        (float) data.angularMomentumVect.x).normalize().negate());
 
-        orbit.rotate((float) (data.inclination), 
-            new Vector3f((float) data.lineOfNodesVect.y, (float) data.lineOfNodesVect.z, (float) data.lineOfNodesVect.x).normalize());
+        orbit.rotate((float) (data.inclination),
+                new Vector3f((float) data.lineOfNodesVect.y, (float) data.lineOfNodesVect.z,
+                        (float) data.lineOfNodesVect.x).normalize());
 
         orbit.rotate((float) data.longitudeOfAscendingNode,
-                new Vector3f((float) 0.f, (float) 1.f, (float) 0.f).normalize());
+                new Vector3f((float) 0.f, (float) 1.f, (float) 0.f));
 
         // Scale orbit according to orbital parameters.
         orbit.scale(new Vector3f((float) semiMinorAxis, 1.f, (float) semiMajorAxis));

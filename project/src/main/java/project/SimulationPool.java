@@ -43,14 +43,14 @@ public class SimulationPool {
         Satellite test = new Satellite();
         test.initialiseSatelliteValuesAngles(body, "test", 20,
                 body.getRadius() + 3000.0, 0.8, 0,
-                180, 75, 180);
+                75, 75, 75);
 
         Satellite test2 = new Satellite();
         test2.initialiseSatelliteValuesAngles(body, "test2", 20,
                 body.getRadius() + 5000.0, 0.8, 0,
-                90, 45, 90);
+                90, 75, 90);
 
-        //world.addSatellite(test, new Vector3f(0.f, 0.f, 1.f));
+        world.addSatellite(test, new Vector3f(0.f, 0.f, 1.f));
         world.addSatellite(test2, new Vector3f(1.f, 0.f, 0.f));
 
         // TODO: call this function in the UI code to add a satellite to a specified
