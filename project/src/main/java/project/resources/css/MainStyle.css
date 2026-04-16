@@ -154,6 +154,156 @@
     -fx-cursor: hand;
 }
 
+/* --- Start / Stop / Reset Buttons --- */
+.start-button {
+    -fx-background-color: #2e7d32;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 22 6 22;
+    -fx-background-radius: 5;
+    -fx-border-color: #4caf50;
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+    -fx-cursor: hand;
+}
+
+.start-button:hover {
+    -fx-background-color: #388e3c;
+}
+
+.start-button:disabled {
+    -fx-opacity: 0.5;
+}
+
+.stop-button {
+    -fx-background-color: #c62828;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 22 6 22;
+    -fx-background-radius: 5;
+    -fx-border-color: #ef5350;
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+    -fx-cursor: hand;
+}
+
+.stop-button:hover {
+    -fx-background-color: #d32f2f;
+}
+
+.stop-button:disabled {
+    -fx-opacity: 0.5;
+}
+
+.reset-button {
+    -fx-background-color: -button-color;
+    -fx-text-fill: -text-color;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 22 6 22;
+    -fx-background-radius: 5;
+    -fx-border-color: -dark-accent-color;
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+    -fx-cursor: hand;
+}
+
+.reset-button:hover {
+    -fx-background-color: -light-accent-color;
+}
+
+/* --- Sidebar Card Buttons --- */
+.card-button-remove {
+    -fx-background-color: #c62828;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 11px;
+    -fx-padding: 3 12 3 12;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
+
+.card-button-remove:hover {
+    -fx-background-color: #d32f2f;
+}
+
+.card-button-add {
+    -fx-background-color: #2e7d32;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 3 12 3 12;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
+
+.card-button-add:hover {
+    -fx-background-color: #388e3c;
+}
+
+/* Body Selected/Select toggle */
+.card-button-selected {
+    -fx-background-color: #2e7d32;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 3 12 3 12;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
+
+.card-button-selected:hover {
+    -fx-background-color: #388e3c;
+}
+
+.card-button-select {
+    -fx-background-color: -button-color;
+    -fx-text-fill: -text-color;
+    -fx-font-size: 11px;
+    -fx-padding: 3 12 3 12;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
+
+.card-button-select:hover {
+    -fx-background-color: -light-accent-color;
+}
+
+.card-button-focus {
+    -fx-background-color: -bright-accent-color;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 3 12 3 12;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
+
+.card-button-focus:hover {
+    -fx-background-color: -light-accent-color;
+}
+
+.card-button-focus:disabled {
+    -fx-opacity: 0.35;
+    -fx-cursor: default;
+}
+
+/* --- Focus Indicator (star) --- */
+.focus-indicator {
+    -fx-text-fill: #ffd700;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-min-width: 20;
+    -fx-alignment: center;
+}
+
+/* --- Active Indicator --- */
+.active-indicator {
+    -fx-stroke: -dark-accent-color;
+    -fx-stroke-width: 1;
+}
+
 /* --- Tabs --- */
 .tabs {
     -fx-background-color: -light-bg-color;
@@ -246,6 +396,41 @@
     -fx-padding: 3 10 3 10;
     -fx-background-radius: 3;
     -fx-cursor: hand;
+}
+
+/* --- Small icon buttons (⟳ randomize) --- */
+.icon-button {
+    -fx-background-color: -button-color;
+    -fx-text-fill: -text-color;
+    -fx-font-size: 13px;
+    -fx-padding: 2 4 2 4;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
+
+.icon-button:hover {
+    -fx-background-color: -light-accent-color;
+}
+
+/* --- Lock toggle button (🔓/🔒) --- */
+.lock-button {
+    -fx-background-color: -button-color;
+    -fx-text-fill: -text-color;
+    -fx-font-size: 13px;
+    -fx-padding: 2 4 2 4;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+}
+
+.lock-button:hover {
+    -fx-background-color: -light-accent-color;
+}
+
+.lock-button:selected {
+    -fx-background-color: #4b4063;
+    -fx-border-color: #8888ff;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
 }
 
 .style-button-small {

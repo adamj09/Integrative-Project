@@ -89,7 +89,7 @@ public class MainMenuBar extends HBox {
         
         this.setOnMouseClicked(_ -> this.requestFocus());
 
-        getChildren().addAll(newBodyButton, newSatelliteButton, menuBar, themeSelector, spacer, infoButton);
+        getChildren().addAll(newBodyButton, newSatelliteButton, menuBar, spacer, themeSelector, infoButton);
     }
 
     public Button getNewBodyButton() {

@@ -28,8 +28,12 @@ public class App extends Application {
         Renderer mainRenderer = new Renderer();
 
         // Wire menu bar buttons to sidebar actions
-        menuBar.getNewBodyButton().setOnAction(e -> sidebar.openNewBodyPopup(stage));
-        menuBar.getNewSatelliteButton().setOnAction(e -> sidebar.openNewSatellitePopup(stage));
+        menuBar.getNewBodyButton().setOnAction(e -> sidebar.openNewBodyPopup(stage,
+            menuBar.getThemeSelector().getValue() != null
+                ? menuBar.getThemeSelector().getValue().toStyleString() : ""));
+        menuBar.getNewSatelliteButton().setOnAction(e -> sidebar.openNewSatellitePopup(stage,
+            menuBar.getThemeSelector().getValue() != null
+                ? menuBar.getThemeSelector().getValue().toStyleString() : ""));
         menuBar.getSaveAsMenuItem().setOnAction(e -> presetManager.savePresetAs(stage, sidebar));
         menuBar.getSaveMenuItem().setOnAction(e -> presetManager.savePreset(stage, sidebar));
         menuBar.getLoadMenuItem().setOnAction(e -> presetManager.loadPreset(stage, sidebar));
@@ -38,7 +42,9 @@ public class App extends Application {
 
             Use 'New celestial body' to add a central body and 'New satellite' to add orbiting objects.
             Adjust simulation settings in the sidebar and bottom controls.
-            """));
+            """,
+            menuBar.getThemeSelector().getValue() != null
+                ? menuBar.getThemeSelector().getValue().toStyleString() : ""));
 
         presetManager.markCurrentStateSaved(sidebar);
 

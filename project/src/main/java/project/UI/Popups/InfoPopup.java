@@ -12,7 +12,7 @@ import project.StyleSheet;
 
 public class InfoPopup extends Stage {
 
-    public InfoPopup(String infoText) {
+    public InfoPopup(String infoText, String themeStyle) {
         initModality(Modality.APPLICATION_MODAL);
         setTitle("Information");
         setResizable(false);
@@ -34,6 +34,7 @@ public class InfoPopup extends Stage {
         root.setAlignment(Pos.CENTER_LEFT);
         root.getStyleClass().add("small-pane");
         root.setPrefWidth(340);
+        root.setStyle(themeStyle);
 
         Scene scene = new Scene(root);
         scene.getStylesheets().add(new StyleSheet().styleSheet);
@@ -41,7 +42,7 @@ public class InfoPopup extends Stage {
         setScene(scene);
     }
 
-    public static void show(String text) {
-        new InfoPopup(text).showAndWait();
+    public static void show(String text, String themeStyle) {
+        new InfoPopup(text, themeStyle).showAndWait();
     }
 }

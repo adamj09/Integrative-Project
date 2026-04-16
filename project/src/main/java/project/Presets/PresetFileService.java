@@ -36,6 +36,8 @@ public class PresetFileService {
             properties.setProperty(prefix + "name", body.name());
             properties.setProperty(prefix + "color", body.color().toString());
             properties.setProperty(prefix + "preset", Boolean.toString(body.preset()));
+            properties.setProperty(prefix + "mass", Double.toString(body.mass()));
+            properties.setProperty(prefix + "radius", Double.toString(body.radius()));
         }
 
         List<SatellitePreset> satellites = configuration.getSatellites();
@@ -70,16 +72,18 @@ public class PresetFileService {
         for (int index = 0; index < bodiesCount; index++) {
             String prefix = BODIES_PREFIX + index + ".";
             String name = properties.getProperty(prefix + "name", "Body-" + index);
-            Color color = parseColor(properties, prefix + "color", Color.TOMATO);
+            Color color = parseColor(properties, prefix + "color", Color.web("#7a4a36")); // Dark muted orange
             boolean preset = Boolean.parseBoolean(properties.getProperty(prefix + "preset", "false"));
-            bodies.add(new BodyPreset(name, color, preset));
+            double mass = parseDouble(properties, prefix + "mass", 5.972e24);
+            double radius = parseDouble(properties, prefix + "radius", 6371.0);
+            bodies.add(new BodyPreset(name, color, preset, mass, radius));
         }
 
         List<SatellitePreset> satellites = new ArrayList<>();
         for (int index = 0; index < satellitesCount; index++) {
             String prefix = SATELLITES_PREFIX + index + ".";
             String name = properties.getProperty(prefix + "name", "Sat-" + index);
-            Color color = parseColor(properties, prefix + "color", Color.CORNFLOWERBLUE);
+            Color color = parseColor(properties, prefix + "color", Color.web("#39506a")); // Dark muted blue
             satellites.add(new SatellitePreset(name, color));
         }
 
@@ -105,6 +109,14 @@ public class PresetFileService {
             return Color.valueOf(properties.getProperty(key, defaultColor.toString()));
         } catch (IllegalArgumentException ex) {
             throw new IOException("Invalid color value for key: " + key, ex);
+        }
+    }
+
+    private double parseDouble(Properties properties, String key, double defaultValue) {
+        try {
+            return Double.parseDouble(properties.getProperty(key, Double.toString(defaultValue)));
+        } catch (NumberFormatException ex) {
+            return defaultValue;
         }
     }
 }

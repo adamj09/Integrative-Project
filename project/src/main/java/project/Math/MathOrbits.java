@@ -1,7 +1,7 @@
 package project.Math;
 
-import org.joml.Vector3d;
 import org.joml.Matrix3d;
+import org.joml.Vector3d;
 
 public class MathOrbits {
 

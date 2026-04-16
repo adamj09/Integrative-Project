@@ -32,7 +32,7 @@ public class PresetConfiguration {
         return bottomPanePreset;
     }
 
-    public record BodyPreset(String name, Color color, boolean preset) {}
+    public record BodyPreset(String name, Color color, boolean preset, double mass, double radius) {}
 
     public record SatellitePreset(String name, Color color) {}
 
