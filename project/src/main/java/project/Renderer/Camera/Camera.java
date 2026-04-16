@@ -11,7 +11,7 @@ import org.joml.Vector3f;
  */
 public class Camera {
     /**
-     * Projection and view matrices, initially as identity matrices.
+     * Projection, view, and inverse view matrices, initially as identity matrices.
      */
     private Matrix4f projection = new Matrix4f(),
             view = new Matrix4f(),
@@ -67,7 +67,9 @@ public class Camera {
         updateInverseView();
     }
 
-
+    /**
+     * Updates the inverse view matrix based on the current view matrix.
+     */
     private void updateInverseView() {
         inverseView.set(view);
         inverseView.invert();

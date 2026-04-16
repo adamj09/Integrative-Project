@@ -13,7 +13,14 @@ import project.Renderer.World.World;
  * @author Adam Johnston
  */
 public class FreeLookCameraController {
+    /**
+     * Camera transfomations that this class controls.
+     */
     private Camera camera;
+
+    /**
+     * Control manager to get user input from.
+     */
     private ControlManager controls;
 
     /**
@@ -109,10 +116,8 @@ public class FreeLookCameraController {
     /**
      * Applies rotation to the camera using quaternions. Rotation is controlled by
      * mouse movement.
-     * 
      */
     private void rotate() {
-        // Greatest absolute pitch change is set to the pitch limit.
         double pitch = -controls.getMouseDeltaYNormalized() * rotateSpeed;
         double yaw = -controls.getMouseDeltaXNormalized() * rotateSpeed;
 
@@ -133,6 +138,12 @@ public class FreeLookCameraController {
                 new Vector3f((float) newDirection.x, (float) newDirection.y, (float) newDirection.z));
     }
 
+    /**
+     * Creates a quaternion representing a rotation around the X-axis (pitch).
+     * 
+     * @param radians The angle of rotation in radians.
+     * @return The resulting quaternion.
+     */
     private Quaterniond pitch(double radians) {
         // Set pitch axis to be perpendicular to the camera's direction and up vectors.
         Vector3d pitchAxis = new Vector3d();
@@ -152,11 +163,15 @@ public class FreeLookCameraController {
         return pitchQuaternion;
     }
 
+    /**
+     * Creates a quaternion representing a rotation around the Y-axis (yaw).
+     * 
+     * @param radians The angle of rotation in radians.
+     * @return The resulting quaternion.
+     */
     private Quaterniond yaw(double radians) {
-        // In this first person camera, yaw is always around the world's up axis (0, 1,
-        // 0) so we can just use the camera's up vector as the yaw axis.
-        Vector3d yawAxis = new Vector3d();
-        yawAxis.set(camera.getUp());
+        // Yaw is always around the world's up axis (0, 1, 0), since we don't want the camera to roll.
+        Vector3d yawAxis = new Vector3d(0, 1, 0);
 
         Quaterniond yawQuaternion = new Quaterniond();
         yawQuaternion.setAngleAxis(radians, yawAxis.x, yawAxis.y, yawAxis.z);

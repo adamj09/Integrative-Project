@@ -124,9 +124,11 @@ public class SphereGenerator {
         indices.add(new Vector3i(8, 6, 7));
         indices.add(new Vector3i(9, 8, 1));
 
+        // Subdivide the icosahedron to create the icosphere.
         for (int i = 0; i < depth; i++) {
             ArrayList<Vector3i> newIndices = new ArrayList<>();
 
+            // Split each triangle into 4 smaller triangles.
             for (Vector3i triangle : indices) {
                 int x = getMiddlePoint(triangle.x, triangle.y);
                 int y = getMiddlePoint(triangle.y, triangle.z);
@@ -144,7 +146,7 @@ public class SphereGenerator {
             this.indices.add(triangle);
         }
 
-        // Note: for a sphere, normals are just the sphere's vertices divided by the
+        // Note that for a sphere, normals are just the sphere's vertices divided by the
         // radius (radius here is 1 so just pass in vertices). Texture coordinates are
         // not calculated. Maybe this should be implemented in the future.
         return new Mesh(this.vertices, this.indices, this.vertices, new ArrayList<>());

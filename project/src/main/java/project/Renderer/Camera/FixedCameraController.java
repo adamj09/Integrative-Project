@@ -9,14 +9,30 @@ import project.Renderer.World.World;
 import project.Renderer.World.WorldObject;
 
 /**
- * Class that controls a camera in a first person style (without rolling).
+ * Class that controls a camera in orbit around a focus point.
  * 
  * @author Adam Johnston
  */
 public class FixedCameraController {
+
+    /**
+     * The world that contains the focused object.
+     */
     private World world;
+
+    /**
+     * The camera that this class controls.
+     */
     private Camera camera;
+
+    /**
+     * Control manager to get user input from.
+     */
     private ControlManager controls;
+
+    /**
+    * The WorldObject that the camera is focused on.
+    */
     private WorldObject focusedWorldObject;
 
     /**
@@ -44,16 +60,30 @@ public class FixedCameraController {
      */
     private double yaw;
 
+    /**
+     * The position the camera is looking at.
+     */
     private Vector3d lookatPosition = new Vector3d();
 
+    /**
+     * The distance from the camera to the lookat position.
+     */
     private double radius = 10.d;
 
-    private double minRadius, maxRadius;
+    /**
+     * The minimum distance from the camera to the lookat position.
+     */
+    private double minRadius;
 
     /**
-     * Initializes the camera controller with a camera and control manager.
+     * The maximum distance from the camera to the lookat position.
+     */
+    private double maxRadius;
+
+    /** 
+     * Initializes the camera controller with a world and control manager.
      * 
-     * @param camera   Camera to control.
+     * @param world The world that contains the camera and the object to focus on.
      * @param controls Control manager to get user input from.
      */
     public FixedCameraController(World world, ControlManager controls) {
@@ -63,10 +93,9 @@ public class FixedCameraController {
     }
 
     /**
-     * Translates the camera based on user input.
+     * Translates the camera back and forth from the lookat position based on user input (scroll wheel).
      * 
-     * @param deltaTime The time in seconds between the last and current frame (used
-     *                  to keep movement speed framerate independent).
+     * @param deltaTime The time in seconds between the last and current frame (used to keep movement speed framerate independent).
      */
     private void translate(double deltaTime) {
         // Translation is proportional to distance from lookatPosition
@@ -87,6 +116,9 @@ public class FixedCameraController {
         controls.setScrollDeltaY(0);
     }
 
+    /**
+     * Rotates the camera based on user input.
+     */
     private void rotate() {
         double pitch = -controls.getMouseDeltaYNormalized() * rotateSpeed;
         double yaw = -controls.getMouseDeltaXNormalized() * rotateSpeed;
@@ -111,6 +143,33 @@ public class FixedCameraController {
     }
 
     /**
+     * Sets the WorldObject that the camera should focus on.
+     *
+     * @param name The name of the object to focus on.
+     */
+    public void setFocusObject(String name) {
+        if (!world.getBodies().containsKey(name)) {
+            return;
+        }
+
+        focusedWorldObject = world.getBodies().get(name);
+
+        minRadius = focusedWorldObject.getScale().x + Renderer.DEFAULT_NEAR;
+        maxRadius = focusedWorldObject.getScale().x + 1_000d;
+        radius = minRadius + 5.f;
+
+        this.lookatPosition = new Vector3d(focusedWorldObject.getTranslation());
+
+        Vector3d newPosition = new Vector3d(lookatPosition.x + radius, 0.f, lookatPosition.z + radius);
+
+        Vector3d newDirection = new Vector3d();
+        lookatPosition.sub(newPosition, newDirection);
+
+        camera.setView(new Vector3f((float) newPosition.x, (float) newPosition.y, (float) newPosition.z),
+                new Vector3f((float) newDirection.x, (float) newDirection.y, (float) newDirection.z));
+    }
+
+    /**
      * Updates the camera's transform by applying rotation and translation based on
      * user input.
      * 
@@ -118,6 +177,7 @@ public class FixedCameraController {
      *                  to keep movement speed framerate independent).
      */
     public void updateCameraTransform(double deltaTime) {
+        // Update the lookat position to the focused object every frame, so that the camera will follow the object if it moves.
         lookatPosition = new Vector3d(focusedWorldObject.getTranslation());
 
         translate(deltaTime);
@@ -180,27 +240,5 @@ public class FixedCameraController {
      */
     public void setPitchLimit(float pitchLimit) {
         this.pitchLimit = pitchLimit;
-    }
-
-    public void setFocusObject(String name) {
-        if (!world.getBodies().containsKey(name)) {
-            return;
-        }
-
-        focusedWorldObject = world.getBodies().get(name);
-
-        minRadius = focusedWorldObject.getScale().x + Renderer.DEFAULT_NEAR;
-        maxRadius = focusedWorldObject.getScale().x + 1_000d;
-        radius = minRadius + 5.f;
-
-        this.lookatPosition = new Vector3d(focusedWorldObject.getTranslation());
-
-        Vector3d newPosition = new Vector3d(lookatPosition.x + radius, 0.f, lookatPosition.z + radius);
-
-        Vector3d newDirection = new Vector3d();
-        lookatPosition.sub(newPosition, newDirection);
-
-        camera.setView(new Vector3f((float) newPosition.x, (float) newPosition.y, (float) newPosition.z),
-                new Vector3f((float) newDirection.x, (float) newDirection.y, (float) newDirection.z));
     }
 }

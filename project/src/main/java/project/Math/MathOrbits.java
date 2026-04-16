@@ -339,7 +339,6 @@ public class MathOrbits {
         data.trueAnomaly = trueAnomaly(data.eccentricity, data.eccentricAnomaly);
 
         // distance
-        System.out.println(data.distance);
         double distance = distance(data.a, data.eccentricity, data.trueAnomaly, data.maximumDistanceToBody);
         if (Double.isNaN(distance)) {
             satellite.setLatestError(

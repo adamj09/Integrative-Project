@@ -10,44 +10,74 @@ import java.nio.FloatBuffer;
 
 import org.lwjgl.BufferUtils;
 
-public class LightRenderSystem {
-    private World world;
+/**
+ * Class responsible for rendering the light source.
+ * 
+ * @author Adam Johnston
+ */
+public class LightRenderSystem extends RenderSystem {
+    /**
+     * Buffers for storing the light source's color and model matrix.
+     */
+    private FloatBuffer colorBuffer, matrixBuffer;
 
-    private FloatBuffer colorBuffer = BufferUtils.createFloatBuffer(3), matrixBuffer = BufferUtils.createFloatBuffer(16);
-
+    /**
+     * Vertex buffer objects for the light source's color and model matrix.
+     */
     private int vboColor, vboModelMatrix;
 
-    private ShaderProgram shaderProgram;
-
+    /**
+     * Constructor for the LightRenderSystem class.
+     *
+     * @param world         The world containing the light source to be rendered.
+     * @param shaderProgram The shader program for rendering the light source.
+     */
     public LightRenderSystem(World world, ShaderProgram shaderProgram) {
-        this.world = world;
-        this.shaderProgram = shaderProgram;
-
-        init();
+        super(world, shaderProgram);
     }
 
+    /**
+     * Initializes vertex attributes and uniforms for rendering the light source.
+     */
+    @Override
     public void init() {
-        shaderProgram.use();
+        // Reset buffers and vertex buffer objects in case this method is being caalled
+        // after the initial initialization.
+        vboColor = 0;
+        vboModelMatrix = 0;
 
-        glBindVertexArray(world.getLightSource().getMesh().getVAO());
+        if (colorBuffer != null) {
+            colorBuffer.clear();
+        } else {
+            colorBuffer = BufferUtils.createFloatBuffer(3);
+        }
+        if (matrixBuffer != null) {
+            matrixBuffer.clear();
+        } else {
+            matrixBuffer = BufferUtils.createFloatBuffer(16);
+        }
+
+        super.getShaderProgram().use();
+
+        glBindVertexArray(super.getWorld().getLightSource().getMesh().getVAO());
 
         // Color
         vboColor = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboColor);
-        glBufferData(GL_ARRAY_BUFFER, world.getLightSource().getColor().get(colorBuffer), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, super.getWorld().getLightSource().getColor().get(colorBuffer), GL_STATIC_DRAW);
         glEnableVertexAttribArray(3);
 
         glVertexAttribPointer(3, 3, GL_FLOAT, false, Renderer.VEC3F_SIZE, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-        
+
         glVertexAttribDivisor(3, 1);
 
         // Model Matrix
         vboModelMatrix = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrix);
-        glBufferData(GL_ARRAY_BUFFER, world.getLightSource().getTransformMatrix().get(matrixBuffer), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, super.getWorld().getLightSource().getTransformMatrix().get(matrixBuffer), GL_STATIC_DRAW);
 
-        glBindVertexArray(world.getLightSource().getMesh().getVAO());
+        glBindVertexArray(super.getWorld().getLightSource().getMesh().getVAO());
 
         // Model matrix attribute pointers. Note that we need to do this four times,
         // since the maximum size of an attribute is equivalent to a Vector4f. I.e.
@@ -72,10 +102,15 @@ public class LightRenderSystem {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
+    /**
+     * Draws the light source.
+     */
+    @Override
     public void loop() {
-        shaderProgram.use();
+        super.getShaderProgram().use();
 
-        glBindVertexArray(world.getLightSource().getMesh().getVAO());
-        glDrawElementsInstanced(GL_TRIANGLES, world.getLightSource().getMesh().getIndices().size() * 3, GL_UNSIGNED_INT, 0, 1);
+        glBindVertexArray(super.getWorld().getLightSource().getMesh().getVAO());
+        glDrawElementsInstanced(GL_TRIANGLES, super.getWorld().getLightSourceMesh().getIndices().size() * 3, GL_UNSIGNED_INT,
+                0, 1);
     }
 }

@@ -2,36 +2,48 @@ package project.Renderer.RenderSystems;
 
 import project.Renderer.Renderer;
 import project.Renderer.ShaderProgram;
-import project.Renderer.Viewport;
 import project.Renderer.World.World;
 
 import static org.lwjgl.opengl.GL41.*;
 
-import org.joml.Vector2f;
+/**
+ * Class responsible for rendering the orbits of celestial bodies.
+ * 
+ * @author Adam Johnston
+ */
+public class OrbitRenderSystem extends RenderSystem {
 
-public class OrbitRenderSystem {
-    private Viewport viewport;
-    private World world;
-    private ShaderProgram shaderProgram;
+    /**
+     * Vertex buffer object for the model matrices of the orbits.
+     */
     private int vboModelMatrices;
 
-    public OrbitRenderSystem(Viewport viewport, World world, ShaderProgram shaderProgram) {
-        this.viewport = viewport;
-        this.world = world;
-        this.shaderProgram = shaderProgram;
-
-        init();
+    /**
+     * Constructor for the OrbitRenderSystem class.
+     * @param world The world containing the orbits to be rendered.
+     * @param shaderProgram The shader program for rendering the orbits.
+     */
+    public OrbitRenderSystem(World world, ShaderProgram shaderProgram) {
+        super(world, shaderProgram);
     }
 
+    /**
+     * Initializes vertex attribute for rendering the orbits of celestial bodies.
+     */
+    @Override
     public void init() {
-        shaderProgram.use();
+        // Reset vertex buffer object in case this method is being called after the
+        // initial initialization.
+        vboModelMatrices = 0;
 
-        glBindVertexArray(world.getOrbitMesh().getVAO());
+        super.getShaderProgram().use();
+
+        glBindVertexArray(super.getWorld().getOrbitMesh().getVAO());
 
         // Model Matrices
         vboModelMatrices = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
-        glBufferData(GL_ARRAY_BUFFER, world.getOrbitMatrixBuffer(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, super.getWorld().getOrbitMatrixBuffer(), GL_STATIC_DRAW);
 
         // Model matrix attribute pointers. Note that we need to do this four times,
         // since the maximum size of an attribute is equivalent to a Vector4f. I.e.
@@ -56,14 +68,15 @@ public class OrbitRenderSystem {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
+    /**
+     * Render loop for the orbits of celestial bodies. Draws the orbits using instanced rendering.
+     */
+    @Override
     public void loop() {
-        shaderProgram.use();
+        super.getShaderProgram().use();
 
-        shaderProgram.addUniformVec2f("resolution",
-                new Vector2f((float) viewport.getGLCanvas().getWidth(), (float) viewport.getGLCanvas().getHeight()));
-
-        //glClear(GL_DEPTH_BUFFER_BIT);
-        glBindVertexArray(world.getOrbitMesh().getVAO());
-        glDrawArraysInstanced(GL_LINE_LOOP, 0, world.getOrbitMesh().getVertices().size(), world.getOrbits().size());
+        glBindVertexArray(super.getWorld().getOrbitMesh().getVAO());
+        glDrawArraysInstanced(GL_LINE_LOOP, 0, super.getWorld().getOrbitMesh().getVertices().size(),
+                super.getWorld().getOrbits().size());
     }
 }

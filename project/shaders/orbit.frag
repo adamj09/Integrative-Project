@@ -1,7 +1,5 @@
 #version 410 core
 
-uniform vec2 resolution;
-
 out vec4 frag_color;
 
 void main() {

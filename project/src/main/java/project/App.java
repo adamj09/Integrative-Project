@@ -13,9 +13,21 @@ import project.UI.MainMenuBar;
 import project.UI.Popups.InfoPopup;
 import project.UI.SidebarPane;
 
+/**
+ * The main application class for the Orbital Motion Simulator.
+ * 
+ * @author Adam Johnston
+ * @author Ryan Lau
+ * @author Maxime Gauthier
+ */
 public class App extends Application {
     private static final String THEME_PREFERENCE_KEY = "ui.theme";
 
+    /**
+     * Starts the JavaFX application, setting up the main window, UI components, and event handlers.
+     * 
+     * @param stage The primary stage for this application, onto which the application scene can be set.
+     */
     @Override
     public void start(Stage stage) {
         setSystemProperties();
@@ -25,32 +37,38 @@ public class App extends Application {
         SidebarPane sidebar = new SidebarPane(bottom);
         PresetManager presetManager = new PresetManager();
 
-        Renderer mainRenderer = new Renderer();
+        SimulationPool.load();
+        Renderer mainRenderer = new Renderer(SimulationPool.getWorld("Earth"));
 
         // Wire menu bar buttons to sidebar actions
-        menuBar.getNewBodyButton().setOnAction(e -> sidebar.openNewBodyPopup(stage,
-            menuBar.getThemeSelector().getValue() != null
-                ? menuBar.getThemeSelector().getValue().toStyleString() : ""));
-        menuBar.getNewSatelliteButton().setOnAction(e -> sidebar.openNewSatellitePopup(stage,
-            menuBar.getThemeSelector().getValue() != null
-                ? menuBar.getThemeSelector().getValue().toStyleString() : ""));
+        menuBar.getNewBodyButton()
+                .setOnAction(e -> sidebar.openNewBodyPopup(stage,
+                        menuBar.getThemeSelector().getValue() != null
+                                ? menuBar.getThemeSelector().getValue().toStyleString()
+                                : ""));
+        menuBar.getNewSatelliteButton()
+                .setOnAction(e -> sidebar.openNewSatellitePopup(stage,
+                        menuBar.getThemeSelector().getValue() != null
+                                ? menuBar.getThemeSelector().getValue().toStyleString()
+                                : ""));
         menuBar.getSaveAsMenuItem().setOnAction(e -> presetManager.savePresetAs(stage, sidebar));
         menuBar.getSaveMenuItem().setOnAction(e -> presetManager.savePreset(stage, sidebar));
         menuBar.getLoadMenuItem().setOnAction(e -> presetManager.loadPreset(stage, sidebar));
         menuBar.getInfoButton().setOnAction(e -> InfoPopup.show("""
-            Orbital Motion Simulator
+                Orbital Motion Simulator
 
-            Use 'New celestial body' to add a central body and 'New satellite' to add orbiting objects.
-            Adjust simulation settings in the sidebar and bottom controls.
-            """,
-            menuBar.getThemeSelector().getValue() != null
-                ? menuBar.getThemeSelector().getValue().toStyleString() : ""));
+                Use 'New celestial body' to add a central body and 'New satellite' to add orbiting objects.
+                Adjust simulation settings in the sidebar and bottom controls.
+                """,
+                menuBar.getThemeSelector().getValue() != null
+                        ? menuBar.getThemeSelector().getValue().toStyleString()
+                        : ""));
 
         presetManager.markCurrentStateSaved(sidebar);
 
         Preferences preferences = Preferences.userNodeForPackage(App.class);
         UiTheme selectedTheme = UiTheme.fromStoredValue(
-            preferences.get(THEME_PREFERENCE_KEY, UiTheme.MIDNIGHT.name()));
+                preferences.get(THEME_PREFERENCE_KEY, UiTheme.MIDNIGHT.name()));
 
         BorderPane root = new BorderPane();
         root.setStyle(selectedTheme.toStyleString());
@@ -87,10 +105,19 @@ public class App extends Application {
         stage.show();
     }
 
+    /**
+     * Sets the system properties for the application.
+     */
     private void setSystemProperties() {
+        // Turn off vsync so that framerate can be manually controlled.
         System.setProperty("prism.vsync", "false");
     }
 
+    /**
+     * The main entry point for the application.
+     * 
+     * @param args The command line arguments.
+     */
     public static void main(String[] args) {
         launch(args);
     }

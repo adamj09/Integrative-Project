@@ -5,32 +5,55 @@ import project.Renderer.ShaderProgram;
 import project.Renderer.World.World;
 import static org.lwjgl.opengl.GL41.*;
 
-public class BodyRenderSystem {
-    private World world;
+/**
+ * Class responsible for rendering celestial bodies.
+ * 
+ * @author Adam Johnston
+ */
+public class BodyRenderSystem extends RenderSystem {
+    /**
+     * Vertex buffer object for the colors of the celestial bodies.
+     */
+    private int vboColors;
 
-    private int vboColors,
-            vboModelMatrices;
+    /**
+     * Vertex buffer object for the model matrices of the celestial bodies.
+     */
+    private int vboModelMatrices;
 
-    private ShaderProgram shaderProgram;
-
+    /**
+     * Constructor for the BodyRenderSystem class.
+     * 
+     * @param world         The world containing the celestial bodies to be
+     *                      rendered.
+     * @param shaderProgram The shader program for rendering the celestial bodies.
+     */
     public BodyRenderSystem(World world, ShaderProgram shaderProgram) {
-        this.world = world;
-        this.shaderProgram = shaderProgram;
-        init();
+        super(world, shaderProgram);
     }
 
+    /**
+     * Initializes vertex attributes and uniforms for rendering the celestial
+     * bodies.
+     */
+    @Override
     public void init() {
-        shaderProgram.use();
+        // Reset vertex buffer objects in case this method is being called after the initial initialization.
+        vboColors = 0;
+        vboModelMatrices = 0;
 
-        shaderProgram.addUniformVec3f("light_color", world.getLightSource().getLightColor());
-        shaderProgram.addUniformVec3f("light_position", world.getLightSource().getTranslation());
+        super.getShaderProgram().use();
 
-        glBindVertexArray(world.getBodyMesh().getVAO());
+        // Uniforms for lighting calculations.
+        super.getShaderProgram().addUniformVec3f("light_color", super.getWorld().getLightSource().getLightColor());
+        super.getShaderProgram().addUniformVec3f("light_position", super.getWorld().getLightSource().getTranslation());
+
+        glBindVertexArray(super.getWorld().getBodyMesh().getVAO());
 
         // Colors
         vboColors = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboColors);
-        glBufferData(GL_ARRAY_BUFFER, world.getColorsBuffer(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, super.getWorld().getColorsBuffer(), GL_STATIC_DRAW);
         glEnableVertexAttribArray(3);
 
         glVertexAttribPointer(3, 3, GL_FLOAT, false, Renderer.VEC3F_SIZE, 0);
@@ -41,7 +64,7 @@ public class BodyRenderSystem {
         // Model Matrices
         vboModelMatrices = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
-        glBufferData(GL_ARRAY_BUFFER, world.getBodyMatrixBuffer(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, super.getWorld().getBodyMatrixBuffer(), GL_STATIC_DRAW);
 
         // Model matrix attribute pointers. Note that we need to do this four times,
         // since the maximum size of an attribute is equivalent to a Vector4f. I.e.
@@ -66,25 +89,23 @@ public class BodyRenderSystem {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
+    /**
+     * Render loop for the celestial bodies. Updates the model transformation
+     * matrices and draws the bodies using instanced rendering.
+     */
+    @Override
     public void loop() {
-        shaderProgram.use();
+        super.getShaderProgram().use();
         // Update model transformation matrices.
-        world.updateBodyMatrixBuffer();
+        //super.getWorld().updateMatrixBuffer(super.getWorld().getBodies());
 
         glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
-        glBufferData(GL_ARRAY_BUFFER, world.getBodyMatrixBuffer(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, super.getWorld().getBodyMatrixBuffer(), GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         // Draw bodies (instanced)
-        glBindVertexArray(world.getBodyMesh().getVAO());
-        glDrawElementsInstanced(GL_TRIANGLES, world.getBodyMesh().getIndices().size() * 3, GL_UNSIGNED_INT, 0,
-                world.getBodies().size());
-    }
-
-    public void setWorld(World world) {
-        this.world = world;
-        vboColors = 0;
-
-        init();
+        glBindVertexArray(super.getWorld().getBodyMesh().getVAO());
+        glDrawElementsInstanced(GL_TRIANGLES, super.getWorld().getBodyMesh().getIndices().size() * 3, GL_UNSIGNED_INT, 0,
+                super.getWorld().getBodies().size());
     }
 }

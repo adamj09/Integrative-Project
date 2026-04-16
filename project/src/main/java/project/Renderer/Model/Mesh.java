@@ -11,46 +11,80 @@ import org.lwjgl.BufferUtils;
 
 import static org.lwjgl.opengl.GL41.*;
 
+/**
+ * Class representing a 3D mesh, containing vertex data and OpenGL buffer
+ * objects.
+ * 
+ * @author Adam Johnston
+ */
 public class Mesh {
+    /**
+     * Vertex data lists for this mesh.
+     */
     private ArrayList<Vector3f> vertices = new ArrayList<>();
     private ArrayList<Vector3i> indices = new ArrayList<>();
     private ArrayList<Vector3f> normals = new ArrayList<>();
     private ArrayList<Vector2f> texCoords = new ArrayList<>();
 
+    /**
+     * Buffers for vertex data to be sent to the GPU.
+     */
     private FloatBuffer vertexBuffer;
     private IntBuffer indexBuffer;
     private FloatBuffer normalBuffer;
     private FloatBuffer texCoordBuffer;
 
+    /**
+     * OpenGL buffer object IDs for this mesh.
+     */
     private int VAO, VBO, NBO, TBO, EBO;
 
-    public Mesh(ArrayList<Vector3f> vertices, ArrayList<Vector3i> indices, ArrayList<Vector3f> normals, ArrayList<Vector2f> texCoords) {
+    /**
+     * Constructs a Mesh object with the provided vertex data, and sets up OpenGL buffers for rendering.
+     * @param vertices The list of vertex positions for this mesh.
+     * @param indices The list of vertex indices for this mesh.
+     * @param normals The list of vertex normals for this mesh.
+     * @param texCoords The list of texture coordinates for this mesh.
+     */
+    public Mesh(ArrayList<Vector3f> vertices, ArrayList<Vector3i> indices, ArrayList<Vector3f> normals,
+            ArrayList<Vector2f> texCoords) {
         this.vertices = vertices;
         this.indices = indices;
         this.normals = normals;
+        this.texCoords = texCoords;
+    }
 
+    /**
+     * Sets up the OpenGL buffers for this mesh.
+     */
+    public void setUpBuffers() {
         VAO = glGenVertexArrays();
         glBindVertexArray(VAO);
 
-        if(!vertices.isEmpty()) {
+        // Set up buffers for all provided vertex data.
+        if (!vertices.isEmpty()) {
             setUpVertexBuffer();
         }
 
-        if(!indices.isEmpty()) {
+        if (!indices.isEmpty()) {
             setUpIndexBuffer();
         }
 
-        if(!normals.isEmpty()) {
+        if (!normals.isEmpty()) {
             setUpNormalBuffer();
         }
 
-        if(!texCoords.isEmpty()) {
+        if (!texCoords.isEmpty()) {
             setUpTexCoordBuffer();
         }
     }
 
+    /**
+     * Sets up the vertex buffer object (VBO) for this mesh, and packs vertex data
+     * into a FloatBuffer to be sent to the GPU.
+     */
     private void setUpVertexBuffer() {
-        packVerticesIntoBuffer();
+        vertexBuffer = packVector3fIntoBuffer(vertices);
 
         VBO = glGenBuffers();
 
@@ -60,8 +94,12 @@ public class Mesh {
         glEnableVertexAttribArray(0);
     }
 
+    /**
+     * Sets up the element buffer object (EBO) for this mesh, and packs index data
+     * into an IntBuffer to be sent to the GPU.
+     */
     private void setUpIndexBuffer() {
-        packIndicesIntoBuffer();
+        indexBuffer = packVector3iIntoBuffer(indices);
 
         EBO = glGenBuffers();
 
@@ -69,8 +107,12 @@ public class Mesh {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL_STATIC_DRAW);
     }
 
+    /**
+     * Sets up the normal buffer object (NBO) for this mesh, and packs normal data
+     * into a FloatBuffer to be sent to the GPU.
+     */
     private void setUpNormalBuffer() {
-        packNormalsIntoBuffer();
+        normalBuffer = packVector3fIntoBuffer(normals);
 
         NBO = glGenBuffers();
 
@@ -80,8 +122,12 @@ public class Mesh {
         glEnableVertexAttribArray(1);
     }
 
+    /**
+     * Sets up the texture coordinate buffer object (TBO) for this mesh, and packs
+     * texture coordinate data into a FloatBuffer to be sent to the GPU.
+     */
     private void setUpTexCoordBuffer() {
-        packTexCoordsIntoBuffer();
+        texCoordBuffer = packVector2fIntoBuffer(texCoords);
 
         TBO = glGenBuffers();
 
@@ -91,94 +137,124 @@ public class Mesh {
         glEnableVertexAttribArray(2);
     }
 
-    private void packVerticesIntoBuffer() {
-        vertexBuffer = BufferUtils.createFloatBuffer(this.vertices.size() * 3);
+    /**
+     * Packs an ArrayList of Vector3f data into a FloatBuffer for sending to the GPU.
+     * @param data The ArrayList of Vector3f data to be packed.
+     * 
+     * @return The FloatBuffer containing the packed data.
+     */
+    private FloatBuffer packVector3fIntoBuffer(ArrayList<Vector3f> data) {
+        FloatBuffer buffer = BufferUtils.createFloatBuffer(data.size() * 3);
 
-        float[] vertices = new float[this.vertices.size() * 3];
+        float[] array = new float[data.size() * 3];
 
-        for (int i = 0, j = 0; i < this.vertices.size(); i++, j += 3) {
-            vertices[j] = this.vertices.get(i).x;
-            vertices[j + 1] = this.vertices.get(i).y;
-            vertices[j + 2] = this.vertices.get(i).z;
+        for (int i = 0, j = 0; i < data.size(); i++, j += 3) {
+            array[j] = data.get(i).x;
+            array[j + 1] = data.get(i).y;
+            array[j + 2] = data.get(i).z;
         }
 
-        vertexBuffer.put(vertices).flip();
+        return buffer.put(array).flip();
     }
 
-    private void packIndicesIntoBuffer() {
-        indexBuffer = BufferUtils.createIntBuffer(this.indices.size() * 3);
+    /**
+     * Packs an ArrayList of Vector2f data into a FloatBuffer for sending to the GPU.
+     * @param data The ArrayList of Vector2f data to be packed.
+     * 
+     * @return The FloatBuffer containing the packed data.
+     */
+    private FloatBuffer packVector2fIntoBuffer(ArrayList<Vector2f> data) {
+        FloatBuffer buffer = BufferUtils.createFloatBuffer(data.size() * 2);
 
-        int[] indices = new int[this.indices.size() * 3];
+        float[] array = new float[data.size() * 2];
 
-        for (int i = 0, j = 0; i < this.indices.size(); i++, j += 3) {
-            indices[j] = this.indices.get(i).x;
-            indices[j + 1] = this.indices.get(i).y;
-            indices[j + 2] = this.indices.get(i).z;
+        for (int i = 0, j = 0; i < data.size(); i++, j += 2) {
+            array[j] = data.get(i).x;
+            array[j + 1] = data.get(i).y;
         }
 
-        indexBuffer.put(indices).flip();
+        return buffer.put(array).flip();
     }
 
-    private void packNormalsIntoBuffer() {
-        normalBuffer = BufferUtils.createFloatBuffer(this.normals.size() * 3);
+    /**
+     * Packs an ArrayList of Vector3i data into an IntBuffer for sending to the GPU.
+     * @param data The ArrayList of Vector3i data to be packed.
+     * 
+     * @return The IntBuffer containing the packed data.
+     */
+    private IntBuffer packVector3iIntoBuffer(ArrayList<Vector3i> data) {
+        IntBuffer buffer = BufferUtils.createIntBuffer(data.size() * 3);
 
-        float[] normals = new float[this.normals.size() * 3];
+        int[] array = new int[data.size() * 3];
 
-        for (int i = 0, j = 0; i < this.normals.size(); i++, j += 3) {
-            normals[j] = this.normals.get(i).x;
-            normals[j + 1] = this.normals.get(i).y;
-            normals[j + 2] = this.normals.get(i).z;
+        for (int i = 0, j = 0; i < data.size(); i++, j += 3) {
+            array[j] = data.get(i).x;
+            array[j + 1] = data.get(i).y;
+            array[j + 2] = data.get(i).z;
         }
 
-        normalBuffer.put(normals).flip();
+        return buffer.put(array).flip();
     }
 
-    // TODO: should probably make a more elegant, all-in-on function for packing data into a buffer
-    private void packTexCoordsIntoBuffer() {
-        texCoordBuffer = BufferUtils.createFloatBuffer(this.texCoords.size() * 2);
-
-        float[] texCoords = new float[this.texCoords.size() * 3];
-
-        for (int i = 0, j = 0; i < this.texCoords.size(); i++, j += 2) {
-            texCoords[j] = this.texCoords.get(i).x;
-            texCoords[j + 1] = this.texCoords.get(i).y;
-        }
-
-        texCoordBuffer.put(texCoords).flip();
-    }
-
+    /**
+     * @return The FloatBuffer containing the vertex data for this mesh.
+     */
     public FloatBuffer getVertexBuffer() {
         return vertexBuffer;
     }
 
+    /**
+     * @return The FloatBuffer containing the normal data for this mesh.
+     */
     public IntBuffer getIndexBuffer() {
         return indexBuffer;
     }
 
+    /**
+     * @return The FloatBuffer containing the normal data for this mesh.
+     */
     public ArrayList<Vector3f> getVertices() {
         return vertices;
     }
 
+    /**
+     * @return The ArrayList containing the vertex indices for this mesh.
+     */
     public ArrayList<Vector3i> getIndices() {
         return indices;
     }
 
+    /**
+     * @return The ArrayList containing the vertex normals for this mesh.
+     */
     public ArrayList<Vector3f> getNormals() {
         return normals;
     }
 
+    /**
+     * @return The ArrayList containing the texture coordinates for this mesh.
+     */
     public ArrayList<Vector2f> getTexCoords() {
         return texCoords;
     }
 
+    /**
+     * @return The VAO ID.
+     */
     public int getVAO() {
         return this.VAO;
     }
 
+    /**
+     * @return The VBO ID.
+     */
     public int getVBO() {
         return this.VBO;
     }
 
+    /**
+     * @return The EBO ID.
+     */
     public int getEBO() {
         return this.EBO;
     }
