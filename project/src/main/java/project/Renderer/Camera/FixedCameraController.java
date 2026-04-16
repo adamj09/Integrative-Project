@@ -1,10 +1,10 @@
 package project.Renderer.Camera;
 
-import java.util.Map;
-
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 import project.ControlManager;
+import project.Renderer.Renderer;
 import project.Renderer.World.World;
 import project.Renderer.World.WorldObject;
 
@@ -22,40 +22,33 @@ public class FixedCameraController {
     /**
      * Scalar dictating speed at which the camera translates.
      */
-    private float translateSpeed = 0.1f;
+    private double translateSpeed = 0.1d;
 
     /**
      * Scalar dictating speed at which the camera rotates.
      */
-    private float rotateSpeed = 0.01f;
+    private double rotateSpeed = 0.01d;
 
     /**
      * Radians to limit pitch to.
      */
-    private float pitchLimit = (float) Math.toRadians(89.0f);
+    private double pitchLimit = Math.toRadians(89.0d);
 
     /**
      * Camera pitch angle in radians.
      */
-    private float pitch;
+    private double pitch;
 
     /**
      * Camera yaw angle in radians.
      */
-    private float yaw;
+    private double yaw;
 
-    /**
-     * Defines the maximum distance the camera can travel from the focused object.
-     */
-    private float maxDistance = 100.f;
+    private Vector3d lookatPosition = new Vector3d();
 
-    private Vector3f lookatPosition = new Vector3f();
+    private double radius = 10.d;
 
-    private float radius = 10.f;
-
-    private float minRadius;
-
-    private float padding = 0.5f;
+    private double minRadius, maxRadius;
 
     /**
      * Initializes the camera controller with a camera and control manager.
@@ -69,70 +62,49 @@ public class FixedCameraController {
         this.controls = controls;
     }
 
-    //TODO: fix camera movement
     /**
      * Translates the camera based on user input.
      * 
      * @param deltaTime The time in seconds between the last and current frame (used
      *                  to keep movement speed framerate independent).
      */
-    private void translate(float deltaTime) {
-        Vector3f position = camera.getPosition();
-        Vector3f direction = camera.getDirection().normalize();
-        Vector3f newPosition = new Vector3f();
-        Vector3f displacement = new Vector3f();
-
+    private void translate(double deltaTime) {
         // Translation is proportional to distance from lookatPosition
-        float speed = controls.getScrollDeltaY() * translateSpeed * deltaTime * radius;
-        direction.mul(speed, displacement);
-        position.add(displacement, newPosition);
+        double speed = -controls.getScrollDeltaY() * translateSpeed * deltaTime * radius;
 
-        Vector3f toCamera = new Vector3f();
-        position.sub(newPosition, toCamera);
+        radius = Math.clamp(radius + speed, minRadius, maxRadius);
 
-        if (toCamera.length() > maxDistance) {
-            displacement.zero();
-        }
+        Vector3d newPosition = new Vector3d(
+                lookatPosition.x + radius * Math.cos(pitch) * Math.sin(yaw),
+                lookatPosition.y + radius * Math.sin(pitch),
+                lookatPosition.z + radius * Math.cos(pitch) * Math.cos(yaw));
 
-        // Make sure camera doesn't pass through other objects
-        for (Map.Entry<String, WorldObject> item : world.getBodies().entrySet()) {
-            WorldObject object = item.getValue();
-            if (object.getTranslation().distance(newPosition) < object.getScale().x + padding) {
-                displacement.zero();
-            }
-        }
-
-        Vector3f newDirection = new Vector3f();
+        Vector3d newDirection = new Vector3d();
         lookatPosition.sub(newPosition, newDirection);
 
-        camera.setView(newPosition, newDirection);
+        camera.setView(new Vector3f((float) newPosition.x, (float) newPosition.y, (float) newPosition.z),
+                new Vector3f((float) newDirection.x, (float) newDirection.y, (float) newDirection.z));
         controls.setScrollDeltaY(0);
     }
 
-    /**
-     * Applies rotation to the camera using quaternions. Rotation is controlled by
-     * mouse movement.
-     * 
-     * @param deltaTime The time in seconds between the last and current frame (used
-     *                  to keep movement speed framerate independent).
-     */
     private void rotate() {
-        float pitch = -controls.getMouseDeltaYNormalized() * rotateSpeed;
-        float yaw = -controls.getMouseDeltaXNormalized() * rotateSpeed;
+        double pitch = -controls.getMouseDeltaYNormalized() * rotateSpeed;
+        double yaw = -controls.getMouseDeltaXNormalized() * rotateSpeed;
 
-        float newPitch = Math.clamp((this.pitch + pitch) % (float) Math.PI, -pitchLimit, pitchLimit);
-        float newYaw = (this.yaw + yaw) % ((float) Math.PI * 2.f);
+        double newPitch = Math.clamp((this.pitch + pitch) % Math.PI, -pitchLimit, pitchLimit);
+        double newYaw = ((this.yaw + yaw) % (Math.PI * 2.d));
 
-        Vector3f newPosition = new Vector3f(
-                lookatPosition.x + radius * (float) Math.cos(newPitch) * (float) Math.sin(newYaw),
-                lookatPosition.y + radius * (float) Math.sin(newPitch),
-                lookatPosition.z + radius * (float) Math.cos(newPitch) * (float) Math.cos(newYaw));
+        Vector3d newPosition = new Vector3d(
+                lookatPosition.x + radius * Math.cos(newPitch) * Math.sin(newYaw),
+                lookatPosition.y + radius * Math.sin(newPitch),
+                lookatPosition.z + radius * Math.cos(newPitch) * Math.cos(newYaw));
 
-        Vector3f newDirection = new Vector3f();
+        Vector3d newDirection = new Vector3d();
         lookatPosition.sub(newPosition, newDirection);
 
         // Update camera's view matrix.
-        camera.setView(newPosition, newDirection);
+        camera.setView(new Vector3f((float) newPosition.x, (float) newPosition.y, (float) newPosition.z),
+                new Vector3f((float) newDirection.x, (float) newDirection.y, (float) newDirection.z));
 
         this.pitch = newPitch;
         this.yaw = newYaw;
@@ -145,7 +117,9 @@ public class FixedCameraController {
      * @param deltaTime The time in seconds between the last and current frame (used
      *                  to keep movement speed framerate independent).
      */
-    public void updateCameraTransform(float deltaTime) {
+    public void updateCameraTransform(double deltaTime) {
+        lookatPosition = new Vector3d(focusedWorldObject.getTranslation());
+
         translate(deltaTime);
 
         if (controls.isFocusButtonPressed() == 1) {
@@ -163,7 +137,7 @@ public class FixedCameraController {
     /**
      * @return Camera's translation speed.
      */
-    public float getTranslateSpeed() {
+    public double getTranslateSpeed() {
         return this.translateSpeed;
     }
 
@@ -179,7 +153,7 @@ public class FixedCameraController {
     /**
      * @return Camera's rotation speed.
      */
-    public float getRotateSpeed() {
+    public double getRotateSpeed() {
         return this.rotateSpeed;
     }
 
@@ -208,21 +182,6 @@ public class FixedCameraController {
         this.pitchLimit = pitchLimit;
     }
 
-    public void updateLookatPosition() {
-        this.lookatPosition = focusedWorldObject.getTranslation();
-
-        Vector3f newPosition = new Vector3f(lookatPosition.x + radius, 0.f, lookatPosition.z + radius);
-
-        System.out.println(radius);
-
-        Vector3f newDirection = new Vector3f();
-        lookatPosition.sub(newPosition, newDirection);
-
-        camera.setView(newPosition, newDirection);
-
-        System.out.println(camera.getPosition().toString());
-    }
-
     public void setFocusObject(String name) {
         if (!world.getBodies().containsKey(name)) {
             return;
@@ -230,18 +189,18 @@ public class FixedCameraController {
 
         focusedWorldObject = world.getBodies().get(name);
 
-        padding = focusedWorldObject.getScale().x / 2.f;
-
-        minRadius = focusedWorldObject.getScale().x + padding;
+        minRadius = focusedWorldObject.getScale().x + Renderer.DEFAULT_NEAR;
+        maxRadius = focusedWorldObject.getScale().x + 1_000d;
         radius = minRadius + 5.f;
 
-        this.lookatPosition = focusedWorldObject.getTranslation();
+        this.lookatPosition = new Vector3d(focusedWorldObject.getTranslation());
 
-        Vector3f newPosition = new Vector3f(lookatPosition.x + radius, 0.f, lookatPosition.z + radius);
+        Vector3d newPosition = new Vector3d(lookatPosition.x + radius, 0.f, lookatPosition.z + radius);
 
-        Vector3f newDirection = new Vector3f();
+        Vector3d newDirection = new Vector3d();
         lookatPosition.sub(newPosition, newDirection);
 
-        camera.setView(newPosition, newDirection);
+        camera.setView(new Vector3f((float) newPosition.x, (float) newPosition.y, (float) newPosition.z),
+                new Vector3f((float) newDirection.x, (float) newDirection.y, (float) newDirection.z));
     }
 }

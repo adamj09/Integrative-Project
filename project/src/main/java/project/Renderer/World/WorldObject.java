@@ -44,7 +44,7 @@ public class WorldObject {
         Matrix4f scaleMatrix = new Matrix4f();
         scaleMatrix.scale(scale);
 
-        this.scale.add(scale);
+        this.scale.mul(scale);
 
         transformMatrix.mul(scaleMatrix);
     }
