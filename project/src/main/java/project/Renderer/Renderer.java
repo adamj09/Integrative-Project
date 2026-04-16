@@ -2,8 +2,6 @@ package project.Renderer;
 
 import static org.lwjgl.opengl.GL41.*;
 
-import org.joml.Vector3f;
-
 import project.ControlManager;
 import project.SimulationPool;
 import project.Renderer.Camera.FixedCameraController;
@@ -49,10 +47,8 @@ public class Renderer {
 
             controlManager = new ControlManager(viewport.getGLCanvas());
 
-            world = new World("Earth");
-
             SimulationPool.load();
-            SimulationPool.setCurrentBody(this, "Earth");
+            world = SimulationPool.getWorld("Earth");
 
             // Create camera controllers
             freeLookCameraController = new FreeLookCameraController(world, controlManager);
@@ -90,12 +86,13 @@ public class Renderer {
 
             controlManager.updateMouse();
             controlManager.handleUnfocus();
+        
+            // Note: always update world before camera.
+            world.updateSatellites();
 
             //TODO: switch between camera controllers when needed
-            freeLookCameraController.updateCameraTransform((float) event.delta);
-            //fixedCameraController.updateCameraTransform((float) event.delta);
-
-            world.updateSatellites();
+            //freeLookCameraController.updateCameraTransform(event.delta);
+            fixedCameraController.updateCameraTransform(event.delta);
 
             cameraRenderSystem.loop();
             bodyRenderSystem.loop();
@@ -122,6 +119,10 @@ public class Renderer {
 
     public Viewport getViewport() {
         return this.viewport;
+    }
+
+    public void setWorld(World world) {
+        this.world = world;
     }
 
     public World getWorld() {

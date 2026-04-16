@@ -47,7 +47,7 @@ public class SphereGenerator {
 
         int lesserIndex = isFirstLesser ? index1 : index2;
         int greaterIndex = isFirstLesser ? index2 : index1;
-        String key = lesserIndex + "" + greaterIndex; // Unique key for each index in cache.
+        String key = (lesserIndex << 32) + greaterIndex + "";
 
         // If value was already calculated, retrieve from cache and return.
         if (middlePointCache.containsKey(key)) {
@@ -61,7 +61,7 @@ public class SphereGenerator {
                 (point1.z + point2.z) / 2.0f);
 
         int index = addVertex(middle);
-        middlePointCache.put(key, index);
+        //middlePointCache.put(key, index);
         return index;
     }
 
@@ -76,8 +76,9 @@ public class SphereGenerator {
         // Reset all values before creating a new sphere.
         vertices.clear();
         indices.clear();
-        index = 0;
         middlePointCache.clear();
+
+        index = 0;
 
         float t = (1.0f + (float) Math.sqrt(5.0)) / 2.0f;
 
@@ -146,6 +147,6 @@ public class SphereGenerator {
         // Note: for a sphere, normals are just the sphere's vertices divided by the
         // radius (radius here is 1 so just pass in vertices). Texture coordinates are
         // not calculated. Maybe this should be implemented in the future.
-        return new Mesh(this.vertices, this.indices, vertices, new ArrayList<>());
+        return new Mesh(this.vertices, this.indices, this.vertices, new ArrayList<>());
     }
 }

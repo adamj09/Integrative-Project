@@ -2,17 +2,18 @@ package project.Math;
 
 import java.util.HashMap;
 
-public class Body extends OrbitsTime{
+public class Body extends OrbitsTime {
     private String name = "earth";
-    private double mass = Constant.EARTH_DEFAULT_MASS; //in kg
-    private double radius = Constant.EARTH_DEFAULT_RADIUS; //in km
-    private double distanceToSun = Constant.EARTH_DEFAULT_DISTANCE_TO_SUN; //in km (distance to the sun, used for the calculation of the solar radiation pressure)
-    private double massOfSun = Constant.SUN_DEFAULT_MASS; //in kg (mass of the sun, used for the calculation of )
+    private double mass = Constant.EARTH_DEFAULT_MASS; // in kg
+    private double radius = Constant.EARTH_DEFAULT_RADIUS; // in km
+    private double distanceToSun = Constant.EARTH_DEFAULT_DISTANCE_TO_SUN; // in km (distance to the sun, used for the
+                                                                           // calculation of the solar radiation
+                                                                           // pressure)
+    private double massOfSun = Constant.SUN_DEFAULT_MASS; // in kg (mass of the sun, used for the calculation of )
     private String latestError = "null";
     private boolean simulationRunning = false;
     private HashMap<String, Satellite> satellites;
     private HashMap<String, Thread> satelliteThreads;
-
 
     /**
      * constructor for the body object with earth specifcations
@@ -23,10 +24,12 @@ public class Body extends OrbitsTime{
     }
 
     /**
-     * constructor for the body object. The mass of the sun is the one for the solar system
+     * constructor for the body object. The mass of the sun is the one for the solar
+     * system
      * and distance to the sun is the distance between earth and the sun
-     * @param name name (and id) of the body
-     * @param mass mass of the body in kg
+     * 
+     * @param name   name (and id) of the body
+     * @param mass   mass of the body in kg
      * @param radius radius of the body in km
      */
     public Body(String name, double mass, double radius) {
@@ -38,10 +41,12 @@ public class Body extends OrbitsTime{
     }
 
     /**
-     * constructor for the body object. The mass of the sun is the one for the solar system
-     * @param name name (and id) of the body
-     * @param mass mass of the body in kg
-     * @param radius radius of the body in km
+     * constructor for the body object. The mass of the sun is the one for the solar
+     * system
+     * 
+     * @param name          name (and id) of the body
+     * @param mass          mass of the body in kg
+     * @param radius        radius of the body in km
      * @param distanceToSun distance of the body to the sun in km
      */
     public Body(String name, double mass, double radius, double distanceToSun) {
@@ -55,13 +60,14 @@ public class Body extends OrbitsTime{
 
     /**
      * constructor for the body object
-     * @param name name (and id) of the body
-     * @param mass mass of the body in kg
-     * @param radius radius of the body in km
+     * 
+     * @param name          name (and id) of the body
+     * @param mass          mass of the body in kg
+     * @param radius        radius of the body in km
      * @param distanceToSun distance of the body to the sun in km
-     * @param massOfSun mass of the sun in kg
+     * @param massOfSun     mass of the sun in kg
      */
-    public Body(String name, double mass, double radius, double distanceToSun, double massOfSun){
+    public Body(String name, double mass, double radius, double distanceToSun, double massOfSun) {
         this.name = name;
         this.mass = mass;
         this.radius = radius;
@@ -72,15 +78,18 @@ public class Body extends OrbitsTime{
     }
 
     /**
-     * add the satelitte to the central body and initialise the static info of the satellite object
+     * Add the satelitte to the central body and initialise the static info of the
+     * satellite object.
+     * 
      * @param sat the satellite objet that will be added to the list
-     * @return true is the operation was succesful and false if it failed (becasue the limit of satellite for the body was reached)
+     * @return true is the operation was succesful and false if it failed (becasue
+     *         the limit of satellite for the body was reached)
      */
-    public boolean addSatellite(Satellite sat){
-        if(satellites.size()+1 > Constant.MAXIMUM_NUMBER_OF_SATELITE){
-            this.latestError = "maximum number of satelite reach";
+    public boolean addSatellite(Satellite sat) {
+        if (satellites.size() + 1 > Constant.MAXIMUM_NUMBER_OF_SATELITE) {
+            this.latestError = "Maximum number of satelite reached!";
             return false;
-        }else{
+        } else {
             String name = sat.getData().name;
             this.satellites.put(name, sat);
             return true;
@@ -88,12 +97,15 @@ public class Body extends OrbitsTime{
     }
 
     /**
-     * return value of null does not necessarily indicate that the map contains no mapping for the key; it's also possible that the map explicitly maps the key to null
+     * return value of null does not necessarily indicate that the map contains no
+     * mapping for the key; it's also possible that the map explicitly maps the key
+     * to null
+     * 
      * @param name name of the satellite
      * @return the satelite object
      */
-    public Satellite getSatellite(String name){
-       return this.satellites.get(name);
+    public Satellite getSatellite(String name) {
+        return this.satellites.get(name);
     }
 
     public HashMap<String, Satellite> getSatellites() {
@@ -102,11 +114,13 @@ public class Body extends OrbitsTime{
 
     /**
      * remove a satellite of the body
+     * 
      * @param name name of the satellite
-     * @return true if the satellite is found in the list and revoved. false if the satellite is not found in the list
+     * @return true if the satellite is found in the list and revoved. false if the
+     *         satellite is not found in the list
      */
-    public boolean removeSatelitte(String name){
-        if(satellites.containsKey(name)){
+    public boolean removeSatellite(String name) {
+        if (satellites.containsKey(name)) {
             // Stop the thread if it's running
             if (satelliteThreads.containsKey(name)) {
                 Thread thread = satelliteThreads.get(name);
@@ -117,7 +131,7 @@ public class Body extends OrbitsTime{
             }
             satellites.remove(name);
             return true;
-        }else{
+        } else {
             return false;
         }
     }
@@ -147,7 +161,7 @@ public class Body extends OrbitsTime{
         this.radius = radius;
     }
 
-    public String getLatestError(){
+    public String getLatestError() {
         return this.latestError;
     }
 
@@ -171,7 +185,7 @@ public class Body extends OrbitsTime{
      * Starts a thread for each satellite in the hash map.
      * Each satellite runs its own simulation calculations.
      */
-    public void startSatellites(){
+    public void startSatellites() {
         for (Satellite sat : satellites.values()) {
             String satName = sat.getData().name;
             if (!satelliteThreads.containsKey(satName) || !satelliteThreads.get(satName).isAlive()) {
@@ -186,7 +200,7 @@ public class Body extends OrbitsTime{
     /**
      * Stops all satellite threads
      */
-    public void stopSatellites(){
+    public void stopSatellites() {
         for (Thread thread : satelliteThreads.values()) {
             if (thread.isAlive()) {
                 thread.interrupt();
@@ -200,7 +214,7 @@ public class Body extends OrbitsTime{
      * Override to update all satellites with the current simulation time
      */
     @Override
-    protected void updateSatellitesTime(){
+    protected void updateSatellitesTime() {
         double currentTime = this.getTimeSeconds();
         for (Satellite sat : satellites.values()) {
             sat.setCurrentTime(currentTime);

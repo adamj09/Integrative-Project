@@ -28,13 +28,13 @@ public class ControlManager {
 
     private int focusButtonPressed = 0;
 
-    private float mouseDeltaX, mouseDeltaY;
-    private float mouseDeltaXNormalized, mouseDeltaYNormalized;
+    private double mouseDeltaX, mouseDeltaY;
+    private double mouseDeltaXNormalized, mouseDeltaYNormalized;
 
-    private float scrollDeltaY;
+    private double scrollDeltaY;
 
-    private float mouseCurrentX = (float) MouseInfo.getPointerInfo().getLocation().getX(),
-            mouseCurrentY = (float) MouseInfo.getPointerInfo().getLocation().getY();
+    private double mouseCurrentX = MouseInfo.getPointerInfo().getLocation().getX(),
+            mouseCurrentY = MouseInfo.getPointerInfo().getLocation().getY();
 
     public ControlManager(Node focusNode) {
         this.focusNode = focusNode;
@@ -108,7 +108,7 @@ public class ControlManager {
         });
 
         focusNode.setOnScroll(event -> {
-            scrollDeltaY = (float) event.getDeltaY();
+            scrollDeltaY = event.getDeltaY();
         });
     }
 
@@ -125,8 +125,8 @@ public class ControlManager {
 
     public void updateMouse() {
         if (focusNode.isFocused()) {
-            float mouseNewX = (float) MouseInfo.getPointerInfo().getLocation().getX(),
-                    mouseNewY = (float) MouseInfo.getPointerInfo().getLocation().getY();
+            double mouseNewX = MouseInfo.getPointerInfo().getLocation().getX(),
+                    mouseNewY = MouseInfo.getPointerInfo().getLocation().getY();
 
             mouseDeltaX = mouseNewX - mouseCurrentX;
             mouseDeltaY = mouseNewY - mouseCurrentY;
@@ -134,40 +134,40 @@ public class ControlManager {
             mouseCurrentX = mouseNewX;
             mouseCurrentY = mouseNewY;
 
-            mouseDeltaXNormalized = mouseDeltaX / (float) focusNode.getScaleX();
-            mouseDeltaYNormalized = mouseDeltaY / (float) focusNode.getScaleY();
+            mouseDeltaXNormalized = mouseDeltaX / focusNode.getScaleX();
+            mouseDeltaYNormalized = mouseDeltaY / focusNode.getScaleY();
         }
     }
 
-    public float getMouseDeltaX() {
+    public double getMouseDeltaX() {
         return this.mouseDeltaX;
     }
 
-    public float getMouseDeltaY() {
+    public double getMouseDeltaY() {
         return this.mouseDeltaY;
     }
 
-    public float getMouseDeltaXNormalized() {
+    public double getMouseDeltaXNormalized() {
         return this.mouseDeltaXNormalized;
     }
 
-    public float getMouseDeltaYNormalized() {
+    public double getMouseDeltaYNormalized() {
         return this.mouseDeltaYNormalized;
     }
 
-    public float getMouseCurrentX() {
+    public double getMouseCurrentX() {
         return this.mouseCurrentX;
     }
 
-    public float getMouseCurrentY() {
+    public double getMouseCurrentY() {
         return this.mouseCurrentY;
     }
 
-    public float getScrollDeltaY() {
+    public double getScrollDeltaY() {
         return this.scrollDeltaY;
     }
 
-    public void setScrollDeltaY(float scrollDeltaY) {
+    public void setScrollDeltaY(double scrollDeltaY) {
         this.scrollDeltaY = scrollDeltaY;
     }
 

@@ -161,7 +161,7 @@ public class MathOrbits {
             double semiLatusRectum) {
         double arg = (semiLatusRectum - position.length()) / (eccentricity * position.length());
 
-        double trueAnomaly = Math.acos(Math.max(-1.0, Math.min(1.0, arg)));
+        double trueAnomaly = Math.acos(Math.clamp(arg, -1.0, 1.0));
         if (position.dot(velocity) < 0) {
             return 2 * Math.PI - trueAnomaly;
         }
@@ -272,11 +272,6 @@ public class MathOrbits {
 
         data.lineOfNodesVect = lineOfNodes(data.angularMomentumVect);
 
-        // Angles describing the orbital plane
-        data.longitudeOfAscendingNode = longitudeOfAscendingNode(data.lineOfNodesVect);
-        data.inclination = inclination(data.angularMomentumVect);
-        data.argumentOfPeriapsis = argumentOfPeriapsis(data.lineOfNodesVect, data.eccentricityVect);
-
         // Anomalies
         data.trueAnomaly = initialTrueAnomaly(initialPosition, initialVelocity, data.eccentricity, data.p);
         data.eccentricAnomaly = initialEccentricAnomaly(data.eccentricity, data.trueAnomaly);
@@ -338,7 +333,8 @@ public class MathOrbits {
         // velocity in 3D space
         data.currentVelocity = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
                 data.argumentOfPeriapsis)
-                .transform(constructVelocityPQWvect(data.mu, data.p, data.eccentricity, data.trueAnomaly));;
+                .transform(constructVelocityPQWvect(data.mu, data.p, data.eccentricity, data.trueAnomaly));
+        ;
 
         // excessSpeed
         data.excessSpeed = excessSpeed(data.mu, data.distance);

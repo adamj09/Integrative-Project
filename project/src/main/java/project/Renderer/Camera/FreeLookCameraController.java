@@ -1,13 +1,11 @@
 package project.Renderer.Camera;
 
-import java.util.Map;
-
-import org.joml.Quaternionf;
+import org.joml.Quaterniond;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 import project.ControlManager;
 import project.Renderer.World.World;
-import project.Renderer.World.WorldObject;
 
 /**
  * Class that controls a camera in a first person style (without rolling).
@@ -15,48 +13,45 @@ import project.Renderer.World.WorldObject;
  * @author Adam Johnston
  */
 public class FreeLookCameraController {
-    private World world;
     private Camera camera;
     private ControlManager controls;
 
     /**
      * Scalar dictating speed at which the camera translates.
      */
-    private float translateSpeed = 0.f;
+    private double translateSpeed = 0.f;
 
-    private float maxTranslateSpeed = 10.f;
+    private double maxTranslateSpeed = 10.f;
 
     /**
      * Scalar dictating speed at which the camera translates.
      */
-    private float translateAcceleration = 50.f;
+    private double translateAcceleration = 50.f;
 
     /**
      * Scalar dictating speed at which the camera rotates.
      */
-    private float rotateSpeed = 0.005f;
+    private double rotateSpeed = 0.005f;
 
     /**
      * Radians to limit pitch to.
      */
-    private float pitchLimit = (float) Math.PI / 2.f;
+    private double pitchLimit = (float) Math.PI / 2.f;
 
     /**
      * Camera pitch angle in radians.
      */
-    private float pitch;
+    private double pitch;
 
     /**
      * Camera yaw angle in radians.
      */
-    private float yaw;
+    private double yaw;
 
     /**
      * Defines the maximum distance the camera can travel from the origin.
      */
-    private float maxDistance = 500.f;
-
-    private float padding = 0.05f;
+    private double maxDistance = 500.f;
 
     /**
      * Initializes the camera controller with a camera and control manager.
@@ -65,7 +60,6 @@ public class FreeLookCameraController {
      * @param controls Control manager to get user input from.
      */
     public FreeLookCameraController(World world, ControlManager controls) {
-        this.world = world;
         this.camera = world.getCamera();
         this.controls = controls;
     }
@@ -76,20 +70,20 @@ public class FreeLookCameraController {
      * @param deltaTime The time in seconds between the last and current frame (used
      *                  to keep movement speed framerate independent).
      */
-    private void translate(float deltaTime) {
-        Vector3f position = camera.getPosition();
-        Vector3f direction = camera.getDirection().normalize();
-        Vector3f up = camera.getUp().normalize();
+    private void translate(double deltaTime) {
+        Vector3d position = new Vector3d(camera.getPosition());
+        Vector3d direction = new Vector3d(camera.getDirection().normalize());
+        Vector3d up = new Vector3d(camera.getUp().normalize());
 
-        Vector3f forward = new Vector3f((float) Math.sin(yaw), 0.0f, (float) Math.cos(yaw));
-        Vector3f right = new Vector3f();
+        Vector3d forward = new Vector3d(Math.sin(yaw), 0.0f, Math.cos(yaw));
+        Vector3d right = new Vector3d();
         direction.cross(up, right);
         right.normalize();
 
-        Vector3f displacement = new Vector3f();
-        displacement.add(new Vector3f(forward).mul(controls.isBackwardPressed() - controls.isForwardPressed()))
-                .add(new Vector3f(right).mul(controls.isRightPressed() - controls.isLeftPressed()))
-                .add(new Vector3f(up).mul(controls.isUpPressed() - controls.isDownPressed()));
+        Vector3d displacement = new Vector3d();
+        displacement.add(new Vector3d(forward).mul(controls.isBackwardPressed() - controls.isForwardPressed()))
+                .add(new Vector3d(right).mul(controls.isRightPressed() - controls.isLeftPressed()))
+                .add(new Vector3d(up).mul(controls.isUpPressed() - controls.isDownPressed()));
 
         if (displacement.equals(0, 0, 0)) {
             translateSpeed = 0.f;
@@ -100,7 +94,7 @@ public class FreeLookCameraController {
 
         displacement.normalize().mul(translateSpeed).mul(deltaTime);
 
-        Vector3f newPosition = new Vector3f();
+        Vector3d newPosition = new Vector3d();
         position.add(displacement, newPosition);
 
         // Limit camera distance from origin
@@ -108,15 +102,8 @@ public class FreeLookCameraController {
             return;
         }
 
-        // Make sure camera doesn't pass through other objects
-        for (Map.Entry<String, WorldObject> item : world.getBodies().entrySet()) {
-            WorldObject object = item.getValue();
-            if(object.getTranslation().distance(newPosition) < object.getScale().x + padding) {
-                return;
-            }
-        }
-
-        camera.setView(newPosition, direction);
+        camera.setView(new Vector3f((float) newPosition.x, (float) newPosition.y, (float) newPosition.z),
+                new Vector3f((float) direction.x, (float) direction.y, (float) direction.z));
     }
 
     /**
@@ -126,32 +113,33 @@ public class FreeLookCameraController {
      */
     private void rotate() {
         // Greatest absolute pitch change is set to the pitch limit.
-        float pitch = -controls.getMouseDeltaYNormalized() * rotateSpeed;
-        float yaw = -controls.getMouseDeltaXNormalized() * rotateSpeed;
+        double pitch = -controls.getMouseDeltaYNormalized() * rotateSpeed;
+        double yaw = -controls.getMouseDeltaXNormalized() * rotateSpeed;
 
-        Quaternionf pitchQuaternion = pitch(pitch);
-        Quaternionf yawQuaternion = yaw(yaw);
+        Quaterniond pitchQuaternion = pitch(pitch);
+        Quaterniond yawQuaternion = yaw(yaw);
 
         // Create rotation quaternion by multiplying pitch and yaw quaternions.
-        Quaternionf rotation = new Quaternionf();
+        Quaterniond rotation = new Quaterniond();
         pitchQuaternion.mul(yawQuaternion, rotation);
         rotation.normalize(); // Normalize the quaternion to make sure rotation speed remains consistent
                               // regardless of rotation angle.
 
-        Vector3f newDirection = new Vector3f();
-        camera.getDirection().rotate(rotation, newDirection);
+        Vector3d newDirection = new Vector3d();
+        new Vector3d(camera.getDirection()).rotate(rotation, newDirection);
 
         // Update camera's view matrix.
-        camera.setView(camera.getPosition(), newDirection);
+        camera.setView(camera.getPosition(),
+                new Vector3f((float) newDirection.x, (float) newDirection.y, (float) newDirection.z));
     }
 
-    private Quaternionf pitch(float radians) {
+    private Quaterniond pitch(double radians) {
         // Set pitch axis to be perpendicular to the camera's direction and up vectors.
-        Vector3f pitchAxis = new Vector3f();
-        camera.getDirection().cross(camera.getUp(), pitchAxis);
+        Vector3d pitchAxis = new Vector3d();
+        new Vector3d(camera.getDirection()).cross(new Vector3d(camera.getUp()), pitchAxis);
         pitchAxis.normalize();
 
-        Quaternionf pitchQuaternion = new Quaternionf();
+        Quaterniond pitchQuaternion = new Quaterniond();
 
         if (pitch + radians < pitchLimit && pitch + radians > -pitchLimit) {
             pitchQuaternion.setAngleAxis(radians, pitchAxis.x, pitchAxis.y, pitchAxis.z);
@@ -164,15 +152,15 @@ public class FreeLookCameraController {
         return pitchQuaternion;
     }
 
-    private Quaternionf yaw(float radians) {
+    private Quaterniond yaw(double radians) {
         // In this first person camera, yaw is always around the world's up axis (0, 1,
         // 0) so we can just use the camera's up vector as the yaw axis.
-        Vector3f yawAxis = new Vector3f();
+        Vector3d yawAxis = new Vector3d();
         yawAxis.set(camera.getUp());
 
-        Quaternionf yawQuaternion = new Quaternionf();
+        Quaterniond yawQuaternion = new Quaterniond();
         yawQuaternion.setAngleAxis(radians, yawAxis.x, yawAxis.y, yawAxis.z);
-        yaw = (yaw + radians) % (float) (2.f * Math.PI);
+        yaw = (yaw + radians) % (2.f * Math.PI);
 
         return yawQuaternion;
     }
@@ -184,7 +172,7 @@ public class FreeLookCameraController {
      * @param deltaTime The time in seconds between the last and current frame (used
      *                  to keep movement speed framerate independent).
      */
-    public void updateCameraTransform(float deltaTime) {
+    public void updateCameraTransform(double deltaTime) {
         translate(deltaTime);
         if (controls.isFocusButtonPressed() == 1) {
             rotate();
@@ -201,7 +189,7 @@ public class FreeLookCameraController {
     /**
      * @return Camera's translation speed.
      */
-    public float getTranslateSpeed() {
+    public double getTranslateSpeed() {
         return this.translateSpeed;
     }
 
@@ -217,7 +205,7 @@ public class FreeLookCameraController {
     /**
      * @return Camera's rotation speed.
      */
-    public float getRotateSpeed() {
+    public double getRotateSpeed() {
         return this.rotateSpeed;
     }
 
