@@ -15,7 +15,7 @@ import project.Renderer.World.World;
 public class Renderer {
     public Viewport viewport = new Viewport();
 
-    public static final float DEFAULT_FOV = 45.f, DEFAULT_NEAR = 0.001f, DEFAULT_FAR = 100_000.0f;
+    public static final float DEFAULT_FOV = 45.f, DEFAULT_NEAR = 0.001f, DEFAULT_FAR = 1_000_000.0f;
     public static final int MAT4F_SIZE = 16 * Float.BYTES, VEC4F_SIZE = 4 * Float.BYTES, VEC3F_SIZE = 3 * Float.BYTES;
 
     private World world;
@@ -53,7 +53,7 @@ public class Renderer {
             // Create camera controllers
             //freeLookCameraController = new FreeLookCameraController(world, controlManager);
             fixedCameraController = new FixedCameraController(world, controlManager);
-            fixedCameraController.setFocusObject("test");
+            fixedCameraController.setFocusObject("test2");
 
             Shader mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
             Shader orbitVertShader = new Shader("project/shaders/orbit.vert", GL_VERTEX_SHADER);
@@ -81,7 +81,7 @@ public class Renderer {
         });
 
         viewport.getGLCanvas().addOnRenderEvent(event -> {
-            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClearColor(0.f, 0.f, 0.f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             controlManager.updateMouse();

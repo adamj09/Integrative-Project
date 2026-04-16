@@ -257,6 +257,7 @@ public class MathOrbits {
             satellite.setLatestError("Eccentricity of the satellite is invalid. Need to be bigger than 0 and smaller than 1. Current value: " + data.eccentricityVect.length());
             return false;
         }
+
         data.eccentricity = ece;
 
         data.maximumDistanceToBody = hillRadius(celestialBody.getDistanceToSun(), data.eccentricity,
@@ -279,6 +280,11 @@ public class MathOrbits {
 
         double distance = initialDistance(data.p, data.eccentricity, data.trueAnomaly, data.maximumDistanceToBody);
         if(Double.isNaN(distance)) {
+            satellite.setLatestError("Initial distance of the satellite is larger than the hill radius. The orbit is not stable");
+            return false;
+        }
+
+        if(data.radiusOfApoapsis > data.maximumDistanceToBody) {
             satellite.setLatestError("Initial distance of the satellite is larger than the hill radius. The orbit is not stable");
             return false;
         }
@@ -314,14 +320,16 @@ public class MathOrbits {
         data.trueAnomaly = trueAnomaly(data.eccentricity, data.eccentricAnomaly);
 
         // distance
+        System.out.println(data.distance);
         double distance = distance(data.a, data.eccentricity, data.trueAnomaly, data.maximumDistanceToBody);
         if(Double.isNaN(distance)) {
             satellite.setLatestError("Distance of the satellite is larger than the hill radius. The orbit is not stable");
+
+            System.out.println(satellite.getLatestError());
             return false;
         }
         data.distance = distance;
         
-
         // position in 3D space
         data.currentPosition = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
                 data.argumentOfPeriapsis)
