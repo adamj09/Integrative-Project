@@ -333,13 +333,21 @@ public class SidebarPane extends VBox {
         HBox topRow = new HBox(8, circle, nameLabel, spacer, focusIndicatorLabel, activeIndicator);
         topRow.setAlignment(Pos.CENTER_LEFT);
 
-        // -- Bottom row: Remove/Add + Focus --
+        // -- Bottom row: Remove/Add + Focus + View Data --
         Button toggleButton = new Button("Remove");
         toggleButton.getStyleClass().add("card-button-remove");
 
         Button focusButton = new Button("Focus");
         focusButton.getStyleClass().add("card-button-focus");
         allFocusButtons.add(focusButton);
+
+        Button viewDataButton = new Button("View Data");
+        viewDataButton.getStyleClass().add("card-button-focus");
+        viewDataButton.setOnAction(e -> {
+            if (active[0]) {
+                bottom.selectSatelliteForView(name);
+            }
+        });
 
         focusButton.setOnAction(e -> {
             if (!active[0]) return;
@@ -360,6 +368,7 @@ public class SidebarPane extends VBox {
                 toggleButton.setText("Add");
                 toggleButton.getStyleClass().set(0, "card-button-add");
                 focusButton.setDisable(true);
+                viewDataButton.setDisable(true);
                 circle.setOpacity(0.4);
                 nameLabel.setOpacity(0.5);
                 if (focusedCard == card) {
@@ -373,13 +382,14 @@ public class SidebarPane extends VBox {
                 toggleButton.setText("Remove");
                 toggleButton.getStyleClass().set(0, "card-button-remove");
                 focusButton.setDisable(false);
+                viewDataButton.setDisable(false);
                 circle.setOpacity(1.0);
                 nameLabel.setOpacity(1.0);
                 // TODO: add satellite back to renderer visualization
             }
         });
 
-        HBox buttonRow = new HBox(6, toggleButton, focusButton);
+        HBox buttonRow = new HBox(6, toggleButton, focusButton, viewDataButton);
         buttonRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox card = new VBox(6, topRow, buttonRow);

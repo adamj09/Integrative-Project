@@ -3,7 +3,7 @@ package project.Math;
 import org.joml.Vector3d;
 
 public class Satellite implements Runnable {
-    private SatelliteData data;
+    private final SatelliteData data;
     private double massOfBody;
     private String latestError = "null";
     private boolean simulationRunning = false;
@@ -62,11 +62,7 @@ public class Satellite implements Runnable {
         this.getData().initialPosition = new Vector3d(px * 1000, py * 1000, pz * 1000);
         this.getData().initialVelocity = new Vector3d(vx, vy, vz);
 
-        if (!this.initialiseSatelliteInfo(body)) {
-            return false;
-        }
-
-        return true;
+        return this.initialiseSatelliteInfo(body);
     }
 
     /**
@@ -192,8 +188,7 @@ public class Satellite implements Runnable {
 
         if (eccentricity <= 0 || eccentricity >= 1) {
             this.setLatestError("Eccentricity must be between 0 and 1 (exclusive). Got: " + eccentricity);
-            this.setatestErrorActive(true);
-            return this.activeError;
+            return true;
         }
 
         // Convert angles from degrees to radians
@@ -245,8 +240,7 @@ public class Satellite implements Runnable {
         this.data.initialPosition = new Vector3d(px_ECI, py_ECI, pz_ECI);
         this.data.initialVelocity = new Vector3d(vx_ECI, vy_ECI, vz_ECI);
 
-        MathOrbits.getStaticInfo(massOfBody, this);
-        return this.activeError;
+        return false;
     }
 
     public synchronized SatelliteData getData() {

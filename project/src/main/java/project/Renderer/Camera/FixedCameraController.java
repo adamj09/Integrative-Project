@@ -5,7 +5,6 @@ import java.util.Map;
 import org.joml.Vector3f;
 
 import project.ControlManager;
-import project.Renderer.Viewport;
 import project.Renderer.World.World;
 import project.Renderer.World.WorldObject;
 

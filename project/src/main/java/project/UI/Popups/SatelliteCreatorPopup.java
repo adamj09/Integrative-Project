@@ -332,7 +332,7 @@ public class SatelliteCreatorPopup extends Stage {
                 return;
             if (orbitalElementsMode) {
                 // Run the math to check physical validity and surface any error
-                Satellite tempSat = new Satellite(getSatelliteName(), getSatelliteMass(), getMassOfBody());
+                Satellite tempSat = new Satellite();
                 boolean hasError = tempSat.initialiseSatelliteValuesAngles(
                     getSatelliteName(), getSatelliteMass(), "", getMassOfBody(),
                     getDistance(), getEccentricity(), getTrueAnomaly(),
