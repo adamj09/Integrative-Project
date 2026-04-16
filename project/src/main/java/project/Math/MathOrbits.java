@@ -27,7 +27,8 @@ public class MathOrbits {
 
     // ---------------------------------------------------------------------------------------------------------------------------
     //
-    private static Vector3d eccentricityVect(Vector3d angularMomentum, Vector3d velocity, Vector3d position, double mu) {
+    private static Vector3d eccentricityVect(Vector3d angularMomentum, Vector3d velocity, Vector3d position,
+            double mu) {
         Vector3d vct1 = new Vector3d();
         velocity.cross(angularMomentum, vct1);
 
@@ -42,9 +43,9 @@ public class MathOrbits {
 
     // ---------------------------------------------------------------------------------------------------------------------------
     //
-    private static double eccentricity(Vector3d eccentricityVect){
+    private static double eccentricity(Vector3d eccentricityVect) {
         double ece = eccentricityVect.length();
-        if(ece >= 1 || ece <= 0) {
+        if (ece >= 1 || ece <= 0) {
             return Double.NaN;
         }
         return ece;
@@ -52,13 +53,26 @@ public class MathOrbits {
 
     // ---------------------------------------------------------------------------------------------------------------------------
     //
-    private static double hillRadius(double distanceToStar, double eccentricity, double centralBodyMass,
-            double starMass) {
-        if (starMass == 0) {
+    /**
+     * Calculate the hill radius of the celestial body around which the satellites
+     * are orbiting.
+     * 
+     * @param semiMajorAxis of the celestial body's orbit around the larger body in
+     *                      meters (e.g. the sun).
+     * @param eccentricity  of the celestial body's orbit around the larger body
+     *                      (e.g. the sun).
+     * @param lesserMass    mass of the celestial body around which the satellites
+     *                      are orbiting in kilograms.
+     * @param largerMass    mass of the larger body (e.g. the sun) in kilograms.
+     * @return the hill radius in meters. If the larger mass is 0, returns -1.
+     */
+    private static double hillRadius(double semiMajorAxis, double eccentricity, double lesserMass,
+            double largerMass) {
+        if (largerMass == 0) {
             return -1;
         }
 
-        return distanceToStar * (1 - eccentricity) * Math.cbrt(centralBodyMass / (3 * starMass)) * 1000.d;
+        return semiMajorAxis * (1 - eccentricity) * Math.cbrt(lesserMass / (3 * largerMass));
     }
 
     // ---------------------------------------------------------------------------------------------------------------------------
@@ -189,7 +203,8 @@ public class MathOrbits {
 
     // ---------------------------------------------------------------------------------------------------------------------------
     //
-    private static double initialDistance(double semiLatusRectum, double eccentricity, double trueAnomaly, double hillRadius) {
+    private static double initialDistance(double semiLatusRectum, double eccentricity, double trueAnomaly,
+            double hillRadius) {
         double distance = semiLatusRectum / (1 + (eccentricity * Math.cos(trueAnomaly)));
 
         if (distance > hillRadius) {
@@ -253,14 +268,16 @@ public class MathOrbits {
         data.eccentricityVect = eccentricityVect(data.angularMomentumVect, initialVelocity, initialPosition, data.mu);
         double ece = eccentricity(data.eccentricityVect);
 
-        if(Double.isNaN(ece)) {
-            satellite.setLatestError("Eccentricity of the satellite is invalid. Need to be bigger than 0 and smaller than 1. Current value: " + data.eccentricityVect.length());
+        if (Double.isNaN(ece)) {
+            satellite.setLatestError(
+                    "Eccentricity of the satellite is invalid. Need to be bigger than 0 and smaller than 1. Current value: "
+                            + data.eccentricityVect.length());
             return false;
         }
 
         data.eccentricity = ece;
 
-        data.maximumDistanceToBody = hillRadius(celestialBody.getDistanceToSun(), data.eccentricity,
+        data.maximumDistanceToBody = hillRadius(celestialBody.getSemiMajorAxis() * 1000d, celestialBody.getEccentricity(),
                 celestialBody.getMass(), celestialBody.getMassOfSun());
 
         data.p = semiLatusRectum(data.angularMomentum, data.mu);
@@ -279,13 +296,15 @@ public class MathOrbits {
         data.meanAnomaly = initialMeanAnomaly(data.eccentricAnomaly, data.eccentricity);
 
         double distance = initialDistance(data.p, data.eccentricity, data.trueAnomaly, data.maximumDistanceToBody);
-        if(Double.isNaN(distance)) {
-            satellite.setLatestError("Initial distance of the satellite is larger than the hill radius. The orbit is not stable");
+        if (Double.isNaN(distance)) {
+            satellite.setLatestError(
+                    "Initial distance of the satellite is larger than the hill radius. The orbit is not stable.");
             return false;
         }
 
-        if(data.radiusOfApoapsis > data.maximumDistanceToBody) {
-            satellite.setLatestError("Initial distance of the satellite is larger than the hill radius. The orbit is not stable");
+        if (data.radiusOfApoapsis > data.maximumDistanceToBody) {
+            satellite.setLatestError(
+                    "Radius of apoapsis of the satellite is larger than the hill radius. The orbit is not stable.");
             return false;
         }
         data.distance = distance;
@@ -322,14 +341,15 @@ public class MathOrbits {
         // distance
         System.out.println(data.distance);
         double distance = distance(data.a, data.eccentricity, data.trueAnomaly, data.maximumDistanceToBody);
-        if(Double.isNaN(distance)) {
-            satellite.setLatestError("Distance of the satellite is larger than the hill radius. The orbit is not stable");
+        if (Double.isNaN(distance)) {
+            satellite.setLatestError(
+                    "Distance of the satellite is larger than the hill radius. The orbit is not stable.");
 
             System.out.println(satellite.getLatestError());
             return false;
         }
         data.distance = distance;
-        
+
         // position in 3D space
         data.currentPosition = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
                 data.argumentOfPeriapsis)
@@ -417,7 +437,7 @@ public class MathOrbits {
     //
     public static Matrix3d rotationPQWtoECI(double longitudeOfAscendingNode, double inclination,
             double argumentOfPeriapsis) {
-            
+
         double cosLongitudeOfAscendingNode = Math.cos(longitudeOfAscendingNode);
         double sinLongitudeOfAscendingNode = Math.sin(longitudeOfAscendingNode);
         double cosInclination = Math.cos(inclination);

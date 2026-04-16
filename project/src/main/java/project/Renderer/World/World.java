@@ -9,6 +9,7 @@ import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
 import project.Math.Body;
+import project.Math.Constant;
 import project.Math.Satellite;
 import project.Math.SatelliteData;
 import project.Renderer.Camera.Camera;
@@ -31,8 +32,7 @@ public class World {
     private FloatBuffer orbitMatrixBuffer = BufferUtils.createFloatBuffer(0);
 
     private transient final float UNIT_SCALE = 10_000.f; // 1 AU is equal to this many renderer units.
-    private transient final double AU = 1.496e+8d; // 1 AU in kilometers.
-    private transient final float SATELLITE_RADIUS = (float) (1000.d / AU * UNIT_SCALE);
+    private transient final float SATELLITE_RADIUS = (float) (1000.d / Constant.AU * UNIT_SCALE);
 
     private Mesh bodyMesh;
     private Mesh orbitMesh;
@@ -93,11 +93,11 @@ public class World {
     }
 
     private void createLightSource() {
-        float lightSourceScale = (float) (696_340d / AU * UNIT_SCALE); // Sun's radius in AUs times scale
+        float lightSourceScale = (float) (696_340d / Constant.AU * UNIT_SCALE); // Sun's radius in AUs times scale
 
         lightSource = new WorldObject("light", new SphereGenerator().create(4));
 
-        float distance = (float) (body.getDistanceToSun() / AU * UNIT_SCALE);
+        float distance = (float) (UNIT_SCALE);
 
         lightSource.translate(new Vector3f(-distance, 0.f, 0.f));
         lightSource.scale(new Vector3f(lightSourceScale, lightSourceScale, lightSourceScale));
@@ -107,7 +107,7 @@ public class World {
     private void createCentralBody() {
         WorldObject bodyObject = new WorldObject(body.getName(), bodyMesh, new Vector3f(1.0f, 1.0f, 1.0f));
 
-        float planetScale = (float) (body.getRadius() / AU * UNIT_SCALE);
+        float planetScale = (float) (body.getRadius() / Constant.AU * UNIT_SCALE);
         bodyObject.scale(new Vector3f(planetScale, planetScale, planetScale));
 
         // Add objects to world.
@@ -125,9 +125,9 @@ public class World {
             object.resetTransforms();
 
             object.translate(new Vector3f(
-                    (float) (data.currentPosition.y / 1000.d / AU * UNIT_SCALE),
-                    (float) (data.currentPosition.z / 1000.d / AU * UNIT_SCALE),
-                    (float) (data.currentPosition.x / 1000.d / AU * UNIT_SCALE)));
+                    (float) (data.currentPosition.y / 1000.d / Constant.AU * UNIT_SCALE),
+                    (float) (data.currentPosition.z / 1000.d / Constant.AU * UNIT_SCALE),
+                    (float) (data.currentPosition.x / 1000.d / Constant.AU * UNIT_SCALE)));
 
             object.scale(new Vector3f(SATELLITE_RADIUS, SATELLITE_RADIUS, SATELLITE_RADIUS));
         }
@@ -152,9 +152,9 @@ public class World {
         // Y -> X, Z -> Y, X -> Z due to different coordinate systems used in the
         // simulation math and rendering.
         satelliteObject.translate(new Vector3f(
-                (float) (data.initialPosition.y / 1000.d / AU * UNIT_SCALE),
-                (float) (data.initialPosition.z / 1000.d / AU * UNIT_SCALE),
-                (float) (data.initialPosition.x / 1000.d / AU * UNIT_SCALE)));
+                (float) (data.initialPosition.y / 1000.d / Constant.AU * UNIT_SCALE),
+                (float) (data.initialPosition.z / 1000.d / Constant.AU * UNIT_SCALE),
+                (float) (data.initialPosition.x / 1000.d / Constant.AU * UNIT_SCALE)));
 
         satelliteObject.scale(new Vector3f(SATELLITE_RADIUS, SATELLITE_RADIUS, SATELLITE_RADIUS));
 
@@ -163,8 +163,8 @@ public class World {
         // Add satellite orbit object.
         WorldObject orbit = new WorldObject(data.name, orbitMesh);
 
-        double semiMajorAxis = data.a / 1000.d / AU * UNIT_SCALE;
-        double semiMinorAxis = (data.a / 1000.d / AU * UNIT_SCALE)
+        double semiMajorAxis = data.a / 1000.d / Constant.AU * UNIT_SCALE;
+        double semiMinorAxis = (data.a / 1000.d / Constant.AU * UNIT_SCALE)
                 * Math.sqrt(1.0 - Math.pow(data.eccentricity, 2));
 
         // Translate orbit so that the planet is at a focal point.
@@ -217,7 +217,7 @@ public class World {
 
     public void setLightSourceDistance(double distance) {// Distance in km
         this.lightSource.translate(
-                new Vector3f((float) (distance / AU * UNIT_SCALE) - this.lightSource.getTranslation().x, 0.f, 0.f));
+                new Vector3f((float) (distance / Constant.AU * UNIT_SCALE) - this.lightSource.getTranslation().x, 0.f, 0.f));
     }
 
     public HashMap<String, WorldObject> getBodies() {

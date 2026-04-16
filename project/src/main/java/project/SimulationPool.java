@@ -24,7 +24,7 @@ public class SimulationPool {
     public static void createWorld(String name) {
         // TODO: This is a test body (replace this with body created via UI)
         Body body = new Body("Earth", Constant.EARTH_DEFAULT_MASS, Constant.EARTH_DEFAULT_RADIUS,
-                Constant.EARTH_DEFAULT_DISTANCE_TO_SUN);
+                Constant.EARTH_ORBIT_SEMIMAJOR_AXIS, Constant.EARTH_ORBIT_ECCENTRICITY);
         body.setTimeScale(10000.d);
 
         worlds.put(name, new World(body));

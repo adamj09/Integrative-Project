@@ -6,9 +6,10 @@ public class Body extends OrbitsTime {
     private String name = "earth";
     private double mass = Constant.EARTH_DEFAULT_MASS; // in kg
     private double radius = Constant.EARTH_DEFAULT_RADIUS; // in km
-    private double distanceToSun = Constant.EARTH_DEFAULT_DISTANCE_TO_SUN; // in km (distance to the sun, used for the
+    private double semiMajorAxis = Constant.EARTH_ORBIT_SEMIMAJOR_AXIS; // in km (distance to the sun, used for the
                                                                            // calculation of the solar radiation
                                                                            // pressure)
+    private double eccentricity = Constant.EARTH_ORBIT_ECCENTRICITY;
     private double massOfSun = Constant.SUN_DEFAULT_MASS; // in kg (mass of the sun, used for the calculation of )
     private String latestError = "null";
     private boolean simulationRunning = false;
@@ -49,11 +50,13 @@ public class Body extends OrbitsTime {
      * @param radius        radius of the body in km
      * @param distanceToSun distance of the body to the sun in km
      */
-    public Body(String name, double mass, double radius, double distanceToSun) {
+    public Body(String name, double mass, double radius, double semiMajorAxis, double eccentricity) {
         this.name = name;
         this.mass = mass;
         this.radius = radius;
-        this.distanceToSun = distanceToSun;
+        this.semiMajorAxis = semiMajorAxis;
+        this.eccentricity = eccentricity;
+        
         satellites = new HashMap<>();
         satelliteThreads = new HashMap<>();
     }
@@ -67,11 +70,12 @@ public class Body extends OrbitsTime {
      * @param distanceToSun distance of the body to the sun in km
      * @param massOfSun     mass of the sun in kg
      */
-    public Body(String name, double mass, double radius, double distanceToSun, double massOfSun) {
+    public Body(String name, double mass, double radius, double semiMajorAxis, double eccentricity, double massOfSun) {
         this.name = name;
         this.mass = mass;
         this.radius = radius;
-        this.distanceToSun = distanceToSun;
+        this.semiMajorAxis = semiMajorAxis;
+        this.eccentricity = eccentricity;
         this.massOfSun = massOfSun;
         satellites = new HashMap<>();
         satelliteThreads = new HashMap<>();
@@ -165,12 +169,20 @@ public class Body extends OrbitsTime {
         return this.latestError;
     }
 
-    public double getDistanceToSun() {
-        return distanceToSun;
+    public double getSemiMajorAxis() {
+        return semiMajorAxis;
     }
 
-    public void setDistanceToSun(double distanceToSun) {
-        this.distanceToSun = distanceToSun;
+    public void setSemiMajorAxis(double semiMajorAxis) {
+        this.semiMajorAxis = semiMajorAxis;
+    }
+
+    public double getEccentricity() {
+        return eccentricity;
+    }
+
+    public void setEccentricity(double eccentricity) {
+        this.eccentricity = eccentricity;
     }
 
     public double getMassOfSun() {
