@@ -10,6 +10,7 @@ import project.Math.Satellite;
 import project.Renderer.World.World;
 
 public class SimulationPool {
+    // Currently loaded worlds
     private static HashMap<String, World> worlds = new HashMap<>();
 
     public static void load() {

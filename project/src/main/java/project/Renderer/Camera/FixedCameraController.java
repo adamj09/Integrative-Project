@@ -1,7 +1,5 @@
 package project.Renderer.Camera;
 
-import java.awt.image.renderable.RenderContext;
-
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 
@@ -64,7 +62,6 @@ public class FixedCameraController {
         this.controls = controls;
     }
 
-    // TODO: fix camera movement
     /**
      * Translates the camera based on user input.
      * 

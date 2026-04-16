@@ -1,10 +1,7 @@
 package project.Math;
 
 import org.joml.Vector3d;
-import org.joml.Vector4d;
 import org.joml.Matrix3d;
-import org.joml.Matrix4d;
-
 public class MathOrbits {
 
     private static double kineticEnergy(Vector3d velocity) {
