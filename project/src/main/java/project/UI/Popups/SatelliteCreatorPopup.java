@@ -506,6 +506,9 @@ public class SatelliteCreatorPopup extends Stage {
         // getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
 
         // TEMPORARY (to test preview with above TODO is being fixed)
+
+        // TODO: Instead of creating a new satellite every time, we should be instead updating
+        // the parameters of a single satellite.
         Satellite previewSatellite = new Satellite();
         previewSatellite.initialiseSatelliteValuesAngles(previewBody, "test", 20,
                 previewBody.getRadius() + 3000.0, 0.8, 0,
@@ -515,8 +518,8 @@ public class SatelliteCreatorPopup extends Stage {
         Color color = getSatelliteColor();
 
         previewWorld.removeSatellite(previewSatellite.getData().name);
-        
-        previewWorld.addSatellite(previewSatellite, new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
+        previewWorld.addSatellite(previewSatellite,
+                new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
 
         // Set up preview world for rendering.
         previewRenderer.setWorld(previewWorld);
