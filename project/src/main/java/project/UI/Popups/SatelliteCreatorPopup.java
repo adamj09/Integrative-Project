@@ -76,7 +76,7 @@ public class SatelliteCreatorPopup extends Stage {
     private final boolean[] orbColorLock = { false };
 
     private boolean confirmed = false;
-    private boolean orbitalElementsMode = false;
+    private boolean orbitalElementsMode = true;
 
     public SatelliteCreatorPopup(Stage owner, String themeStyle, World currentWorld) {
         this.currentWorld = currentWorld;
@@ -480,36 +480,25 @@ public class SatelliteCreatorPopup extends Stage {
         previewRenderer.getViewport().getGLCanvas().setPrefSize(400, 400);
 
         previewSatellite = new Satellite();
-
-        // Initialize satellite with data for first time
-        previewSatellite.initialiseSatelliteValuesAngles(previewBody, "previewSatellite", 20,
-                previewBody.getRadius() + 3000.0, 0.8, 0,
-                35, 75, 10);
+        if (!previewSatellite.initialiseSatelliteValuesAngles(previewBody, "previewSatellite", getSatelliteMass(),
+                previewBody.getRadius() + getDistance(), getEccentricity(), getTrueAnomaly(),
+                getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis())) {
+            System.err.println("Failed to initialize preview satellite: " + previewSatellite.getLatestError());
+        }
 
         Color color = getSatelliteColor();
         previewWorld.addSatellite(previewSatellite,
                 new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
-        
+
         previewWorld.runWorld();
         previewRenderer.setWorld(previewWorld);
         previewRenderer.setFocusObject(previewSatellite.getData().name);
     }
 
     private void updatePreview() {
-        // TODO: I commented this out because invalid orbits were being created: make
-        // sure when randomizing values that we can actually simulate orbits with those
-        // values.
-
-        // previewSatellite.initialiseSatelliteValuesAngles(previewBody,
-        // getSatelliteName(), getSatelliteMass(),
-        // previewBody.getRadius() + getDistance(), getEccentricity(), getTrueAnomaly(),
-        // getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
-
-        // TEMPORARY (to test preview while above TODO is being fixed)
-
-        previewWorld.updateOrbitalElements(previewSatellite.getData().name, 20,
-                previewBody.getRadius() + 3000.0, 0.8, 0,
-                35, 0, 10);
+        previewWorld.updateOrbitalElements(previewSatellite.getData().name, getSatelliteMass(),
+                previewBody.getRadius() + getDistance(), getEccentricity(), getTrueAnomaly(),
+                getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
     }
 
     private void updatePreviewColor() {

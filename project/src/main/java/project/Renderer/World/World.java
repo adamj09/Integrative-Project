@@ -274,12 +274,6 @@ public class World implements Cloneable {
     /**
      * Adds a satellite to the world, along with its corresponding orbit.
      * 
-     * TODO: we need to make sure that the satellite has its initial position
-     * calculated before we add it to the world.
-     * I.e. check if the values required have been calculated in the satellite
-     * thread, and if not, wait until they have been calculated before adding the
-     * satellite to the world.
-     * 
      * @param satellite the satellite to be added to the world.
      * @param color     the color to render the satellite with.
      */
