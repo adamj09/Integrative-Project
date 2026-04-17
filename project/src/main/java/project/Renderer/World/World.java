@@ -232,6 +232,12 @@ public class World implements Cloneable {
             object.resetTransforms();
             object.scale(new Vector3f((float) (radius / Constant.AU * UNIT_SCALE), (float) (radius / Constant.AU * UNIT_SCALE),
                     (float) (radius / Constant.AU * UNIT_SCALE)));
+            
+            if(objectName.equals(body.getName())) {
+                body.setRadius(radius);
+
+                updateSatellitePositions();
+            }
         }
 
         bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);

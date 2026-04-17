@@ -179,6 +179,9 @@ public class FixedCameraController {
     public void updateCameraTransform(double deltaTime) {
         // Update the lookat position to the focused object every frame, so that the camera will follow the object if it moves.
         lookatPosition = new Vector3d(focusedWorldObject.getTranslation());
+        
+        minRadius = focusedWorldObject.getScale().x + Renderer.DEFAULT_NEAR;
+        maxRadius = focusedWorldObject.getScale().x + 1_000d;
 
         translate(deltaTime);
 
