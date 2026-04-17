@@ -2,6 +2,8 @@ package project.UI.Popups;
 
 import java.util.Random;
 
+import org.joml.Vector3f;
+
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -11,6 +13,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -20,26 +24,31 @@ import javafx.scene.shape.Circle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import project.StyleSheet;
+import project.Math.Body;
+import project.Math.Constant;
+import project.Renderer.Renderer;
+import project.Renderer.World.World;
 
 public class BodyCreatorPopup extends Stage {
-
+    private Renderer previewRenderer;
     private TextField nameField;
     private TextField massField;
     private TextField radiusField;
     private ComboBox<String> colorDropdown;
     private boolean confirmed = false;
+    private StackPane preview = new StackPane();
 
     private Circle previewCircle;
 
     // Realistic planet/body randomiser ranges
-    private static final double MASS_MIN   = 1e23;   // kg  — small moon
-    private static final double MASS_MAX   = 2e27;   // kg  — super-Jupiter
-    private static final double RADIUS_MIN = 1_000;  // km  — small rocky body
-    private static final double RADIUS_MAX = 70_000; // km  — large gas giant
+    private static final double MASS_MIN = 1e23; // kg — small moon
+    private static final double MASS_MAX = 2e27; // kg — super-Jupiter
+    private static final double RADIUS_MIN = 1_000; // km — small rocky body
+    private static final double RADIUS_MAX = 70_000; // km — large gas giant
 
     private final Random rand = new Random();
 
-    private boolean massLocked   = false;
+    private boolean massLocked = false;
     private boolean radiusLocked = false;
     private static int bodyCounter = 0;
 
@@ -49,39 +58,31 @@ public class BodyCreatorPopup extends Stage {
         setTitle("Create new celestial body");
         setResizable(false);
 
-        // vvv TEMPORARY vvv
-
-        // --- 3D Preview ---
-        // TODO: add actual 3D preview
-        previewCircle = new Circle(40, Color.web("#7a4a36")); // Dark muted orange
-        StackPane preview = new StackPane(previewCircle);
-        preview.setStyle("-fx-background-color: #12121f; -fx-border-color: #444466; -fx-border-width: 1;");
-        preview.setPrefSize(200, 160);
-
-        // ^^^ TEMPORARY ^^^
+        // Set preview background to black to prevent flickering on renderer update.
+        preview.setStyle("-fx-background-color: #000000");
 
         Label scaleLabel = new Label("Scale (km)");
         scaleLabel.getStyleClass().add("key");
 
-        VBox previewBox = new VBox(4, preview, scaleLabel);
-        previewBox.setAlignment(Pos.TOP_RIGHT);
-
         // --- Form fields ---
-        nameField   = entryField(String.format("Body-%02d", bodyCounter + 1));
-        massField   = entryField("e.g. 5.972e24");
+        nameField = entryField(String.format("Body-%02d", bodyCounter + 1));
+        massField = entryField("e.g. 5.972e24");
         radiusField = entryField("e.g. 6.371e6");
 
         colorDropdown = new ComboBox<>();
         colorDropdown.getItems().addAll("Red", "Blue", "Green", "Orange", "Purple", "White");
         colorDropdown.setValue("Red");
         colorDropdown.getStyleClass().add("combo-box");
-        colorDropdown.setOnAction(e -> updatePreviewColor());
+        colorDropdown.setOnAction(e -> updatePreview());
 
         // --- Mass row: field + randomize + lock ---
         ToggleButton massLockBtn = lockButton();
         Button massRandBtn = randButton();
         massRandBtn.setOnAction(e -> {
-            if (!massLocked) randomizeMass();
+            if (!massLocked)
+                randomizeMass();
+
+            updatePreview();
         });
         massLockBtn.setOnAction(e -> {
             massLocked = massLockBtn.isSelected();
@@ -94,7 +95,10 @@ public class BodyCreatorPopup extends Stage {
         ToggleButton radiusLockBtn = lockButton();
         Button radiusRandBtn = randButton();
         radiusRandBtn.setOnAction(e -> {
-            if (!radiusLocked) randomizeRadius();
+            if (!radiusLocked)
+                randomizeRadius();
+
+            updatePreview();
         });
         radiusLockBtn.setOnAction(e -> {
             radiusLocked = radiusLockBtn.isSelected();
@@ -108,22 +112,26 @@ public class BodyCreatorPopup extends Stage {
         form.setVgap(12);
         form.setPadding(new Insets(14));
 
-        form.add(formLabel("Name :"),        0, 0);
-        form.add(nameField,                  1, 0);
-        form.add(formLabel("Mass (kg) :"),   0, 1);
-        form.add(massRow,                    1, 1);
+        form.add(formLabel("Name :"), 0, 0);
+        form.add(nameField, 1, 0);
+        form.add(formLabel("Mass (kg) :"), 0, 1);
+        form.add(massRow, 1, 1);
         form.add(formLabel("Radius (km) :"), 0, 2);
-        form.add(radiusRow,                  1, 2);
-        form.add(formLabel("Color :"),       0, 3);
-        form.add(colorDropdown,              1, 3);
+        form.add(radiusRow, 1, 2);
+        form.add(formLabel("Color :"), 0, 3);
+        form.add(colorDropdown, 1, 3);
 
         // --- Randomize All button ---
         Button randAllBtn = new Button("\u27F3  Randomize All");
         randAllBtn.getStyleClass().add("style-button");
         randAllBtn.setOnAction(e -> {
-            if (!massLocked)   randomizeMass();
-            if (!radiusLocked) randomizeRadius();
+            if (!massLocked)
+                randomizeMass();
+            if (!radiusLocked)
+                randomizeRadius();
             randomizeColor();
+
+            updatePreview();
         });
         HBox randAllRow = new HBox(randAllBtn);
         randAllRow.setAlignment(Pos.CENTER_RIGHT);
@@ -155,10 +163,12 @@ public class BodyCreatorPopup extends Stage {
         randomizeRadius();
         randomizeColor();
 
+        updatePreview();
+
         VBox formCol = new VBox(form, randAllRow, errorLabel, buttons);
 
         // --- Left = form, Right = preview ---
-        HBox content = new HBox(10, formCol, previewBox);
+        HBox content = new HBox(10, formCol, preview);
         content.setPadding(new Insets(10));
         content.getStyleClass().add("small-pane");
 
@@ -169,11 +179,29 @@ public class BodyCreatorPopup extends Stage {
         root.getStyleClass().add("small-pane");
         root.setStyle(themeStyle);
 
-        Scene scene = new Scene(root);
+        Scene scene = new Scene(root, 600, 400, true);
         scene.getStylesheets().add(new StyleSheet().styleSheet);
 
         setScene(scene);
         Platform.runLater(() -> root.requestFocus());
+    }
+
+    private void updatePreview() {
+        // TODO: add distance to sun
+        Body previewBody = new Body(getBodyName(), getBodyMass(), getBodyRadius(),
+                Constant.EARTH_ORBIT_SEMIMAJOR_AXIS, Constant.EARTH_ORBIT_ECCENTRICITY);
+        Color color = getBodyColor();
+
+        previewRenderer = new Renderer();
+        previewRenderer.setWorld(new World(previewBody,
+                new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue())));
+
+        previewRenderer.setFocusObject(previewBody.getName());
+
+        preview.getChildren().clear();
+
+        preview.getChildren().add(previewRenderer.getViewport().getGLCanvas());
+        previewRenderer.getViewport().getGLCanvas().setPrefSize(200, 200);
     }
 
     // Log-uniform random — appropriate for values spanning many orders of magnitude
@@ -214,7 +242,7 @@ public class BodyCreatorPopup extends Stage {
     }
 
     private void updatePreviewColor() {
-        previewCircle.setFill(getBodyColor());
+        // previewCircle.setFill(getBodyColor());
     }
 
     private boolean validate(Label errorLabel) {

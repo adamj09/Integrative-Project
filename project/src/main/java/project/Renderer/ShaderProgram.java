@@ -3,6 +3,7 @@ package project.Renderer;
 import static org.lwjgl.opengl.GL41.*;
 
 import java.nio.FloatBuffer;
+import java.util.HashMap;
 
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -18,9 +19,13 @@ public class ShaderProgram {
      */
     private int ID;
 
+    private HashMap<String, Integer> uniformBlockBindings = new HashMap<>();
+
     /**
-     * Creates a new shader program from the specified vertex and fragment shaders (links the shaders).
-     * @param vertexShader vertex shader to link.
+     * Creates a new shader program from the specified vertex and fragment shaders
+     * (links the shaders).
+     * 
+     * @param vertexShader   vertex shader to link.
      * @param fragmentShader fragment shader to link.
      */
     public ShaderProgram(int vertexShader, int fragmentShader) {
@@ -46,8 +51,10 @@ public class ShaderProgram {
 
     /**
      * Adds a 4x4 float matrix uniform to the shader program.
-     * @param name the name of the uniform variable in the shader program.
-     * @param buffer the FloatBuffer containing the matrix data (must be in column-major order).
+     * 
+     * @param name   the name of the uniform variable in the shader program.
+     * @param buffer the FloatBuffer containing the matrix data (must be in
+     *               column-major order).
      */
     public void addUniformMat4f(String name, FloatBuffer buffer) {
         glUniformMatrix4fv(glGetUniformLocation(ID, name), false, buffer);
@@ -55,8 +62,9 @@ public class ShaderProgram {
 
     /**
      * Adds a 3D float vector uniform to the shader program.
+     * 
      * @param name the name of the uniform variable in the shader program.
-     * @param vec the Vector3f to be added.
+     * @param vec  the Vector3f to be added.
      */
     public void addUniformVec3f(String name, Vector3f vec) {
         glUniform3f(glGetUniformLocation(ID, name), vec.x, vec.y, vec.z);
@@ -64,8 +72,9 @@ public class ShaderProgram {
 
     /**
      * Adds a 2D float vector uniform to the shader program.
+     * 
      * @param name the name of the uniform variable in the shader program.
-     * @param vec the Vector2f to be added.
+     * @param vec  the Vector2f to be added.
      */
     public void addUniformVec2f(String name, Vector2f vec) {
         glUniform2f(glGetUniformLocation(ID, name), vec.x, vec.y);
@@ -73,11 +82,15 @@ public class ShaderProgram {
 
     /**
      * Adds a uniform block binding to the shader program.
-     * @param blockName the name of the uniform block in the shader program.
+     * 
+     * @param blockName    the name of the uniform block in the shader program.
      * @param blockBinding the uniform block binding point.
      */
     public void addUniformBlockBinding(String blockName, int blockBinding) {
-        glUniformBlockBinding(ID, glGetUniformBlockIndex(ID, blockName), blockBinding);
+        if (!uniformBlockBindings.containsKey(blockName)) {
+            glUniformBlockBinding(ID, glGetUniformBlockIndex(ID, blockName), blockBinding);
+            uniformBlockBindings.put(blockName, blockBinding);
+        }
     }
 
     /**

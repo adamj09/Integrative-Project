@@ -27,7 +27,7 @@ public class SimulationPool {
                 Constant.EARTH_ORBIT_SEMIMAJOR_AXIS, Constant.EARTH_ORBIT_ECCENTRICITY);
         body.setTimeScale(10000.d);
 
-        worlds.put(name, new World(body));
+        worlds.put(name, new World(body, new Vector3f(1.f, 1.f, 1.f)));
     }
 
 

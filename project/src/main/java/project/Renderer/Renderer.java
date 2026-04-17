@@ -68,10 +68,24 @@ public class Renderer {
      * Constructor for the Renderer class, initializes OpenGL and sets up render
      * event handlers.
      */
+
+    private Shader mainVertShader, orbitVertShader, bodyFragShader, lightFragShader, orbitFragShader;
+
+    private ShaderProgram bodyShaderProgram, lightShaderProgram, orbitShaderProgram;
+
     public Renderer(World world) {
         this.world = world;
 
+        controlManager = new ControlManager(this.viewport.getGLCanvas());
+        // freeLookCameraController = new FreeLookCameraController(world,
+        // controlManager);
+        fixedCameraController = new FixedCameraController(this.world, controlManager);
+
         initOpenGLRenderEventHandlers();
+    }
+
+    public Renderer() {
+        controlManager = new ControlManager(this.viewport.getGLCanvas());
     }
 
     /**
@@ -80,6 +94,7 @@ public class Renderer {
     private void initOpenGLRenderEventHandlers() {
         viewport.getGLCanvas().addOnInitEvent(_ -> init());
         viewport.getGLCanvas().addOnRenderEvent(event -> loop(event.delta));
+        viewport.getGLCanvas().addOnReshapeEvent(_ -> setCameraProjection());
     }
 
     /**
@@ -92,34 +107,13 @@ public class Renderer {
         world.getOrbitMesh().setUpBuffers();
         world.getLightSourceMesh().setUpBuffers();
 
-        // Set up viewport resize handler
-        handleViewportResize();
-
         // Enable depth testing
         glEnable(GL_DEPTH_TEST);
 
         glFrontFace(GL_CCW);
         glEnable(GL_CULL_FACE);
 
-        controlManager = new ControlManager(viewport.getGLCanvas());
-
-        // Create camera controllers.
-        // freeLookCameraController = new FreeLookCameraController(world,
-        // controlManager);
-        fixedCameraController = new FixedCameraController(world, controlManager);
-        fixedCameraController.setFocusObject("test2");
-
-        Shader mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
-        Shader orbitVertShader = new Shader("project/shaders/orbit.vert", GL_VERTEX_SHADER);
-
-        Shader bodyFragShader = new Shader("project/shaders/body.frag", GL_FRAGMENT_SHADER);
-        Shader lightFragShader = new Shader("project/shaders/light_source.frag", GL_FRAGMENT_SHADER);
-        Shader orbitFragShader = new Shader("project/shaders/orbit.frag", GL_FRAGMENT_SHADER);
-
-        // Create shader programs.
-        ShaderProgram bodyShaderProgram = new ShaderProgram(mainVertShader.getShader(), bodyFragShader.getShader());
-        ShaderProgram lightShaderProgram = new ShaderProgram(mainVertShader.getShader(), lightFragShader.getShader());
-        ShaderProgram orbitShaderProgram = new ShaderProgram(orbitVertShader.getShader(), orbitFragShader.getShader());
+        setUpShaders();
 
         // Create render systems.
         bodyRenderSystem = new BodyRenderSystem(world, bodyShaderProgram);
@@ -129,11 +123,6 @@ public class Renderer {
         // Create camera matrix loader.
         cameraMatrixLoader = new CameraMatrixLoader(world.getCamera());
         setCameraProjection(); // Set the camera's projection matrix.
-
-        // Add the camera matrix uniform buffers to the shader programs.
-        bodyShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
-        lightShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
-        orbitShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
     }
 
     /**
@@ -143,7 +132,7 @@ public class Renderer {
      * @param deltaTime The time elapsed since the last frame.
      */
     private void loop(double deltaTime) {
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.f, 0.f, 0.f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         controlManager.updateMouse();
@@ -155,25 +144,12 @@ public class Renderer {
         // TODO: switch between camera controllers when needed
         // freeLookCameraController.updateCameraTransform(event.delta);
         fixedCameraController.updateCameraTransform(deltaTime);
-        
+
         cameraMatrixLoader.update();
 
         bodyRenderSystem.loop();
         lightRenderSystem.loop();
         orbitRenderSystem.loop();
-    }
-
-    /**
-     * Handles viewport resize events by updating the camera projection.
-     */
-    private void handleViewportResize() {
-        viewport.getGLCanvas().widthProperty().addListener(_ -> {
-            setCameraProjection();
-        });
-
-        viewport.getGLCanvas().heightProperty().addListener(_ -> {
-            setCameraProjection();
-        });
     }
 
     /**
@@ -185,11 +161,65 @@ public class Renderer {
                 DEFAULT_FAR);
     }
 
+    private void setUpShaders() {
+        // We check if each and every one of these needs to be created because these are
+        // fairly expensive operations.
+        // Create shaders if necessary.
+        if (mainVertShader == null) {
+            mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
+        }
+
+        if (orbitVertShader == null) {
+            orbitVertShader = new Shader("project/shaders/orbit.vert", GL_VERTEX_SHADER);
+        }
+
+        if (bodyFragShader == null) {
+            bodyFragShader = new Shader("project/shaders/body.frag", GL_FRAGMENT_SHADER);
+        }
+
+        if (lightFragShader == null) {
+            lightFragShader = new Shader("project/shaders/light_source.frag", GL_FRAGMENT_SHADER);
+        }
+
+        if (orbitFragShader == null) {
+            orbitFragShader = new Shader("project/shaders/orbit.frag", GL_FRAGMENT_SHADER);
+        }
+
+        // Create shader programs if necessary.
+        if (bodyShaderProgram == null) {
+            bodyShaderProgram = new ShaderProgram(mainVertShader.getShader(), bodyFragShader.getShader());
+        }
+
+        if (lightShaderProgram == null) {
+            lightShaderProgram = new ShaderProgram(mainVertShader.getShader(), lightFragShader.getShader());
+        }
+
+        if (orbitShaderProgram == null) {
+            orbitShaderProgram = new ShaderProgram(orbitVertShader.getShader(), orbitFragShader.getShader());
+        }
+
+        // No need to check here -- there's a check for existing uniform block bindings in this method.
+        bodyShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
+        lightShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
+        orbitShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
+    }
+
+    public void setFocusObject(String name) {
+        fixedCameraController.setFocusObject(name);
+    }
+
     /**
      * @return The viewport being rendered to.
      */
     public Viewport getViewport() {
         return this.viewport;
+    }
+
+    public void setWorld(World world) {
+        this.world = world;
+        fixedCameraController = new FixedCameraController(this.world, controlManager);
+
+        initOpenGLRenderEventHandlers();
     }
 
     /**

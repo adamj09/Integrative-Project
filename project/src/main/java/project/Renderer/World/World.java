@@ -30,6 +30,11 @@ public class World {
     private Body body;
 
     /**
+     * The colour of the body.
+     */
+    private Vector3f colour;
+
+    /**
      * The light source in the world (e.g., a star).
      */
     private WorldObject lightSource;
@@ -85,9 +90,11 @@ public class World {
      * corresponding orbits.
      * 
      * @param body the central body of the world.
+     * @param colour the colour of the central body.
      */
-    public World(Body body) {
+    public World(Body body, Vector3f colour) {
         this.body = body;
+        this.colour = colour;
 
         // Generate the meshes upon world creation.
         bodyMesh = new SphereGenerator().create(4);
@@ -165,7 +172,7 @@ public class World {
      * Creates the central body for the world.
      */
     private void createCentralBody() {
-        WorldObject bodyObject = new WorldObject(body.getName(), bodyMesh, new Vector3f(1.0f, 1.0f, 1.0f));
+        WorldObject bodyObject = new WorldObject(body.getName(), bodyMesh, colour);
 
         float planetScale = (float) (body.getRadius() / Constant.AU * UNIT_SCALE);
         bodyObject.scale(new Vector3f(planetScale, planetScale, planetScale));

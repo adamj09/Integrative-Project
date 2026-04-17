@@ -39,6 +39,7 @@ public class App extends Application {
 
         SimulationPool.load();
         Renderer mainRenderer = new Renderer(SimulationPool.getWorld("Earth"));
+        mainRenderer.setFocusObject("test2");
 
         // Wire menu bar buttons to sidebar actions
         menuBar.getNewBodyButton()
