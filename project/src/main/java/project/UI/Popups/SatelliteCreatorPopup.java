@@ -464,11 +464,6 @@ public class SatelliteCreatorPopup extends Stage {
     }
 
     private void setUpPreview() {
-        // Copy body of current world.
-
-        // Create preview world based off the current world.
-        // This adds all existing satellites + the previewed one to be rendered.
-
         previewBody = new Body("previewBody", currentWorld.getBody().getMass(),
                 currentWorld.getBody().getRadius(), currentWorld.getBody().getSemiMajorAxis(),
                 currentWorld.getBody().getEccentricity());
