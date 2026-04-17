@@ -95,12 +95,6 @@ public class Satellite implements Runnable {
         this.getData().mass = massOfSatellite;
         this.getData().inputDistance = distance;
 
-        // normalization of an angle 0 to 360
-        trueAnomaly = trueAnomaly % 360;
-        longitudeAscendingNode = longitudeAscendingNode % 360;
-        inclination = inclination % 360;
-        argumentOfPeriapisis = argumentOfPeriapisis % 360;
-
         if (0 >= ecentricity || ecentricity >= 1) {
             this.latestError = "eccentricity not supported " + ecentricity;
             return false;

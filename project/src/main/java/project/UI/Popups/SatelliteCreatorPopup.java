@@ -33,6 +33,7 @@ import project.StyleSheet;
 public class SatelliteCreatorPopup extends Stage {
     private Renderer previewRenderer = new Renderer();;
     private StackPane preview = new StackPane();
+    private Satellite previewSatellite;
     private Body previewBody;
     private World previewWorld;
     private World currentWorld;
@@ -301,7 +302,6 @@ public class SatelliteCreatorPopup extends Stage {
             orbitalFormRow.setVisible(false);
             orbitalFormRow.setManaged(false);
 
-            previewWorld.stopWorld();
             updatePreview();
         });
         orbitalBtn.setOnAction(e -> {
@@ -311,7 +311,6 @@ public class SatelliteCreatorPopup extends Stage {
             orbitalFormRow.setVisible(true);
             orbitalFormRow.setManaged(true);
 
-            previewWorld.stopWorld();
             updatePreview();
         });
 
@@ -323,14 +322,13 @@ public class SatelliteCreatorPopup extends Stage {
 
         // Init preview
         setUpPreview();
-        updatePreview();
 
         Button randAllBtn = new Button("\u27F3  Randomize All");
         randAllBtn.getStyleClass().add("style-button");
         randAllBtn.setOnAction(e -> {
             randomizeAll();
 
-            previewWorld.stopWorld();
+            updatePreviewColor();
             updatePreview();
         });
         HBox randAllRow = new HBox(randAllBtn);
@@ -345,8 +343,8 @@ public class SatelliteCreatorPopup extends Stage {
         cancelBtn.getStyleClass().add("style-button");
         createBtn.getStyleClass().add("style-button");
         cancelBtn.setOnAction(e -> {
-            close();
             previewWorld.stopWorld();
+            close();
         });
         createBtn.setOnAction(e -> {
             if (!validate(errorLabel))
@@ -383,6 +381,8 @@ public class SatelliteCreatorPopup extends Stage {
 
         Scene scene = new Scene(root);
         scene.getStylesheets().add(new StyleSheet().styleSheet);
+
+        owner.setOnCloseRequest(_ -> previewWorld.stopWorld());
 
         setScene(scene);
     }
@@ -469,30 +469,30 @@ public class SatelliteCreatorPopup extends Stage {
         // Create preview world based off the current world.
         // This adds all existing satellites + the previewed one to be rendered.
 
-        previewBody = new Body(currentWorld.getBody().getName(), currentWorld.getBody().getMass(),
+        previewBody = new Body("previewBody", currentWorld.getBody().getMass(),
                 currentWorld.getBody().getRadius(), currentWorld.getBody().getSemiMajorAxis(),
                 currentWorld.getBody().getEccentricity());
         previewBody.setTimeScale(currentWorld.getBody().getTimeScale());
 
         previewWorld = new World(previewBody, currentWorld.getColour());
 
-        // Copy satellites from current world to preview world.
-        for (Map.Entry<String, Satellite> item : currentWorld.getBody().getSatellites().entrySet()) {
-            Satellite clonedSatellite = new Satellite();
-
-            clonedSatellite.initialiseSatelliteValuesAngles(previewBody, item.getValue().getData().name,
-                    item.getValue().getData().mass,
-                    item.getValue().getData().inputDistance, item.getValue().getData().eccentricity,
-                    Math.toDegrees(item.getValue().getData().trueAnomaly),
-                    Math.toDegrees(item.getValue().getData().longitudeOfAscendingNode),
-                    Math.toDegrees(item.getValue().getData().inclination),
-                    Math.toDegrees(item.getValue().getData().argumentOfPeriapsis));
-
-            previewWorld.addSatellite(clonedSatellite, currentWorld.getBodyObjects().get(item.getKey()).getColor());
-        }
-
         preview.getChildren().add(previewRenderer.getViewport().getGLCanvas());
         previewRenderer.getViewport().getGLCanvas().setPrefSize(400, 400);
+
+        previewSatellite = new Satellite();
+
+        // Initialize satellite with data for first time
+        previewSatellite.initialiseSatelliteValuesAngles(previewBody, "previewSatellite", 20,
+                previewBody.getRadius() + 3000.0, 0.8, 0,
+                35, 75, 10);
+
+        Color color = getSatelliteColor();
+        previewWorld.addSatellite(previewSatellite,
+                new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
+        
+        previewWorld.runWorld();
+        previewRenderer.setWorld(previewWorld);
+        previewRenderer.setFocusObject(previewSatellite.getData().name);
     }
 
     private void updatePreview() {
@@ -505,28 +505,17 @@ public class SatelliteCreatorPopup extends Stage {
         // previewBody.getRadius() + getDistance(), getEccentricity(), getTrueAnomaly(),
         // getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
 
-        // TEMPORARY (to test preview with above TODO is being fixed)
+        // TEMPORARY (to test preview while above TODO is being fixed)
 
-        // TODO: Instead of creating a new satellite every time, we should be instead updating
-        // the parameters of a single satellite.
-        Satellite previewSatellite = new Satellite();
-        previewSatellite.initialiseSatelliteValuesAngles(previewBody, "test", 20,
+        previewWorld.updateOrbitalElements(previewSatellite.getData().name, 20,
                 previewBody.getRadius() + 3000.0, 0.8, 0,
-                35, 75, 10);
+                35, 0, 10);
+    }
 
-        // Add preview satellite.
+    private void updatePreviewColor() {
         Color color = getSatelliteColor();
-
-        previewWorld.removeSatellite(previewSatellite.getData().name);
-        previewWorld.addSatellite(previewSatellite,
+        previewWorld.updateColor(previewSatellite.getData().name,
                 new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
-
-        // Set up preview world for rendering.
-        previewRenderer.setWorld(previewWorld);
-        previewRenderer.setFocusObject(previewSatellite.getData().name);
-
-        // Run the simulation for the preview.
-        previewWorld.runWorld();
     }
 
     public boolean wasConfirmed() {
@@ -712,14 +701,14 @@ public class SatelliteCreatorPopup extends Stage {
             if (!lock[0]) {
                 randomizeColor(dropdown);
 
-                updatePreview();
+                updatePreviewColor();
             }
         });
         lockBtn.setOnAction(e -> {
             lock[0] = lockBtn.isSelected();
             lockBtn.setText(lock[0] ? "\uD83D\uDD12" : "\uD83D\uDD13");
         });
-        dropdown.setOnAction(e -> updatePreview());
+        dropdown.setOnAction(e -> updatePreviewColor());
         HBox row = new HBox(5, dropdown, randBtn, lockBtn);
         row.setAlignment(Pos.CENTER_LEFT);
         return row;

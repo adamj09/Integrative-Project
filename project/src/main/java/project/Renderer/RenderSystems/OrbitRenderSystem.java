@@ -75,6 +75,10 @@ public class OrbitRenderSystem extends RenderSystem {
     public void loop() {
         super.getShaderProgram().use();
 
+        glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
+        glBufferData(GL_ARRAY_BUFFER, super.getWorld().getOrbitMatrixBuffer(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
         glBindVertexArray(super.getWorld().getOrbitMesh().getVAO());
         glDrawArraysInstanced(GL_LINE_LOOP, 0, super.getWorld().getOrbitMesh().getVertices().size(),
                 super.getWorld().getOrbitObjects().size());
