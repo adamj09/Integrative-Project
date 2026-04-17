@@ -191,6 +191,8 @@ public class World implements Cloneable {
 
             WorldObject object = bodyObjects.get(item.getKey());
 
+            Vector3f scale = object.getScale();
+
             object.resetTransforms();
 
             object.translate(new Vector3f(
@@ -198,7 +200,7 @@ public class World implements Cloneable {
                     (float) (data.currentPosition.z / 1000.d / Constant.AU * UNIT_SCALE),
                     (float) (data.currentPosition.x / 1000.d / Constant.AU * UNIT_SCALE)));
 
-            object.scale(new Vector3f(SATELLITE_RADIUS, SATELLITE_RADIUS, SATELLITE_RADIUS));
+            object.scale(new Vector3f(scale.x, scale.y, scale.z));
         }
 
         bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
@@ -219,6 +221,11 @@ public class World implements Cloneable {
         colorsBuffer = updateColorBuffer(bodyObjects);
     }
 
+    /**
+     * Updates the radius of the world object with the given name.
+     * @param objectName the name of the world object whose radius will be updated.
+     * @param radius the new radius to set for the world object, in kilometers.
+     */
     public void updateRadius(String objectName, float radius) {
         if (bodyObjects.containsKey(objectName)) {
             WorldObject object = bodyObjects.get(objectName);
