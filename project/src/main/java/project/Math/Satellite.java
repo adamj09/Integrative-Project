@@ -124,7 +124,7 @@ public class Satellite implements Runnable {
     //
     private boolean initName(String satName, String bodyName) {
         if (satName.equals(bodyName)) {
-            latestError = "satellite name is the same has the bodys name. Not allowd";
+            latestError = "Satellite name is the same has the body's name. Not allowed";
             return false;
         } else {
             this.getData().name = satName;

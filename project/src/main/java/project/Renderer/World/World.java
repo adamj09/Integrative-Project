@@ -183,6 +183,15 @@ public class World implements Cloneable {
 
     /**
      * Updates the positions of all satellites in the world.
+     * 
+     * TODO: we call no OpenGL functions in this method, therefore, we could run it
+     * in the satellite threads (rather than in the OpenGL thread within the update
+     * method, as is currently being done), ensuring that values are only updated
+     * when calculations are complete, rather than arbitrarily.
+     * 
+     * No synchronization would be necessary, since there will always be valid
+     * values to render the satellites with after the first update, which is done in
+     * the "addSatellite" method.
      */
     public void updateSatellites() {
         HashMap<String, Satellite> satellites = body.getSatellites();
@@ -209,10 +218,17 @@ public class World implements Cloneable {
     /**
      * Adds a satellite to the world, along with its corresponding orbit.
      * 
+     * TODO: we need to make sure that the satellite has its initial position
+     * calculated before we add it to the world.
+     * I.e. check if the values required have been calculated in the satellite
+     * thread, and if not, wait until they have been calculated before adding the
+     * satellite to the world.
+     * 
      * @param satellite the satellite to be added to the world.
      * @param color     the color to render the satellite with.
      */
     public void addSatellite(Satellite satellite, Vector3f color) {
+
         body.addSatellite(satellite);
 
         SatelliteData data = satellite.getData();
