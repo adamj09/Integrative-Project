@@ -32,14 +32,14 @@ public class App extends Application {
     public void start(Stage stage) {
         setSystemProperties();
 
-        BottomPane bottom = new BottomPane();
-        MainMenuBar menuBar = new MainMenuBar();
-        SidebarPane sidebar = new SidebarPane(bottom);
-        PresetManager presetManager = new PresetManager();
-
         SimulationPool.load();
         Renderer mainRenderer = new Renderer(SimulationPool.getWorld("Earth"));
         mainRenderer.setFocusObject("test2");
+
+        BottomPane bottom = new BottomPane();
+        MainMenuBar menuBar = new MainMenuBar();
+        SidebarPane sidebar = new SidebarPane(bottom, SimulationPool.getWorld("Earth"));
+        PresetManager presetManager = new PresetManager();
 
         // Wire menu bar buttons to sidebar actions
         menuBar.getNewBodyButton()

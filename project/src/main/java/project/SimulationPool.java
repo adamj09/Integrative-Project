@@ -35,7 +35,7 @@ public class SimulationPool {
         World world = worlds.get(bodyName);
 
         // Test
-        if (!world.getBodies().containsKey(bodyName)) {
+        if (!world.getBodyObjects().containsKey(bodyName)) {
             // TODO: handle case of non-existent body
         }
 
@@ -52,7 +52,7 @@ public class SimulationPool {
                 90, 75, 90);
 
         //world.addSatellite(test, new Vector3f(0.f, 0.f, 1.f));
-        world.addSatellite(test2, new Vector3f(1.f, 0.f, 0.f));
+        world.addSatellite(test2, new Vector3f(0.f, 0.f, 1.f));
 
         // TODO: call this function in the UI code to add a satellite to a specified
         // body

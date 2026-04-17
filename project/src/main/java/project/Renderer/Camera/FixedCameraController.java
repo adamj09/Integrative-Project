@@ -148,11 +148,11 @@ public class FixedCameraController {
      * @param name The name of the object to focus on.
      */
     public void setFocusObject(String name) {
-        if (!world.getBodies().containsKey(name)) {
+        if (!world.getBodyObjects().containsKey(name)) {
             return;
         }
 
-        focusedWorldObject = world.getBodies().get(name);
+        focusedWorldObject = world.getBodyObjects().get(name);
 
         minRadius = focusedWorldObject.getScale().x + Renderer.DEFAULT_NEAR;
         maxRadius = focusedWorldObject.getScale().x + 1_000d;

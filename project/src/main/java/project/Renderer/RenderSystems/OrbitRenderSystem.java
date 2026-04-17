@@ -77,6 +77,6 @@ public class OrbitRenderSystem extends RenderSystem {
 
         glBindVertexArray(super.getWorld().getOrbitMesh().getVAO());
         glDrawArraysInstanced(GL_LINE_LOOP, 0, super.getWorld().getOrbitMesh().getVertices().size(),
-                super.getWorld().getOrbits().size());
+                super.getWorld().getOrbitObjects().size());
     }
 }

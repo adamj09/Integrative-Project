@@ -28,6 +28,10 @@ public class OrbitsTime implements Runnable {
         this.timeScale = timeScale;
     }
 
+    public double getTimeScale() {
+        return this.timeScale;
+    }
+
     public void resetTime() {
         this.finalTime = 0;
         this.startTimeReal = System.nanoTime();

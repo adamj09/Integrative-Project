@@ -343,7 +343,6 @@ public class MathOrbits {
         if (Double.isNaN(distance)) {
             satellite.setLatestError(
                     "Distance of the satellite is larger than the hill radius. The orbit is not stable.");
-
             System.out.println(satellite.getLatestError());
             return false;
         }

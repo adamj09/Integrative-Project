@@ -23,7 +23,7 @@ import project.Renderer.Model.SphereGenerator;
  * 
  * @author Adam Johnston
  */
-public class World {
+public class World implements Cloneable {
     /**
      * The central celestial body of the world.
      */
@@ -89,7 +89,7 @@ public class World {
      * the light source, the central body, and its satellites and their
      * corresponding orbits.
      * 
-     * @param body the central body of the world.
+     * @param body   the central body of the world.
      * @param colour the colour of the central body.
      */
     public World(Body body, Vector3f colour) {
@@ -264,7 +264,7 @@ public class World {
         // is due to the non-commutative nature of matrix multiplication, which is used
         // to apply the transformations to the orbit object.
 
-        // Rotate orbit to correct orientation based on orbital parameters.
+        // Rotate orbit to correct orientation based on orbital parameters:
 
         // Rotate by argument of periapsis around angular momentum vector (which is a
         // vector normal to the orbital plane).
@@ -316,17 +316,26 @@ public class World {
         colorsBuffer = updateColorBuffer(bodyObjects);
     }
 
+    public void runWorld() {
+        body.startTimeThread();
+        body.startSatellites();
+
+        body.start();
+
+        body.resetTime();
+    }
+
     /**
      * @return The map of all celestial bodies in the world.
      */
-    public HashMap<String, WorldObject> getBodies() {
+    public HashMap<String, WorldObject> getBodyObjects() {
         return this.bodyObjects;
     }
 
     /**
      * @return The map of all orbits in the world.
      */
-    public HashMap<String, WorldObject> getOrbits() {
+    public HashMap<String, WorldObject> getOrbitObjects() {
         return this.orbits;
     }
 
@@ -393,5 +402,12 @@ public class World {
      */
     public Body getBody() {
         return this.body;
+    }
+
+    /**
+     * @return The color of the central celestial body of the world.
+     */
+    public Vector3f getColour() {
+        return this.colour;
     }
 }

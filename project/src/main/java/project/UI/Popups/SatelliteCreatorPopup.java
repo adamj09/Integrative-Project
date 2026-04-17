@@ -1,6 +1,9 @@
 package project.UI.Popups;
 
+import java.util.Map;
 import java.util.Random;
+
+import org.joml.Vector3f;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -22,10 +25,17 @@ import javafx.scene.shape.Circle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import project.Math.Body;
+import project.Math.Constant;
 import project.Math.Satellite;
+import project.Renderer.Renderer;
+import project.Renderer.World.World;
 import project.StyleSheet;
 
 public class SatelliteCreatorPopup extends Stage {
+    private Renderer previewRenderer;
+    private StackPane preview = new StackPane();
+    private World currentWorld;
 
     private TextField nameField;
     private TextField massField;
@@ -47,55 +57,43 @@ public class SatelliteCreatorPopup extends Stage {
     private TextField massOfBodyField;
 
     // --- Randomizer state ---
-    private final double bodyMass;   // kg
+    private final double bodyMass; // kg
     private final double bodyRadius; // km
+    private final Vector3f bodyColor;
     private static final double G = 6.674e-11;
     private final Random rand = new Random();
 
     // Lock index constants — Orbital Elements mode
     private static final int OL_MASS = 0, OL_DIST = 1, OL_ECC = 2, OL_NU = 3,
-                              OL_OMEGA = 4, OL_INC = 5, OL_ARG = 6;
+            OL_OMEGA = 4, OL_INC = 5, OL_ARG = 6;
     // Lock index constants — Cartesian mode
     private static final int CL_MASS = 0, CL_POSX = 1, CL_POSY = 2, CL_POSZ = 3,
-                              CL_SPEED = 4, CL_ROTI = 5, CL_ROTL = 6, CL_ROTW = 7;
-    private final boolean[] orbLocks  = new boolean[7];
+            CL_SPEED = 4, CL_ROTI = 5, CL_ROTL = 6, CL_ROTW = 7;
+    private final boolean[] orbLocks = new boolean[7];
     private final boolean[] cartLocks = new boolean[8];
     private static int satCounter = 0;
-    private Circle previewSatellite;
-    private final boolean[] cartColorLock = {false};
-    private final boolean[] orbColorLock  = {false};
+    private final boolean[] cartColorLock = { false };
+    private final boolean[] orbColorLock = { false };
 
     private boolean confirmed = false;
     private boolean orbitalElementsMode = false;
 
-    public SatelliteCreatorPopup(Stage owner, String themeStyle, double bodyMass, double bodyRadius, Color bodyColor) {
-        this.bodyMass   = bodyMass;
-        this.bodyRadius = bodyRadius;
+    public SatelliteCreatorPopup(Stage owner, String themeStyle, World currentWorld) {
+        this.currentWorld = currentWorld;
+        this.bodyMass = currentWorld.getBody().getMass();
+        this.bodyRadius = currentWorld.getBody().getRadius();
+        this.bodyColor = currentWorld.getBodyObjects().get(currentWorld.getBody().getName()).getColor();
+
         initOwner(owner);
         initModality(Modality.APPLICATION_MODAL);
         setTitle("Create new satellite");
         setResizable(false);
 
-        // vvv TEMPORARY vvv
-
-        // TODO: make actual 3D preview
-        // --- 3D Preview ---
-        Circle planet = new Circle(35, bodyColor);
-        previewSatellite = new Circle(6, Color.CORNFLOWERBLUE);
-        previewSatellite.setTranslateX(60);
-        StackPane previewPane = new StackPane(planet, previewSatellite);
-        previewPane.setStyle("-fx-background-color: #12121f; -fx-border-color: #444466; -fx-border-width: 1;");
-        previewPane.setPrefSize(420, 150);
-
-        // ^^^ TEMPORARY ^^^
+        // Set preview background to black to prevent flickering on renderer update.
+        preview.setStyle("-fx-background-color: #000000");
 
         Label scaleLabel = new Label("Scale (km)");
         scaleLabel.getStyleClass().add("key-label");
-        ;
-
-        VBox previewBox = new VBox(4, previewPane, scaleLabel);
-        previewBox.setAlignment(Pos.BOTTOM_RIGHT);
-        previewBox.setPadding(new Insets(10, 10, 0, 10));
 
         // --- Left: name, mass, color, speed ---
         nameField = entryField(String.format("Sat-%02d", satCounter + 1));
@@ -107,21 +105,22 @@ public class SatelliteCreatorPopup extends Stage {
         colorDropdown.setValue("Blue");
         colorDropdown.getStyleClass().add("combo-box");
 
-        Label cartNameLbl   = formLabel("Name :");
-        Label cartMassLbl   = formLabel("Mass (kg) :");
-        Label cartColorLbl  = formLabel("Color :");
-        Label cartSpeedLbl  = formLabel("Initial speed:");
-        tip(cartNameLbl,  nameField,          "A unique identifier for this satellite.");
-        tip(cartMassLbl,  massField,          "Mass of the satellite in kilograms.");
-        tip(cartColorLbl, colorDropdown,      "Display colour for this satellite.");
-        tip(cartSpeedLbl, initialSpeedField,  "Magnitude of the initial velocity in m/s.\nDirection is derived from position and rotation.");
+        Label cartNameLbl = formLabel("Name :");
+        Label cartMassLbl = formLabel("Mass (kg) :");
+        Label cartColorLbl = formLabel("Color :");
+        Label cartSpeedLbl = formLabel("Initial speed:");
+        tip(cartNameLbl, nameField, "A unique identifier for this satellite.");
+        tip(cartMassLbl, massField, "Mass of the satellite in kilograms.");
+        tip(cartColorLbl, colorDropdown, "Display colour for this satellite.");
+        tip(cartSpeedLbl, initialSpeedField,
+                "Magnitude of the initial velocity in m/s.\nDirection is derived from position and rotation.");
 
         GridPane leftForm = new GridPane();
         leftForm.setHgap(10);
         leftForm.setVgap(8);
-        leftForm.add(cartNameLbl,  0, 0);
-        leftForm.add(nameField,    1, 0);
-        leftForm.add(cartMassLbl,  0, 1);
+        leftForm.add(cartNameLbl, 0, 0);
+        leftForm.add(nameField, 1, 0);
+        leftForm.add(cartMassLbl, 0, 1);
         leftForm.add(fieldRow(massField, cartLocks, CL_MASS, this::randomizeCartMass), 1, 1);
         leftForm.add(cartColorLbl, 0, 2);
         leftForm.add(colorRow(colorDropdown, cartColorLock), 1, 2);
@@ -133,12 +132,12 @@ public class SatelliteCreatorPopup extends Stage {
         posYField = entryField("0");
         posZField = entryField("0");
 
-        Label posHdr  = formLabel("Position (x,y,z) (m):");
+        Label posHdr = formLabel("Position (x,y,z) (m):");
         Label posXLbl = formLabel("x :");
         Label posYLbl = formLabel("y :");
         Label posZLbl = formLabel("z :");
         String posHint = "Initial position of the satellite\nrelative to the central body's centre, in metres.";
-        tip(posHdr,  posXField, posHint);
+        tip(posHdr, posXField, posHint);
         tip(posXLbl, posXField, "X component of initial position (metres).");
         tip(posYLbl, posYField, "Y component of initial position (metres).");
         tip(posZLbl, posZField, "Z component of initial position (metres).");
@@ -146,7 +145,7 @@ public class SatelliteCreatorPopup extends Stage {
         GridPane posForm = new GridPane();
         posForm.setHgap(10);
         posForm.setVgap(8);
-        posForm.add(posHdr,  0, 0, 2, 1);
+        posForm.add(posHdr, 0, 0, 2, 1);
         posForm.add(posXLbl, 0, 1);
         posForm.add(fieldRow(posXField, cartLocks, CL_POSX, this::randomizeCartPosX), 1, 1);
         posForm.add(posYLbl, 0, 2);
@@ -159,19 +158,20 @@ public class SatelliteCreatorPopup extends Stage {
         rotLField = entryField("0");
         rotWField = entryField("0");
 
-        Label rotHdr  = formLabel("Rotation (degrees):");
+        Label rotHdr = formLabel("Rotation (degrees):");
         Label rotILbl = formLabel("i :");
         Label rotLLbl = formLabel("I :");
         Label rotWLbl = formLabel("w :");
-        tip(rotHdr,  rotIField, "Initial orientation of the satellite's velocity vector.");
-        tip(rotILbl, rotIField, "i — Inclination: tilt of the velocity direction\nrelative to the reference plane (degrees).");
+        tip(rotHdr, rotIField, "Initial orientation of the satellite's velocity vector.");
+        tip(rotILbl, rotIField,
+                "i — Inclination: tilt of the velocity direction\nrelative to the reference plane (degrees).");
         tip(rotLLbl, rotLField, "I — Longitude: azimuthal angle in the\nreference plane (degrees).");
         tip(rotWLbl, rotWField, "w — Roll / argument offset (degrees).");
 
         GridPane rotForm = new GridPane();
         rotForm.setHgap(10);
         rotForm.setVgap(8);
-        rotForm.add(rotHdr,  0, 0, 2, 1);
+        rotForm.add(rotHdr, 0, 0, 2, 1);
         rotForm.add(rotILbl, 0, 1);
         rotForm.add(fieldRow(rotIField, cartLocks, CL_ROTI, () -> randomizeAngle360(rotIField)), 1, 1);
         rotForm.add(rotLLbl, 0, 2);
@@ -194,39 +194,43 @@ public class SatelliteCreatorPopup extends Stage {
         colorOrbDropdown.setValue("Blue");
         colorOrbDropdown.getStyleClass().add("combo-box");
 
-        Label orbNameLbl     = formLabel("Name :");
-        Label orbMassLbl     = formLabel("Mass (kg) :");
-        Label orbColorLbl    = formLabel("Color :");
+        Label orbNameLbl = formLabel("Name :");
+        Label orbMassLbl = formLabel("Mass (kg) :");
+        Label orbColorLbl = formLabel("Color :");
         Label orbBodyMassLbl = formLabel("Body mass (kg) :");
         massOfBodyField = entryField("kg");
-        tip(orbNameLbl,     nameOrbField,    "A unique identifier for this satellite.");
-        tip(orbMassLbl,     massOrbField,    "Mass of the satellite in kilograms.");
-        tip(orbColorLbl,    colorOrbDropdown,"Display colour for this satellite.");
-        tip(orbBodyMassLbl, massOfBodyField, "Mass of the central body being orbited (kg).\nUsed to compute the gravitational parameter μ = G·M.");
+        tip(orbNameLbl, nameOrbField, "A unique identifier for this satellite.");
+        tip(orbMassLbl, massOrbField, "Mass of the satellite in kilograms.");
+        tip(orbColorLbl, colorOrbDropdown, "Display colour for this satellite.");
+        tip(orbBodyMassLbl, massOfBodyField,
+                "Mass of the central body being orbited (kg).\nUsed to compute the gravitational parameter μ = G·M.");
 
         GridPane orbLeftForm = new GridPane();
         orbLeftForm.setHgap(10);
         orbLeftForm.setVgap(8);
-        orbLeftForm.add(orbNameLbl,     0, 0);
-        orbLeftForm.add(nameOrbField,   1, 0);
-        orbLeftForm.add(orbMassLbl,     0, 1);
+        orbLeftForm.add(orbNameLbl, 0, 0);
+        orbLeftForm.add(nameOrbField, 1, 0);
+        orbLeftForm.add(orbMassLbl, 0, 1);
         orbLeftForm.add(fieldRow(massOrbField, orbLocks, OL_MASS, this::randomizeSatMass), 1, 1);
-        orbLeftForm.add(orbColorLbl,    0, 2);
+        orbLeftForm.add(orbColorLbl, 0, 2);
         orbLeftForm.add(colorRow(colorOrbDropdown, orbColorLock), 1, 2);
         orbLeftForm.add(orbBodyMassLbl, 0, 3);
         orbLeftForm.add(massOfBodyField, 1, 3);
 
         // --- Middle: orbital parameters ---
-        distanceField     = entryField("km");
+        distanceField = entryField("km");
         eccentricityField = entryField("0 < e < 1");
-        trueAnomalyField  = entryField("0-360");
+        trueAnomalyField = entryField("0-360");
 
         Label orbDistLbl = formLabel("Dist (km):");
-        Label orbEccLbl  = formLabel("Ecc:");
-        Label orbNuLbl   = formLabel("\u03bd (deg):");
-        tip(orbDistLbl, distanceField,     "Distance from the satellite to the centre\nof the central body at the initial position (km).");
-        tip(orbEccLbl,  eccentricityField, "Eccentricity (e): shape of the orbit.\n  e = 0  → perfect circle\n  0 < e < 1 → ellipse\nMust be strictly between 0 and 1.");
-        tip(orbNuLbl,   trueAnomalyField,  "True anomaly (\u03bd): angle between the\ndirection of periapsis and the satellite's\ncurrent position, measured from the focus (0–360°).");
+        Label orbEccLbl = formLabel("Ecc:");
+        Label orbNuLbl = formLabel("\u03bd (deg):");
+        tip(orbDistLbl, distanceField,
+                "Distance from the satellite to the centre\nof the central body at the initial position (km).");
+        tip(orbEccLbl, eccentricityField,
+                "Eccentricity (e): shape of the orbit.\n  e = 0  → perfect circle\n  0 < e < 1 → ellipse\nMust be strictly between 0 and 1.");
+        tip(orbNuLbl, trueAnomalyField,
+                "True anomaly (\u03bd): angle between the\ndirection of periapsis and the satellite's\ncurrent position, measured from the focus (0–360°).");
 
         GridPane orbMidForm = new GridPane();
         orbMidForm.setHgap(10);
@@ -234,24 +238,27 @@ public class SatelliteCreatorPopup extends Stage {
         ColumnConstraints orbMidLblCol = new ColumnConstraints(70);
         orbMidForm.getColumnConstraints().addAll(orbMidLblCol, new ColumnConstraints());
         orbMidForm.add(formLabel("Orbital Parameters:"), 0, 0, 2, 1);
-        orbMidForm.add(orbDistLbl,    0, 1);
+        orbMidForm.add(orbDistLbl, 0, 1);
         orbMidForm.add(fieldRow(distanceField, orbLocks, OL_DIST, this::randomizeDist), 1, 1);
-        orbMidForm.add(orbEccLbl,     0, 2);
+        orbMidForm.add(orbEccLbl, 0, 2);
         orbMidForm.add(fieldRow(eccentricityField, orbLocks, OL_ECC, this::randomizeEcc), 1, 2);
-        orbMidForm.add(orbNuLbl,      0, 3);
+        orbMidForm.add(orbNuLbl, 0, 3);
         orbMidForm.add(fieldRow(trueAnomalyField, orbLocks, OL_NU, () -> randomizeAngle360(trueAnomalyField)), 1, 3);
 
         // --- Right: 3D orientation ---
-        lonAscNodeField  = entryField("0-360");
+        lonAscNodeField = entryField("0-360");
         inclinationField = entryField("0-360");
         argPeriapsisField = entryField("0-360");
 
         Label orbOmegaLbl = formLabel("\u03a9:");
-        Label orbIncLbl   = formLabel("i:");
+        Label orbIncLbl = formLabel("i:");
         Label orbOmegaSmLbl = formLabel("\u03c9:");
-        tip(orbOmegaLbl,   lonAscNodeField,  "Longitude of the Ascending Node (\u03a9):\nAngle from the reference direction (x-axis)\nto where the orbit crosses the reference\nplane going north (0–360°).");
-        tip(orbIncLbl,     inclinationField, "Inclination (i): tilt of the orbital plane\nrelative to the reference plane (0–360°).\n  0° or 360° → equatorial prograde\n  90° → polar orbit\n  180° → equatorial retrograde");
-        tip(orbOmegaSmLbl, argPeriapsisField,"Argument of Periapsis (\u03c9): angle from\nthe ascending node to the point of\nclosest approach (periapsis), measured\nin the orbital plane (0–360°).");
+        tip(orbOmegaLbl, lonAscNodeField,
+                "Longitude of the Ascending Node (\u03a9):\nAngle from the reference direction (x-axis)\nto where the orbit crosses the reference\nplane going north (0–360°).");
+        tip(orbIncLbl, inclinationField,
+                "Inclination (i): tilt of the orbital plane\nrelative to the reference plane (0–360°).\n  0° or 360° → equatorial prograde\n  90° → polar orbit\n  180° → equatorial retrograde");
+        tip(orbOmegaSmLbl, argPeriapsisField,
+                "Argument of Periapsis (\u03c9): angle from\nthe ascending node to the point of\nclosest approach (periapsis), measured\nin the orbital plane (0–360°).");
 
         GridPane orbRightForm = new GridPane();
         orbRightForm.setHgap(10);
@@ -259,12 +266,13 @@ public class SatelliteCreatorPopup extends Stage {
         ColumnConstraints orbRightLblCol = new ColumnConstraints(30);
         orbRightForm.getColumnConstraints().addAll(orbRightLblCol, new ColumnConstraints());
         orbRightForm.add(formLabel("Orientation (deg):"), 0, 0, 2, 1);
-        orbRightForm.add(orbOmegaLbl,    0, 1);
+        orbRightForm.add(orbOmegaLbl, 0, 1);
         orbRightForm.add(fieldRow(lonAscNodeField, orbLocks, OL_OMEGA, () -> randomizeAngle360(lonAscNodeField)), 1, 1);
-        orbRightForm.add(orbIncLbl,      0, 2);
+        orbRightForm.add(orbIncLbl, 0, 2);
         orbRightForm.add(fieldRow(inclinationField, orbLocks, OL_INC, this::randomizeInc), 1, 2);
-        orbRightForm.add(orbOmegaSmLbl,  0, 3);
-        orbRightForm.add(fieldRow(argPeriapsisField, orbLocks, OL_ARG, () -> randomizeAngle360(argPeriapsisField)), 1, 3);
+        orbRightForm.add(orbOmegaSmLbl, 0, 3);
+        orbRightForm.add(fieldRow(argPeriapsisField, orbLocks, OL_ARG, () -> randomizeAngle360(argPeriapsisField)), 1,
+                3);
 
         HBox orbitalFormRow = new HBox(20, orbLeftForm, orbMidForm, orbRightForm);
         orbitalFormRow.setPadding(new Insets(12, 14, 0, 14));
@@ -294,7 +302,8 @@ public class SatelliteCreatorPopup extends Stage {
             cartesianFormRow.setManaged(true);
             orbitalFormRow.setVisible(false);
             orbitalFormRow.setManaged(false);
-            previewSatellite.setFill(getSatelliteColor());
+
+            updatePreview();
         });
         orbitalBtn.setOnAction(e -> {
             orbitalElementsMode = true;
@@ -302,7 +311,8 @@ public class SatelliteCreatorPopup extends Stage {
             cartesianFormRow.setManaged(false);
             orbitalFormRow.setVisible(true);
             orbitalFormRow.setManaged(true);
-            previewSatellite.setFill(getSatelliteColor());
+
+            updatePreview();
         });
 
         // ================================================================
@@ -310,11 +320,17 @@ public class SatelliteCreatorPopup extends Stage {
         // Pre-fill body mass and auto-populate all fields on open
         massOfBodyField.setText(String.format("%.3e", this.bodyMass));
         randomizeAll();
-        previewSatellite.setFill(getSatelliteColor());
+
+        // Init preview
+        updatePreview();
 
         Button randAllBtn = new Button("\u27F3  Randomize All");
         randAllBtn.getStyleClass().add("style-button");
-        randAllBtn.setOnAction(e -> randomizeAll());
+        randAllBtn.setOnAction(e -> {
+            randomizeAll();
+
+            updatePreview();
+        });
         HBox randAllRow = new HBox(randAllBtn);
         randAllRow.setAlignment(Pos.CENTER_RIGHT);
         randAllRow.setPadding(new Insets(6, 14, 0, 14));
@@ -334,9 +350,9 @@ public class SatelliteCreatorPopup extends Stage {
                 // Run the math to check physical validity and surface any error
                 Satellite tempSat = new Satellite();
                 boolean hasError = tempSat.initialiseSatelliteValuesAngles(
-                    getSatelliteName(), getSatelliteMass(), "", getMassOfBody(),
-                    getDistance(), getEccentricity(), getTrueAnomaly(),
-                    getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
+                        getSatelliteName(), getSatelliteMass(), "", getMassOfBody(),
+                        getDistance(), getEccentricity(), getTrueAnomaly(),
+                        getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
                 if (hasError) {
                     errorLabel.setText(tempSat.getLatestError());
                     return;
@@ -353,7 +369,8 @@ public class SatelliteCreatorPopup extends Stage {
         Label titleLabel = new Label("Create new satellite");
         titleLabel.getStyleClass().add("subheading");
 
-        VBox root = new VBox(titleLabel, previewBox, modeToggle, cartesianFormRow, orbitalFormRow, randAllRow, errorLabel, buttons);
+        VBox root = new VBox(titleLabel, preview, modeToggle, cartesianFormRow, orbitalFormRow, randAllRow, errorLabel,
+                buttons);
         root.getStyleClass().add("small-pane");
         root.setStyle(themeStyle);
 
@@ -404,12 +421,12 @@ public class SatelliteCreatorPopup extends Stage {
                 return false;
             }
             String[] angleTexts = {
-                trueAnomalyField.getText(), lonAscNodeField.getText(),
-                inclinationField.getText(), argPeriapsisField.getText()
+                    trueAnomalyField.getText(), lonAscNodeField.getText(),
+                    inclinationField.getText(), argPeriapsisField.getText()
             };
             String[] angleNames = {
-                "True anomaly", "Longitude of ascending node",
-                "Inclination", "Argument of periapsis"
+                    "True anomaly", "Longitude of ascending node",
+                    "Inclination", "Argument of periapsis"
             };
             for (int i = 0; i < angleTexts.length; i++) {
                 try {
@@ -437,6 +454,67 @@ public class SatelliteCreatorPopup extends Stage {
             errorLabel.setText("");
             return true;
         }
+    }
+
+    private void updatePreview() {
+        previewRenderer = new Renderer();
+
+        // Create preview world based off the current world.
+        // This adds all existing satellites + the previewed one to be rendered.
+
+        // Copy body of current world.
+        Body previewBody = new Body(currentWorld.getBody().getName(), currentWorld.getBody().getMass(),
+                currentWorld.getBody().getRadius(), currentWorld.getBody().getSemiMajorAxis(),
+                currentWorld.getBody().getEccentricity());
+        previewBody.setTimeScale(currentWorld.getBody().getTimeScale());
+
+        World previewWorld = new World(previewBody, currentWorld.getColour());
+
+        // Copy satellites from current world to preview world.
+        for (Map.Entry<String, Satellite> item : currentWorld.getBody().getSatellites().entrySet()) {
+            Satellite clonedSatellite = new Satellite();
+
+            clonedSatellite.initialiseSatelliteValuesAngles(previewBody, item.getValue().getData().name,
+                    item.getValue().getData().mass,
+                    item.getValue().getData().inputDistance, item.getValue().getData().eccentricity,
+                    Math.toDegrees(item.getValue().getData().trueAnomaly),
+                    Math.toDegrees(item.getValue().getData().longitudeOfAscendingNode), Math.toDegrees(item.getValue().getData().inclination),
+                    Math.toDegrees(item.getValue().getData().argumentOfPeriapsis));
+
+            previewWorld.addSatellite(clonedSatellite, currentWorld.getBodyObjects().get(item.getKey()).getColor());
+        }
+
+        // TODO: I commented this out because invalid orbits were being created: make
+        // sure when randomizing values that we can actually simulate orbits with those
+        // values.
+
+        // previewSatellite.initialiseSatelliteValuesAngles(previewBody,
+        // getSatelliteName(), getSatelliteMass(),
+        // previewBody.getRadius() + getDistance(), getEccentricity(), getTrueAnomaly(),
+        // getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
+
+        // TEMPORARY (to test preview with above TODO is being fixed)
+        Satellite previewSatellite = new Satellite();
+        previewSatellite.initialiseSatelliteValuesAngles(previewBody, "test", 20,
+                previewBody.getRadius() + 3000.0, 0.8, 0,
+                35, 75, 10);
+
+        // Add preview satellite.
+        Color color = getSatelliteColor();
+        previewWorld.addSatellite(previewSatellite,
+                new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
+
+        // Set up preview world for rendering.
+        previewRenderer.setWorld(previewWorld);
+        previewRenderer.setFocusObject(previewSatellite.getData().name);
+
+        // UI setup.
+        preview.getChildren().clear();
+        preview.getChildren().add(previewRenderer.getViewport().getGLCanvas());
+        previewRenderer.getViewport().getGLCanvas().setPrefSize(400, 400);
+
+        // Run the simulation for the preview.
+        previewWorld.runWorld();
     }
 
     public boolean wasConfirmed() {
@@ -517,26 +595,41 @@ public class SatelliteCreatorPopup extends Stage {
     /** Randomizes all unlocked fields for the currently active mode. */
     private void randomizeAll() {
         if (orbitalElementsMode) {
-            if (!orbLocks[OL_MASS])  randomizeSatMass();
-            if (!orbLocks[OL_DIST])  randomizeDist();
-            if (!orbLocks[OL_ECC])   randomizeEcc();
-            if (!orbLocks[OL_NU])    randomizeAngle360(trueAnomalyField);
-            if (!orbLocks[OL_OMEGA]) randomizeAngle360(lonAscNodeField);
-            if (!orbLocks[OL_INC])   randomizeInc();
-            if (!orbLocks[OL_ARG])   randomizeAngle360(argPeriapsisField);
-            if (!orbColorLock[0]) randomizeColor(colorOrbDropdown);
-            if (previewSatellite != null) previewSatellite.setFill(getSatelliteColor());
+            if (!orbLocks[OL_MASS])
+                randomizeSatMass();
+            if (!orbLocks[OL_DIST])
+                randomizeDist();
+            if (!orbLocks[OL_ECC])
+                randomizeEcc();
+            if (!orbLocks[OL_NU])
+                randomizeAngle360(trueAnomalyField);
+            if (!orbLocks[OL_OMEGA])
+                randomizeAngle360(lonAscNodeField);
+            if (!orbLocks[OL_INC])
+                randomizeInc();
+            if (!orbLocks[OL_ARG])
+                randomizeAngle360(argPeriapsisField);
+            if (!orbColorLock[0])
+                randomizeColor(colorOrbDropdown);
         } else {
-            if (!cartLocks[CL_MASS])  randomizeCartMass();
-            if (!cartLocks[CL_POSX])  randomizeCartPosX();  // X first — speed depends on it
-            if (!cartLocks[CL_POSY])  posYField.setText("0");
-            if (!cartLocks[CL_POSZ])  posZField.setText("0");
-            if (!cartLocks[CL_SPEED]) randomizeCartSpeed();
-            if (!cartLocks[CL_ROTI])  randomizeAngle360(rotIField);
-            if (!cartLocks[CL_ROTL])  randomizeAngle360(rotLField);
-            if (!cartLocks[CL_ROTW])  randomizeAngle360(rotWField);
-            if (!cartColorLock[0]) randomizeColor(colorDropdown);
-            if (previewSatellite != null) previewSatellite.setFill(getSatelliteColor());
+            if (!cartLocks[CL_MASS])
+                randomizeCartMass();
+            if (!cartLocks[CL_POSX])
+                randomizeCartPosX(); // X first — speed depends on it
+            if (!cartLocks[CL_POSY])
+                posYField.setText("0");
+            if (!cartLocks[CL_POSZ])
+                posZField.setText("0");
+            if (!cartLocks[CL_SPEED])
+                randomizeCartSpeed();
+            if (!cartLocks[CL_ROTI])
+                randomizeAngle360(rotIField);
+            if (!cartLocks[CL_ROTL])
+                randomizeAngle360(rotLField);
+            if (!cartLocks[CL_ROTW])
+                randomizeAngle360(rotWField);
+            if (!cartColorLock[0])
+                randomizeColor(colorDropdown);
         }
     }
 
@@ -551,7 +644,7 @@ public class SatelliteCreatorPopup extends Stage {
     private void randomizeDist() {
         // Log-uniform between 1.5× and 100× the body's radius (km)
         distanceField.setText(String.format("%.1f",
-            randomLog(bodyRadius * 1.5, bodyRadius * 100.0)));
+                randomLog(bodyRadius * 1.5, bodyRadius * 100.0)));
     }
 
     private void randomizeEcc() {
@@ -581,13 +674,15 @@ public class SatelliteCreatorPopup extends Stage {
                 initialSpeedField.setText(String.format("%.2f", Math.sqrt(G * bodyMass / x)));
                 return;
             }
-        } catch (NumberFormatException ignored) {}
+        } catch (NumberFormatException ignored) {
+        }
         double fallbackDist = bodyRadius * 3.0 * 1000.0;
         initialSpeedField.setText(String.format("%.2f", Math.sqrt(G * bodyMass / fallbackDist)));
     }
 
     private double randomLog(double min, double max) {
-        if (min <= 0) min = 1e-10;
+        if (min <= 0)
+            min = 1e-10;
         double logMin = Math.log10(min);
         double logMax = Math.log10(max);
         return Math.pow(10, logMin + rand.nextDouble() * (logMax - logMin));
@@ -604,14 +699,15 @@ public class SatelliteCreatorPopup extends Stage {
         randBtn.setOnAction(e -> {
             if (!lock[0]) {
                 randomizeColor(dropdown);
-                previewSatellite.setFill(getSatelliteColor());
+
+                updatePreview();
             }
         });
         lockBtn.setOnAction(e -> {
             lock[0] = lockBtn.isSelected();
             lockBtn.setText(lock[0] ? "\uD83D\uDD12" : "\uD83D\uDD13");
         });
-        dropdown.setOnAction(e -> previewSatellite.setFill(getSatelliteColor()));
+        dropdown.setOnAction(e -> updatePreview());
         HBox row = new HBox(5, dropdown, randBtn, lockBtn);
         row.setAlignment(Pos.CENTER_LEFT);
         return row;
@@ -620,7 +716,10 @@ public class SatelliteCreatorPopup extends Stage {
     private HBox fieldRow(TextField field, boolean[] locks, int idx, Runnable randomizer) {
         Button randBtn = randButton();
         ToggleButton lockBtn = lockButton();
-        randBtn.setOnAction(e -> { if (!locks[idx]) randomizer.run(); });
+        randBtn.setOnAction(e -> {
+            if (!locks[idx])
+                randomizer.run();
+        });
         lockBtn.setOnAction(e -> {
             locks[idx] = lockBtn.isSelected();
             lockBtn.setText(locks[idx] ? "\uD83D\uDD12" : "\uD83D\uDD13");

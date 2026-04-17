@@ -96,8 +96,6 @@ public class BodyRenderSystem extends RenderSystem {
     @Override
     public void loop() {
         super.getShaderProgram().use();
-        // Update model transformation matrices.
-        //super.getWorld().updateMatrixBuffer(super.getWorld().getBodies());
 
         glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
         glBufferData(GL_ARRAY_BUFFER, super.getWorld().getBodyMatrixBuffer(), GL_STATIC_DRAW);
@@ -106,6 +104,6 @@ public class BodyRenderSystem extends RenderSystem {
         // Draw bodies (instanced)
         glBindVertexArray(super.getWorld().getBodyMesh().getVAO());
         glDrawElementsInstanced(GL_TRIANGLES, super.getWorld().getBodyMesh().getIndices().size() * 3, GL_UNSIGNED_INT, 0,
-                super.getWorld().getBodies().size());
+                super.getWorld().getBodyObjects().size());
     }
 }

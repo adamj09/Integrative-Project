@@ -90,6 +90,11 @@ public class Body extends OrbitsTime {
      *         the limit of satellite for the body was reached)
      */
     public boolean addSatellite(Satellite sat) {
+        // If satellite already exists, return false.
+        if(satellites.containsKey(sat.getData().name)) {
+            return false;
+        }
+ 
         if (satellites.size() + 1 > Constant.MAXIMUM_NUMBER_OF_SATELITE) {
             this.latestError = "Maximum number of satelite reached!";
             return false;

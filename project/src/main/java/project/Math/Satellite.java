@@ -1,6 +1,7 @@
 package project.Math;
 
 import org.joml.Vector3d;
+import org.joml.Vector3f;
 
 public class Satellite implements Runnable {
     private final SatelliteData data;
@@ -92,12 +93,13 @@ public class Satellite implements Runnable {
 
         this.massOfBody = body.getMass();
         this.getData().mass = massOfSatellite;
+        this.getData().inputDistance = distance;
 
         // normalization of an angle 0 to 360
-        trueAnomaly = ((trueAnomaly % 360) + 360) % 360;
-        longitudeAscendingNode = ((longitudeAscendingNode % 360) + 360) % 360;
-        inclination = ((inclination % 360) + 360) % 360;
-        argumentOfPeriapisis = ((argumentOfPeriapisis % 360) + 360) % 360;
+        trueAnomaly = trueAnomaly % 360;
+        longitudeAscendingNode = longitudeAscendingNode % 360;
+        inclination = inclination % 360;
+        argumentOfPeriapisis = argumentOfPeriapisis % 360;
 
         if (0 >= ecentricity || ecentricity >= 1) {
             this.latestError = "eccentricity not supported " + ecentricity;

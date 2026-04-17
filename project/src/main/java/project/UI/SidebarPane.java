@@ -20,10 +20,13 @@ import javafx.stage.Stage;
 import project.Presets.PresetConfiguration;
 import project.Presets.PresetConfiguration.BodyPreset;
 import project.Presets.PresetConfiguration.SatellitePreset;
+import project.Renderer.World.World;
 import project.UI.Popups.BodyCreatorPopup;
 import project.UI.Popups.SatelliteCreatorPopup;
 
 public class SidebarPane extends VBox {
+    private World currentWorld;
+
     private final Button celestialTab;
     private final Button satellitesTab;
 
@@ -60,7 +63,8 @@ public class SidebarPane extends VBox {
     private double selectedBodyRadius = 6371.0;   // km
     private Color  selectedBodyColor  = Color.RED; // defaulting to Earth
 
-    public SidebarPane(BottomPane bottom) {
+    public SidebarPane(BottomPane bottom, World currentWorld) {
+        this.currentWorld = currentWorld;
         this.bottom = bottom;
         setPrefWidth(300);
         setMinWidth(250);
@@ -139,8 +143,7 @@ public class SidebarPane extends VBox {
     }
 
     public void openNewSatellitePopup(Stage owner, String themeStyle) {
-        SatelliteCreatorPopup popup = new SatelliteCreatorPopup(
-            owner, themeStyle, selectedBodyMass, selectedBodyRadius, selectedBodyColor);
+        SatelliteCreatorPopup popup = new SatelliteCreatorPopup(owner, themeStyle, currentWorld);
         popup.showAndWait();
         if (popup.wasConfirmed()) {
             addSatelliteCard(popup.getSatelliteName(), popup.getSatelliteColor());

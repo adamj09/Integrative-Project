@@ -38,8 +38,6 @@ public class BodyCreatorPopup extends Stage {
     private boolean confirmed = false;
     private StackPane preview = new StackPane();
 
-    private Circle previewCircle;
-
     // Realistic planet/body randomiser ranges
     private static final double MASS_MIN = 1e23; // kg — small moon
     private static final double MASS_MAX = 2e27; // kg — super-Jupiter
@@ -163,6 +161,7 @@ public class BodyCreatorPopup extends Stage {
         randomizeRadius();
         randomizeColor();
 
+        // Init preview
         updatePreview();
 
         VBox formCol = new VBox(form, randAllRow, errorLabel, buttons);
@@ -187,7 +186,7 @@ public class BodyCreatorPopup extends Stage {
     }
 
     private void updatePreview() {
-        // TODO: add distance to sun
+        // TODO: add distance to sun and eccentricity
         Body previewBody = new Body(getBodyName(), getBodyMass(), getBodyRadius(),
                 Constant.EARTH_ORBIT_SEMIMAJOR_AXIS, Constant.EARTH_ORBIT_ECCENTRICITY);
         Color color = getBodyColor();
