@@ -21,20 +21,20 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import project.Math.Body;
-import project.Math.Constant;
 import project.Math.Satellite;
 import project.Renderer.Renderer;
 import project.Renderer.World.World;
 import project.StyleSheet;
 
 public class SatelliteCreatorPopup extends Stage {
-    private Renderer previewRenderer;
+    private Renderer previewRenderer = new Renderer();;
     private StackPane preview = new StackPane();
+    private Body previewBody;
+    private World previewWorld;
     private World currentWorld;
 
     private TextField nameField;
@@ -59,7 +59,6 @@ public class SatelliteCreatorPopup extends Stage {
     // --- Randomizer state ---
     private final double bodyMass; // kg
     private final double bodyRadius; // km
-    private final Vector3f bodyColor;
     private static final double G = 6.674e-11;
     private final Random rand = new Random();
 
@@ -82,7 +81,6 @@ public class SatelliteCreatorPopup extends Stage {
         this.currentWorld = currentWorld;
         this.bodyMass = currentWorld.getBody().getMass();
         this.bodyRadius = currentWorld.getBody().getRadius();
-        this.bodyColor = currentWorld.getBodyObjects().get(currentWorld.getBody().getName()).getColor();
 
         initOwner(owner);
         initModality(Modality.APPLICATION_MODAL);
@@ -303,6 +301,7 @@ public class SatelliteCreatorPopup extends Stage {
             orbitalFormRow.setVisible(false);
             orbitalFormRow.setManaged(false);
 
+            previewWorld.stopWorld();
             updatePreview();
         });
         orbitalBtn.setOnAction(e -> {
@@ -312,6 +311,7 @@ public class SatelliteCreatorPopup extends Stage {
             orbitalFormRow.setVisible(true);
             orbitalFormRow.setManaged(true);
 
+            previewWorld.stopWorld();
             updatePreview();
         });
 
@@ -322,6 +322,7 @@ public class SatelliteCreatorPopup extends Stage {
         randomizeAll();
 
         // Init preview
+        setUpPreview();
         updatePreview();
 
         Button randAllBtn = new Button("\u27F3  Randomize All");
@@ -329,6 +330,7 @@ public class SatelliteCreatorPopup extends Stage {
         randAllBtn.setOnAction(e -> {
             randomizeAll();
 
+            previewWorld.stopWorld();
             updatePreview();
         });
         HBox randAllRow = new HBox(randAllBtn);
@@ -342,7 +344,10 @@ public class SatelliteCreatorPopup extends Stage {
         Button createBtn = new Button("CREATE");
         cancelBtn.getStyleClass().add("style-button");
         createBtn.getStyleClass().add("style-button");
-        cancelBtn.setOnAction(e -> close());
+        cancelBtn.setOnAction(e -> {
+            close();
+            previewWorld.stopWorld();
+        });
         createBtn.setOnAction(e -> {
             if (!validate(errorLabel))
                 return;
@@ -359,6 +364,8 @@ public class SatelliteCreatorPopup extends Stage {
                 }
             }
             confirmed = true;
+
+            previewWorld.stopWorld();
             close();
         });
 
@@ -456,19 +463,18 @@ public class SatelliteCreatorPopup extends Stage {
         }
     }
 
-    private void updatePreview() {
-        previewRenderer = new Renderer();
+    private void setUpPreview() {
+        // Copy body of current world.
 
         // Create preview world based off the current world.
         // This adds all existing satellites + the previewed one to be rendered.
 
-        // Copy body of current world.
-        Body previewBody = new Body(currentWorld.getBody().getName(), currentWorld.getBody().getMass(),
+        previewBody = new Body(currentWorld.getBody().getName(), currentWorld.getBody().getMass(),
                 currentWorld.getBody().getRadius(), currentWorld.getBody().getSemiMajorAxis(),
                 currentWorld.getBody().getEccentricity());
         previewBody.setTimeScale(currentWorld.getBody().getTimeScale());
 
-        World previewWorld = new World(previewBody, currentWorld.getColour());
+        previewWorld = new World(previewBody, currentWorld.getColour());
 
         // Copy satellites from current world to preview world.
         for (Map.Entry<String, Satellite> item : currentWorld.getBody().getSatellites().entrySet()) {
@@ -478,12 +484,18 @@ public class SatelliteCreatorPopup extends Stage {
                     item.getValue().getData().mass,
                     item.getValue().getData().inputDistance, item.getValue().getData().eccentricity,
                     Math.toDegrees(item.getValue().getData().trueAnomaly),
-                    Math.toDegrees(item.getValue().getData().longitudeOfAscendingNode), Math.toDegrees(item.getValue().getData().inclination),
+                    Math.toDegrees(item.getValue().getData().longitudeOfAscendingNode),
+                    Math.toDegrees(item.getValue().getData().inclination),
                     Math.toDegrees(item.getValue().getData().argumentOfPeriapsis));
 
             previewWorld.addSatellite(clonedSatellite, currentWorld.getBodyObjects().get(item.getKey()).getColor());
         }
 
+        preview.getChildren().add(previewRenderer.getViewport().getGLCanvas());
+        previewRenderer.getViewport().getGLCanvas().setPrefSize(400, 400);
+    }
+
+    private void updatePreview() {
         // TODO: I commented this out because invalid orbits were being created: make
         // sure when randomizing values that we can actually simulate orbits with those
         // values.
@@ -501,17 +513,14 @@ public class SatelliteCreatorPopup extends Stage {
 
         // Add preview satellite.
         Color color = getSatelliteColor();
-        previewWorld.addSatellite(previewSatellite,
-                new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
+
+        previewWorld.removeSatellite(previewSatellite.getData().name);
+        
+        previewWorld.addSatellite(previewSatellite, new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
 
         // Set up preview world for rendering.
         previewRenderer.setWorld(previewWorld);
         previewRenderer.setFocusObject(previewSatellite.getData().name);
-
-        // UI setup.
-        preview.getChildren().clear();
-        preview.getChildren().add(previewRenderer.getViewport().getGLCanvas());
-        previewRenderer.getViewport().getGLCanvas().setPrefSize(400, 400);
 
         // Run the simulation for the preview.
         previewWorld.runWorld();

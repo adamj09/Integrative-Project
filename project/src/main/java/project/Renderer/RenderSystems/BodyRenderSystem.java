@@ -106,4 +106,10 @@ public class BodyRenderSystem extends RenderSystem {
         glDrawElementsInstanced(GL_TRIANGLES, super.getWorld().getBodyMesh().getIndices().size() * 3, GL_UNSIGNED_INT, 0,
                 super.getWorld().getBodyObjects().size());
     }
+
+    @Override
+    public void dispose() {
+        glDeleteBuffers(vboColors);
+        glDeleteBuffers(vboModelMatrices);
+    }
 }

@@ -325,6 +325,18 @@ public class World implements Cloneable {
         body.resetTime();
     }
 
+    public void stopWorld() {
+        body.stop();
+        body.stopSatellites();
+        body.stopTimeThread();
+    }
+
+    public void dispose() {
+        bodyMesh.dispose();
+        orbitMesh.dispose();
+        lightSourceMesh.dispose();
+    }
+
     /**
      * @return The map of all celestial bodies in the world.
      */

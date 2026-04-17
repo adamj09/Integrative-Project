@@ -93,6 +93,10 @@ public class ShaderProgram {
         }
     }
 
+    public void dispose() {
+        glDeleteProgram(ID);
+    }
+
     /**
      * @return The OpenGL shader program ID.
      */

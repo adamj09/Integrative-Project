@@ -79,4 +79,9 @@ public class OrbitRenderSystem extends RenderSystem {
         glDrawArraysInstanced(GL_LINE_LOOP, 0, super.getWorld().getOrbitMesh().getVertices().size(),
                 super.getWorld().getOrbitObjects().size());
     }
+
+    @Override
+    public void dispose() {
+        glDeleteBuffers(vboModelMatrices);
+    }
 }

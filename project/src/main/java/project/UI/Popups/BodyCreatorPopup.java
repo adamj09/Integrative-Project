@@ -30,7 +30,7 @@ import project.Renderer.Renderer;
 import project.Renderer.World.World;
 
 public class BodyCreatorPopup extends Stage {
-    private Renderer previewRenderer;
+    private Renderer previewRenderer = new Renderer();
     private TextField nameField;
     private TextField massField;
     private TextField radiusField;
@@ -164,6 +164,9 @@ public class BodyCreatorPopup extends Stage {
         // Init preview
         updatePreview();
 
+        previewRenderer.getViewport().getGLCanvas().setPrefSize(200, 200);
+        preview.getChildren().add(previewRenderer.getViewport().getGLCanvas());
+
         VBox formCol = new VBox(form, randAllRow, errorLabel, buttons);
 
         // --- Left = form, Right = preview ---
@@ -191,16 +194,8 @@ public class BodyCreatorPopup extends Stage {
                 Constant.EARTH_ORBIT_SEMIMAJOR_AXIS, Constant.EARTH_ORBIT_ECCENTRICITY);
         Color color = getBodyColor();
 
-        previewRenderer = new Renderer();
-        previewRenderer.setWorld(new World(previewBody,
-                new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue())));
-
+        previewRenderer.setWorld(new World(previewBody, new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue())));
         previewRenderer.setFocusObject(previewBody.getName());
-
-        preview.getChildren().clear();
-
-        preview.getChildren().add(previewRenderer.getViewport().getGLCanvas());
-        previewRenderer.getViewport().getGLCanvas().setPrefSize(200, 200);
     }
 
     // Log-uniform random — appropriate for values spanning many orders of magnitude

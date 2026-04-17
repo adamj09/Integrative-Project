@@ -77,4 +77,8 @@ public class CameraMatrixLoader {
 
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
+
+    public void dispose() {
+        glDeleteBuffers(uboCameraMatrices);
+    }
 }
