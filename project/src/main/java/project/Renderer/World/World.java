@@ -3,6 +3,7 @@ package project.Renderer.World;
 import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
@@ -183,20 +184,9 @@ public class World implements Cloneable {
 
     /**
      * Updates the positions of all satellites in the world.
-     * 
-     * TODO: we call no OpenGL functions in this method, therefore, we could run it
-     * in the satellite threads (rather than in the OpenGL thread within the update
-     * method, as is currently being done), ensuring that values are only updated
-     * when calculations are complete, rather than arbitrarily.
-     * 
-     * No synchronization would be necessary, since there will always be valid
-     * values to render the satellites with after the first update, which is done in
-     * the "addSatellite" method.
      */
-    public void updateSatellites() {
-        HashMap<String, Satellite> satellites = body.getSatellites();
-
-        for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
+    public void updateSatellitePositions() {
+        for (Map.Entry<String, Satellite> item : body.getSatellites().entrySet()) {
             SatelliteData data = item.getValue().getData();
 
             WorldObject object = bodyObjects.get(item.getKey());
@@ -216,6 +206,31 @@ public class World implements Cloneable {
     }
 
     /**
+     * Updates the color of the world object with the given name.
+     * 
+     * @param objectName the name of the world object whose color will be updated.
+     * @param color      the new color to set for the world object.
+     */
+    public void updateColor(String objectName, Vector3f color) {
+        if (bodyObjects.containsKey(objectName)) {
+            bodyObjects.get(objectName).setColor(color);
+        }
+
+        colorsBuffer = updateColorBuffer(bodyObjects);
+    }
+
+    public void updateRadius(String objectName, float radius) {
+        if (bodyObjects.containsKey(objectName)) {
+            WorldObject object = bodyObjects.get(objectName);
+            object.resetTransforms();
+            object.scale(new Vector3f((float) (radius / Constant.AU * UNIT_SCALE), (float) (radius / Constant.AU * UNIT_SCALE),
+                    (float) (radius / Constant.AU * UNIT_SCALE)));
+        }
+
+        bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
+    }
+
+    /**
      * Adds a satellite to the world, along with its corresponding orbit.
      * 
      * TODO: we need to make sure that the satellite has its initial position
@@ -228,7 +243,6 @@ public class World implements Cloneable {
      * @param color     the color to render the satellite with.
      */
     public void addSatellite(Satellite satellite, Vector3f color) {
-
         body.addSatellite(satellite);
 
         SatelliteData data = satellite.getData();

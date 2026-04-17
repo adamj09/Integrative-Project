@@ -140,7 +140,7 @@ public class Renderer {
         controlManager.handleUnfocus();
 
         // Note: always update world before camera.
-        world.updateSatellites();
+        world.updateSatellitePositions();
 
         // TODO: switch between camera controllers when needed
         // freeLookCameraController.updateCameraTransform(event.delta);
