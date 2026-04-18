@@ -83,10 +83,10 @@ public class MathOrbits {
 
     // ---------------------------------------------------------------------------------------------------------------------------
     //
-    private static double apoapsis(double semiLatusRectum, double eccentricity,double hillRadius) {
-        double res =semiLatusRectum / (1 - eccentricity);
+    private static double apoapsis(double semiLatusRectum, double eccentricity, double hillRadius) {
+        double res = semiLatusRectum / (1 - eccentricity);
 
-        if(res > hillRadius){
+        if (res > hillRadius) {
             return Double.NaN;
         }
         return res;
@@ -97,7 +97,7 @@ public class MathOrbits {
     private static double periapsis(double semiLatusRectum, double eccentricity, double radiusOfBody) {
         double res = semiLatusRectum / (1 + eccentricity);
 
-        if(res < (Constant.MINIMUM_ALTITUDE+radiusOfBody)*1000){
+        if (res < (Constant.MINIMUM_ALTITUDE + radiusOfBody) * 1000) {
             return Double.NaN;
         }
         return res;
@@ -279,21 +279,22 @@ public class MathOrbits {
 
         data.p = semiLatusRectum(data.angularMomentum, data.mu);
 
-        double radiusOfBody = celestialBody.getRadius(); //in km
+        double radiusOfBody = celestialBody.getRadius(); // in km
         double radiusOfPeriapsis = periapsis(data.p, data.eccentricity, radiusOfBody);
-        if(Double.isNaN(radiusOfPeriapsis)) {
+        if (Double.isNaN(radiusOfPeriapsis)) {
             satellite.setLatestError(
                     "Radius of periapsis of the satellite is smaller than the minimum distance to the body." +
-                    " Need to be bigger than: "+(Constant.MINIMUM_ALTITUDE+radiusOfBody)+"km.");
+                            " Need to be bigger than: " + (Constant.MINIMUM_ALTITUDE + radiusOfBody) + "km.");
             return false;
         }
         data.radiusOfPeriapsis = radiusOfPeriapsis;
-        
+
         double radiusOfApoapsis = apoapsis(data.p, data.eccentricity, data.hillRadius);
-        if(Double.isNaN(radiusOfApoapsis)) {
+        if (Double.isNaN(radiusOfApoapsis)) {
             satellite.setLatestError(
-                    "Radius of apoapsis of the satellite is larger than the hill radius. The orbit is unstable. Sun is intefering the orbit" +
-                    " Need to be smaller than: "+(data.hillRadius/1000)+"km.");
+                    "Radius of apoapsis of the satellite is larger than the hill radius. The orbit is unstable. Sun is intefering the orbit"
+                            +
+                            " Need to be smaller than: " + (data.hillRadius / 1000) + "km.");
             return false;
         }
         data.radiusOfApoapsis = radiusOfApoapsis;

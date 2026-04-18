@@ -532,7 +532,7 @@ public class SatelliteCreatorPopup extends Stage {
         // Check if values are valid for rendering BEFORE updating test satellite.
         Satellite testSatellite = new Satellite();
         if(!testSatellite.initialiseSatelliteValuesAngles(previewBody, "testSatellite", getSatelliteMass(),
-                previewBody.getRadius() + getaltitude(), getEccentricity(), getTrueAnomaly(),
+                getaltitude(), getEccentricity(), getTrueAnomaly(),
                 getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis())) {
             return;
         }
