@@ -162,7 +162,7 @@ public class World implements Cloneable {
 
         lightSource = new WorldObject("light", lightSourceMesh);
 
-        float distance = (float) (UNIT_SCALE);
+        float distance = (float) (UNIT_SCALE); // Make sun 1 AU away
 
         lightSource.translate(new Vector3f(-distance, 0.f, 0.f));
         lightSource.scale(new Vector3f(lightSourceScale, lightSourceScale, lightSourceScale));
