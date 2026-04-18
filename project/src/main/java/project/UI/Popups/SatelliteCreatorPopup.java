@@ -321,6 +321,12 @@ public class SatelliteCreatorPopup extends Stage {
 
         // ================================================================
 
+        // Create initial central body (deep copy of current simulation's central
+        // celestial body).
+        previewBody = new Body("previewBody", currentWorld.getBody().getMass(),
+                currentWorld.getBody().getRadius(), currentWorld.getBody().getSemiMajorAxis(),
+                currentWorld.getBody().getEccentricity());
+
         // Pre-fill body mass and auto-populate all fields on open
         massOfBodyField.setText(String.format("%.3e", this.bodyMass));
         randomizeAll();
@@ -362,7 +368,7 @@ public class SatelliteCreatorPopup extends Stage {
                 Satellite tempSat = new Satellite();
                 boolean hasError = tempSat.initialiseSatelliteValuesAngles(
                         getSatelliteName(), getSatelliteMass(), "", getMassOfBody(),
-                        getaltitude(), getEccentricity(), getTrueAnomaly(),
+                        p(altitudeField), getEccentricity(), getTrueAnomaly(),
                         getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
                 if (hasError) {
                     errorLabel.setText(tempSat.getLatestError());
@@ -375,12 +381,13 @@ public class SatelliteCreatorPopup extends Stage {
 
                 newSatellite.initialiseSatelliteValuesAngles(currentWorld.getBody(), getSatelliteName(),
                         getSatelliteMass(),
-                        getaltitude(), getEccentricity(), getTrueAnomaly(),
+                        p(altitudeField), getEccentricity(), getTrueAnomaly(),
                         getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
 
                 Color color = getSatelliteColor();
 
-                currentWorld.addSatellite(newSatellite, new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
+                currentWorld.addSatellite(newSatellite,
+                        new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
 
                 currentWorld.runWorld();
             }
@@ -473,6 +480,15 @@ public class SatelliteCreatorPopup extends Stage {
             }
             errorLabel.setText("");
 
+            Satellite test = new Satellite();
+            if (!test.initialiseSatelliteValuesAngles(previewBody, "previewSatellite",
+                    getSatelliteMass(),
+                    dist, getEccentricity(), getTrueAnomaly(),
+                    getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis())) {
+                errorLabel.setText(test.getLatestError());
+                return false;
+            }
+
             return true;
         } else {
             try {
@@ -493,12 +509,6 @@ public class SatelliteCreatorPopup extends Stage {
     }
 
     private void setUpPreview() {
-        // Create initial central body (deep copy of current simulation's central
-        // celestial body).
-        previewBody = new Body("previewBody", currentWorld.getBody().getMass(),
-                currentWorld.getBody().getRadius(), currentWorld.getBody().getSemiMajorAxis(),
-                currentWorld.getBody().getEccentricity());
-
         // Set time scale to be same as current simulation.
         previewBody.setTimeScale(currentWorld.getBody().getTimeScale());
 
@@ -512,7 +522,7 @@ public class SatelliteCreatorPopup extends Stage {
         // Initialize the preview satellite.
         previewSatellite = new Satellite();
         if (!previewSatellite.initialiseSatelliteValuesAngles(previewBody, "previewSatellite", getSatelliteMass(),
-                getaltitude(), getEccentricity(), getTrueAnomaly(),
+                getAltitude(), getEccentricity(), getTrueAnomaly(),
                 getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis())) {
             System.err.println("Failed to initialize preview satellite: " + previewSatellite.getLatestError());
             return;
@@ -551,7 +561,7 @@ public class SatelliteCreatorPopup extends Stage {
         // Check if values are valid for rendering BEFORE updating test satellite.
         Satellite testSatellite = new Satellite();
         if (!testSatellite.initialiseSatelliteValuesAngles(previewBody, "testSatellite", getSatelliteMass(),
-                getaltitude(), getEccentricity(), getTrueAnomaly(),
+                getAltitude(), getEccentricity(), getTrueAnomaly(),
                 getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis())) {
             System.err.println("Failed to update preview satellite: " + testSatellite.getLatestError());
             return;
@@ -559,7 +569,7 @@ public class SatelliteCreatorPopup extends Stage {
 
         // Update the satellite's orbital elements.
         previewWorld.updateOrbitalElements(data.name, getSatelliteMass(),
-                getaltitude(), getEccentricity(), getTrueAnomaly(),
+                getAltitude(), getEccentricity(), getTrueAnomaly(),
                 getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
     }
 
@@ -618,16 +628,14 @@ public class SatelliteCreatorPopup extends Stage {
         return new double[] { p(rotIField), p(rotLField), p(rotWField) };
     }
 
-    public double getaltitude() {
+    public double getAltitude() {
         double altitude = p(altitudeField);
-        
+
         Satellite testSatellite = new Satellite();
 
         if (!testSatellite.initialiseSatelliteValuesAngles(previewBody, "testSatellite", getSatelliteMass(),
                 altitude, getEccentricity(), getTrueAnomaly(),
                 getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis())) {
-
-            errorLabel.setText(testSatellite.getLatestError());
             return previewSatellite.getData().altitude; // Return last altitude if current one doesn't work.
         }
 
@@ -679,6 +687,14 @@ public class SatelliteCreatorPopup extends Stage {
                 randomizeAngle360(argPeriapsisField);
             if (!orbColorLock[0])
                 randomizeColor(colorOrbDropdown);
+
+            Satellite testSatellite = new Satellite();
+            if (!testSatellite.initialiseSatelliteValuesAngles(previewBody, "testSatellite", getSatelliteMass(),
+                p(altitudeField), getEccentricity(), getTrueAnomaly(),
+                getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis())) {
+                
+                randomizeAll();
+            }
         } else {
             if (!cartLocks[CL_MASS])
                 randomizeCartMass();
@@ -786,6 +802,14 @@ public class SatelliteCreatorPopup extends Stage {
         randBtn.setOnAction(e -> {
             if (!locks[idx])
                 randomizer.run();
+
+            Satellite testSatellite = new Satellite();
+
+            while (!testSatellite.initialiseSatelliteValuesAngles(previewBody, "testSatellite", getSatelliteMass(),
+                    p(altitudeField), getEccentricity(), getTrueAnomaly(),
+                    getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis())) {
+                randomizer.run();
+            }
         });
         lockBtn.setOnAction(e -> {
             locks[idx] = lockBtn.isSelected();
