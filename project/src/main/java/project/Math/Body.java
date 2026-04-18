@@ -219,7 +219,7 @@ public class Body extends OrbitsTime {
     }
 
     /**
-     * Stops all satellite threads
+     * Stops all satellite threads and remove them all
      */
     public void stopSatellites() {
         for (Thread thread : satelliteThreads.values()) {
@@ -229,6 +229,38 @@ public class Body extends OrbitsTime {
         }
         satelliteThreads.clear();
         this.simulationRunning = false;
+    }
+
+    /**
+     * Stops a specific satellite thread and remove it
+     */
+    public void stopSatellite(String name) {
+        if (satelliteThreads.containsKey(name)) {
+            Thread thread = satelliteThreads.get(name);
+            if (thread.isAlive()) {
+                thread.interrupt();
+            }
+            satelliteThreads.remove(name);
+        }
+    }
+
+    /**
+     * Start a specific satellite thread
+     */
+    public void startSatellite(String name) {
+        if (satelliteThreads.containsKey(name)) {
+            Thread thread = satelliteThreads.get(name);
+            if (!thread.isAlive()) {
+                thread.start();
+            }
+        }else {
+            Satellite sat = satellites.get(name);
+            if (sat != null) {
+                Thread thread = new Thread(sat);
+                satelliteThreads.put(name, thread);
+                thread.start();
+            }
+        }
     }
 
     /**
