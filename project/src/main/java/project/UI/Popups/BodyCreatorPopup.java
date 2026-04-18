@@ -209,6 +209,9 @@ public class BodyCreatorPopup extends Stage {
 
         previewRenderer.setWorld(new World(previewBody, new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue())));
         previewRenderer.setFocusObject(previewBody.getName());
+
+        radiusField.textProperty().addListener(_-> updatePreviewRadius());
+        colorDropdown.setOnAction(_-> updatePreviewColor());
     }
 
     // Log-uniform random — appropriate for values spanning many orders of magnitude

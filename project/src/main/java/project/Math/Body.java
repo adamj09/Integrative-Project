@@ -9,6 +9,8 @@ public class Body extends OrbitsTime {
     private double semiMajorAxis = Constant.EARTH_ORBIT_SEMIMAJOR_AXIS; // in km (distance to the sun, used for the
                                                                            // calculation of the solar radiation
                                                                            // pressure)
+
+    private double hillRadius; // in km
     private double eccentricity = Constant.EARTH_ORBIT_ECCENTRICITY;
     private double massOfSun = Constant.SUN_DEFAULT_MASS; // in kg (mass of the sun, used for the calculation of )
     private String latestError = "null";
@@ -37,6 +39,9 @@ public class Body extends OrbitsTime {
         this.name = name;
         this.mass = mass;
         this.radius = radius;
+
+        this.hillRadius = MathOrbits.hillRadius(this.semiMajorAxis * 1000d, this.eccentricity, mass, this.massOfSun);
+
         satellites = new HashMap<>();
         satelliteThreads = new HashMap<>();
     }
@@ -56,6 +61,8 @@ public class Body extends OrbitsTime {
         this.radius = radius;
         this.semiMajorAxis = semiMajorAxis;
         this.eccentricity = eccentricity;
+
+        this.hillRadius = MathOrbits.hillRadius(semiMajorAxis * 1000d, eccentricity, mass, this.massOfSun);
         
         satellites = new HashMap<>();
         satelliteThreads = new HashMap<>();
@@ -77,6 +84,9 @@ public class Body extends OrbitsTime {
         this.semiMajorAxis = semiMajorAxis;
         this.eccentricity = eccentricity;
         this.massOfSun = massOfSun;
+
+        this.hillRadius = MathOrbits.hillRadius(semiMajorAxis * 1000d, eccentricity, mass, massOfSun);
+
         satellites = new HashMap<>();
         satelliteThreads = new HashMap<>();
     }
@@ -200,6 +210,10 @@ public class Body extends OrbitsTime {
 
     public void setMassOfSun(double massOfSun) {
         this.massOfSun = massOfSun;
+    }
+
+    public double getHillRadius() {
+        return this.hillRadius;
     }
 
     /**

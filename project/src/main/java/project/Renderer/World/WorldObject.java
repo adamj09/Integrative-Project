@@ -3,7 +3,7 @@ package project.Renderer.World;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import project.Renderer.Model.Mesh;
+import project.Renderer.Mesh.Mesh;
 
 /**
  * Represents an object and its properties in the world, such as its

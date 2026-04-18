@@ -6,9 +6,9 @@ import org.joml.Vector3f;
 public class SatelliteData {
     public String name;
     public double mass;
-    public double maximumDistanceToBody; //hill radius
-    public double inputDistance; // in kilometers
+    public double altitude; // in kilometers
     public double distance;
+    public double maxDistanceToBody;
     public double speed;
     public double mu; //gravitational parameter of the CENTRAL BODY
     public double period;

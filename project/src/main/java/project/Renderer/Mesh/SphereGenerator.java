@@ -1,4 +1,4 @@
-package project.Renderer.Model;
+package project.Renderer.Mesh;
 
 import java.util.ArrayList;
 import java.util.HashMap;

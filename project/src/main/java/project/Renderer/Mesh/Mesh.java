@@ -1,4 +1,4 @@
-package project.Renderer.Model;
+package project.Renderer.Mesh;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
