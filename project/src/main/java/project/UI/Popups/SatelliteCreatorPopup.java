@@ -500,7 +500,6 @@ public class SatelliteCreatorPopup extends Stage {
         inclinationField.textProperty().addListener(_-> updatePreview());
         argPeriapsisField.textProperty().addListener(_-> updatePreview());
 
-
         colorOrbDropdown.setOnAction(e -> updatePreviewColor()); // Update preview colour when changed
     }
 
