@@ -476,16 +476,22 @@ public class SatelliteCreatorPopup extends Stage {
     }
 
     private void setUpPreview() {
+        // Create initial central body (deep copy of current simulation's central celestial body).
         previewBody = new Body("previewBody", currentWorld.getBody().getMass(),
                 currentWorld.getBody().getRadius(), currentWorld.getBody().getSemiMajorAxis(),
                 currentWorld.getBody().getEccentricity());
+        
+        // Set time scale to be same as current simulation.
         previewBody.setTimeScale(currentWorld.getBody().getTimeScale());
 
+        // Create preview world for rendering.
         previewWorld = new World(previewBody, currentWorld.getColour());
 
+        // Add renderer viewport to the pop-up.
         preview.getChildren().add(previewRenderer.getViewport().getGLCanvas());
         previewRenderer.getViewport().getGLCanvas().setPrefSize(400, 400);
 
+        // Initialize the preview satellite.
         previewSatellite = new Satellite();
         if (!previewSatellite.initialiseSatelliteValuesAngles(previewBody, "previewSatellite", getSatelliteMass(),
                 previewBody.getRadius() + getaltitude(), getEccentricity(), getTrueAnomaly(),
@@ -493,14 +499,21 @@ public class SatelliteCreatorPopup extends Stage {
             System.err.println("Failed to initialize preview satellite: " + previewSatellite.getLatestError());
         }
 
+        // Add the preview satellite to the world.
         Color color = getSatelliteColor();
         previewWorld.addSatellite(previewSatellite,
                 new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
 
+        // Run the simulation.
         previewWorld.runWorld();
+
+        // Set renderer's world to the preview world.
         previewRenderer.setWorld(previewWorld);
+
+        // Set the preview satellite as the camera's focus.
         previewRenderer.setFocusObject(previewSatellite.getData().name);
 
+        // Add update listeners for text fields.
         altitudeField.textProperty().addListener(_-> updatePreview());
         eccentricityField.textProperty().addListener(_-> updatePreview());
         trueAnomalyField.textProperty().addListener(_-> updatePreview());
@@ -509,25 +522,31 @@ public class SatelliteCreatorPopup extends Stage {
         inclinationField.textProperty().addListener(_-> updatePreview());
         argPeriapsisField.textProperty().addListener(_-> updatePreview());
 
-        colorOrbDropdown.setOnAction(e -> updatePreviewColor()); // Update preview colour when changed
+        // Update preview colour when changed
+        colorOrbDropdown.setOnAction(e -> updatePreviewColor()); 
     }
 
     private void updatePreview() {
         SatelliteData data = previewSatellite.getData();
 
-        double altitude = Math.clamp(getaltitude(), Constant.MINIMUM_ALTITUDE, (data.maxDistanceToBody / 1000) - previewBody.getRadius() - 1);
+        // Check if values are valid for rendering BEFORE updating test satellite.
+        Satellite testSatellite = new Satellite();
+        if(!testSatellite.initialiseSatelliteValuesAngles(previewBody, "testSatellite", getSatelliteMass(),
+                previewBody.getRadius() + getaltitude(), getEccentricity(), getTrueAnomaly(),
+                getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis())) {
+            return;
+        }
 
-        double eccentricity = Math.clamp(getEccentricity(), 1e-10, 0.99);
-
-        System.out.println(data.a);
-
+        // Update the satellite's orbital elements.
         previewWorld.updateOrbitalElements(data.name, getSatelliteMass(),
-                altitude, eccentricity, getTrueAnomaly(),
+                getaltitude(), getEccentricity(), getTrueAnomaly(),
                 getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
     }
 
     private void updatePreviewColor() {
         Color color = getSatelliteColor();
+
+        // Update the satellite's colour.
         previewWorld.updateColor(previewSatellite.getData().name,
                 new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
     }

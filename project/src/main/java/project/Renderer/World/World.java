@@ -216,9 +216,8 @@ public class World implements Cloneable {
     public void updateColor(String objectName, Vector3f color) {
         if (bodyObjects.containsKey(objectName)) {
             bodyObjects.get(objectName).setColor(color);
+            colorsBuffer = updateColorBuffer(bodyObjects);
         }
-
-        colorsBuffer = updateColorBuffer(bodyObjects);
     }
 
     /**
@@ -240,9 +239,9 @@ public class World implements Cloneable {
 
                 updateSatellitePositions();
             }
+            
+            bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
         }
-
-        bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
     }
 
     /**
@@ -258,6 +257,9 @@ public class World implements Cloneable {
      */
     public void updateOrbitalElements(String satelliteName, double massOfSatellite, double altitude, double ecentricity,
             double trueAnomaly, double longitudeAscendingNode, double inclination, double argumentOfPeriapisis) {
+        if(!body.getSatellites().containsKey(satelliteName)) {
+            return;
+        }
 
         Satellite satellite = body.getSatellite(satelliteName);
 

@@ -208,15 +208,19 @@ public class BodyCreatorPopup extends Stage {
     private void setUpPreview() {
         // TODO: add distance to sun
 
-        // Note that the name, mass, and eccentricity remain the same, as they don't
+        // Note that the name, mass, and eccentricity remain the same (arbitrary), as they don't
         // affect the preview's appearance.
         previewBody = new Body("preview", 20, getBodyRadius(),
                 Constant.EARTH_ORBIT_SEMIMAJOR_AXIS, Constant.EARTH_ORBIT_ECCENTRICITY);
         Color color = getBodyColor();
 
+        // Set up preview renderer.
         previewRenderer.setWorld(new World(previewBody, new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue())));
+
+        // Set previewBody as camera's focus.
         previewRenderer.setFocusObject(previewBody.getName());
 
+        // Add update listeners.
         radiusField.textProperty().addListener(_-> updatePreviewRadius());
         colorDropdown.setOnAction(_-> updatePreviewColor());
     }
