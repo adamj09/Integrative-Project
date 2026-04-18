@@ -23,6 +23,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import project.SimulationPool;
 import project.StyleSheet;
 import project.Math.Body;
 import project.Math.Constant;
@@ -51,7 +52,7 @@ public class BodyCreatorPopup extends Stage {
     private boolean radiusLocked = false;
     private static int bodyCounter = 0;
 
-    public BodyCreatorPopup(Stage owner, String themeStyle) {
+    public BodyCreatorPopup(Stage owner, String themeStyle, SimulationPool pool) {
         initOwner(owner);
         initModality(Modality.APPLICATION_MODAL);
         setTitle("Create new celestial body");
@@ -157,6 +158,17 @@ public class BodyCreatorPopup extends Stage {
                 return;
             confirmed = true;
 
+            // Create a world with this body.
+            // TODO: add following parameters: semi-major axis and eccentricity.
+            String worldName = getBodyName();
+            Color color = getBodyColor();
+
+            pool.createWorld(worldName, new Body(worldName, getBodyMass(), getBodyRadius(),
+                    Constant.EARTH_ORBIT_SEMIMAJOR_AXIS, Constant.EARTH_ORBIT_ECCENTRICITY), 
+                new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
+
+            pool.runWorld(worldName);
+
             previewRenderer.getViewport().dispose();
             close();
         });
@@ -208,21 +220,23 @@ public class BodyCreatorPopup extends Stage {
     private void setUpPreview() {
         // TODO: add distance to sun
 
-        // Note that the name, mass, and eccentricity remain the same (arbitrary), as they don't
+        // Note that the name, mass, and eccentricity remain the same (arbitrary), as
+        // they don't
         // affect the preview's appearance.
         previewBody = new Body("preview", 20, getBodyRadius(),
                 Constant.EARTH_ORBIT_SEMIMAJOR_AXIS, Constant.EARTH_ORBIT_ECCENTRICITY);
         Color color = getBodyColor();
 
         // Set up preview renderer.
-        previewRenderer.setWorld(new World(previewBody, new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue())));
+        previewRenderer.setWorld(new World(previewBody,
+                new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue())));
 
         // Set previewBody as camera's focus.
         previewRenderer.setFocusObject(previewBody.getName());
 
         // Add update listeners.
-        radiusField.textProperty().addListener(_-> updatePreviewRadius());
-        colorDropdown.setOnAction(_-> updatePreviewColor());
+        radiusField.textProperty().addListener(_ -> updatePreviewRadius());
+        colorDropdown.setOnAction(_ -> updatePreviewColor());
     }
 
     // Log-uniform random — appropriate for values spanning many orders of magnitude

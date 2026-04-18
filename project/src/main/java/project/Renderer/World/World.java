@@ -189,6 +189,11 @@ public class World implements Cloneable {
         for (Map.Entry<String, Satellite> item : body.getSatellites().entrySet()) {
             SatelliteData data = item.getValue().getData();
 
+            if(data.currentPosition == null) {
+                System.err.println("current position null");
+                return;
+            }
+
             WorldObject object = bodyObjects.get(item.getKey());
 
             Vector3f scale = object.getScale();

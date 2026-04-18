@@ -24,34 +24,34 @@ public class App extends Application {
     private static final String THEME_PREFERENCE_KEY = "ui.theme";
 
     /**
-     * Starts the JavaFX application, setting up the main window, UI components, and event handlers.
+     * Starts the JavaFX application, setting up the main window, UI components, and
+     * event handlers.
      * 
-     * @param stage The primary stage for this application, onto which the application scene can be set.
+     * @param stage The primary stage for this application, onto which the
+     *              application scene can be set.
      */
     @Override
     public void start(Stage stage) {
         setSystemProperties();
 
-        SimulationPool.load();
-        Renderer mainRenderer = new Renderer(SimulationPool.getWorld("Earth"));
-        mainRenderer.setFocusObject("test2");
+        Renderer mainRenderer = new Renderer();
+
+        SimulationPool pool = new SimulationPool(mainRenderer);
 
         BottomPane bottom = new BottomPane();
         MainMenuBar menuBar = new MainMenuBar();
-        SidebarPane sidebar = new SidebarPane(bottom, SimulationPool.getWorld("Earth"));
+        SidebarPane sidebar = new SidebarPane(bottom, pool);
         PresetManager presetManager = new PresetManager();
 
         // Wire menu bar buttons to sidebar actions
-        menuBar.getNewBodyButton()
-                .setOnAction(e -> sidebar.openNewBodyPopup(stage,
-                        menuBar.getThemeSelector().getValue() != null
-                                ? menuBar.getThemeSelector().getValue().toStyleString()
-                                : ""));
-        menuBar.getNewSatelliteButton()
-                .setOnAction(e -> sidebar.openNewSatellitePopup(stage,
-                        menuBar.getThemeSelector().getValue() != null
-                                ? menuBar.getThemeSelector().getValue().toStyleString()
-                                : ""));
+        menuBar.getNewBodyButton().setOnAction(e -> {
+            sidebar.openNewBodyPopup(stage, menuBar.getThemeSelector().getValue() != null ? menuBar.getThemeSelector().getValue().toStyleString() : "");
+        });
+        menuBar.getNewSatelliteButton().setOnAction(e -> {
+            if(pool.getCurrentWorld() != null) {
+                sidebar.openNewSatellitePopup(stage, menuBar.getThemeSelector().getValue() != null ? menuBar.getThemeSelector().getValue().toStyleString() : "");
+            }
+        });
         menuBar.getSaveAsMenuItem().setOnAction(e -> presetManager.savePresetAs(stage, sidebar));
         menuBar.getSaveMenuItem().setOnAction(e -> presetManager.savePreset(stage, sidebar));
         menuBar.getLoadMenuItem().setOnAction(e -> presetManager.loadPreset(stage, sidebar));
@@ -77,6 +77,8 @@ public class App extends Application {
         root.setTop(menuBar);
         root.setLeft(sidebar);
         root.setBottom(bottom);
+
+        root.setStyle("-fx-background-color: #000000");
 
         menuBar.getThemeSelector().setValue(selectedTheme);
 

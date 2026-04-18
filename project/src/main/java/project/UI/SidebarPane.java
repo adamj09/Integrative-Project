@@ -17,6 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
+import project.SimulationPool;
 import project.Presets.PresetConfiguration;
 import project.Presets.PresetConfiguration.BodyPreset;
 import project.Presets.PresetConfiguration.SatellitePreset;
@@ -25,7 +26,7 @@ import project.UI.Popups.BodyCreatorPopup;
 import project.UI.Popups.SatelliteCreatorPopup;
 
 public class SidebarPane extends VBox {
-    private World currentWorld;
+    private SimulationPool pool;
 
     private final Button celestialTab;
     private final Button satellitesTab;
@@ -63,8 +64,8 @@ public class SidebarPane extends VBox {
     private double selectedBodyRadius = 6371.0;   // km
     private Color  selectedBodyColor  = Color.RED; // defaulting to Earth
 
-    public SidebarPane(BottomPane bottom, World currentWorld) {
-        this.currentWorld = currentWorld;
+    public SidebarPane(BottomPane bottom, SimulationPool pool) {
+        this.pool = pool;
         this.bottom = bottom;
         setPrefWidth(300);
         setMinWidth(250);
@@ -134,7 +135,7 @@ public class SidebarPane extends VBox {
     }
 
     public void openNewBodyPopup(Stage owner, String themeStyle) {
-        BodyCreatorPopup popup = new BodyCreatorPopup(owner, themeStyle);
+        BodyCreatorPopup popup = new BodyCreatorPopup(owner, themeStyle, pool);
         popup.showAndWait();
         if (popup.wasConfirmed()) {
             addBodyCard(popup.getBodyName(), popup.getBodyColor(), false,
@@ -143,7 +144,7 @@ public class SidebarPane extends VBox {
     }
 
     public void openNewSatellitePopup(Stage owner, String themeStyle) {
-        SatelliteCreatorPopup popup = new SatelliteCreatorPopup(owner, themeStyle, currentWorld);
+        SatelliteCreatorPopup popup = new SatelliteCreatorPopup(owner, themeStyle, pool);
         popup.showAndWait();
         if (popup.wasConfirmed()) {
             addSatelliteCard(popup.getSatelliteName(), popup.getSatelliteColor());

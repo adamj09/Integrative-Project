@@ -86,6 +86,8 @@ public class Renderer {
 
     public Renderer() {
         controlManager = new ControlManager(this.viewport.getGLCanvas());
+
+        viewport.getGLCanvas().setVisible(false);
     }
 
     /**
@@ -104,6 +106,7 @@ public class Renderer {
      * shader programs, and creating render systems.
      */
     private void init() {
+
         world.getBodyMesh().setUpBuffers();
         world.getOrbitMesh().setUpBuffers();
         world.getLightSourceMesh().setUpBuffers();
@@ -239,6 +242,7 @@ public class Renderer {
     public void setWorld(World world) {
         this.world = world;
         fixedCameraController = new FixedCameraController(this.world, controlManager);
+        viewport.getGLCanvas().setVisible(true);
 
         initOpenGLRenderEventHandlers();
     }
