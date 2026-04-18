@@ -334,9 +334,6 @@ public class World implements Cloneable {
 
         orbit.resetTransforms();
 
-        System.out.println(data.angularMomentumVect.toString());
-        System.out.println(data.lineOfNodesVect.toString());
-
         // Notes:
         // Y -> X, Z -> Y, X -> Z due to different coordinate systems used in the
         // simulation math and rendering.

@@ -116,7 +116,6 @@ public class MathOrbits {
     private static Vector3d lineOfNodes(Vector3d angularMomentum) {
         Vector3d lineOfNodesVect = new Vector3d();
         new Vector3d(0, 0, 1).cross(angularMomentum, lineOfNodesVect);
-        System.out.println("Line of Nodes: " + lineOfNodesVect.toString());
         return lineOfNodesVect;
     }
 
