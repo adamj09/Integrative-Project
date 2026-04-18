@@ -95,7 +95,7 @@ public class Renderer {
         viewport.getGLCanvas().addOnInitEvent(_ -> init());
         viewport.getGLCanvas().addOnRenderEvent(event -> loop(event.delta));
         viewport.getGLCanvas().addOnReshapeEvent(_ -> setCameraProjection());
-        viewport.getGLCanvas().addOnDisposeEvent((_ -> cleanup()));
+        viewport.getGLCanvas().addOnDisposeEvent(_-> dispose());
     }
 
     /**
@@ -153,7 +153,7 @@ public class Renderer {
         orbitRenderSystem.loop();
     }
 
-    private void cleanup() {
+    private void dispose() {
         bodyRenderSystem.dispose();
         lightRenderSystem.dispose();
         orbitRenderSystem.dispose();
@@ -171,8 +171,6 @@ public class Renderer {
         cameraMatrixLoader.dispose();
 
         world.dispose();
-
-        viewport.dispose();
     }
 
     /**
