@@ -15,7 +15,7 @@ public class Constant {
     public static final double EARTH_ORBIT_ECCENTRICITY = 0.0167086;
 
     //satellite
-    public static final int MINIMUM_DISTANCE_TO_BODY = 160; //in km (minimum distance of the satellite to the body)
+    public static final int MINIMUM_ALTITUDE = 160; //in km (minimum distance of the satellite to the body)
 
     //time
     public static final int UPDATE_TIME = 8; //in miliseconds (120FPS) (time between each calculation of the sitelittes info)

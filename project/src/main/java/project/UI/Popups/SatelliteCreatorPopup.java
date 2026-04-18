@@ -25,7 +25,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import project.Math.Body;
+import project.Math.Constant;
 import project.Math.Satellite;
+import project.Math.SatelliteData;
 import project.Renderer.Renderer;
 import project.Renderer.World.World;
 import project.StyleSheet;
@@ -49,7 +51,7 @@ public class SatelliteCreatorPopup extends Stage {
     private TextField nameOrbField;
     private TextField massOrbField;
     private ComboBox<String> colorOrbDropdown;
-    private TextField distanceField;
+    private TextField altitudeField;
     private TextField eccentricityField;
     private TextField trueAnomalyField;
     private TextField lonAscNodeField;
@@ -217,15 +219,15 @@ public class SatelliteCreatorPopup extends Stage {
         orbLeftForm.add(massOfBodyField, 1, 3);
 
         // --- Middle: orbital parameters ---
-        distanceField = entryField("km");
+        altitudeField = entryField("km");
         eccentricityField = entryField("0 < e < 1");
         trueAnomalyField = entryField("0-360");
 
-        Label orbDistLbl = formLabel("Dist (km):");
+        Label orbAltLbl = formLabel("Alt (km):");
         Label orbEccLbl = formLabel("Ecc:");
         Label orbNuLbl = formLabel("\u03bd (deg):");
-        tip(orbDistLbl, distanceField,
-                "Distance from the satellite to the centre\nof the central body at the initial position (km).");
+        tip(orbAltLbl, altitudeField,
+                "Altitude from the satellite to the centre\nof the central body at the initial position (km).");
         tip(orbEccLbl, eccentricityField,
                 "Eccentricity (e): shape of the orbit.\n  e = 0  → perfect circle\n  0 < e < 1 → ellipse\nMust be strictly between 0 and 1.");
         tip(orbNuLbl, trueAnomalyField,
@@ -237,8 +239,8 @@ public class SatelliteCreatorPopup extends Stage {
         ColumnConstraints orbMidLblCol = new ColumnConstraints(70);
         orbMidForm.getColumnConstraints().addAll(orbMidLblCol, new ColumnConstraints());
         orbMidForm.add(formLabel("Orbital Parameters:"), 0, 0, 2, 1);
-        orbMidForm.add(orbDistLbl, 0, 1);
-        orbMidForm.add(fieldRow(distanceField, orbLocks, OL_DIST, this::randomizeDist), 1, 1);
+        orbMidForm.add(orbAltLbl, 0, 1);
+        orbMidForm.add(fieldRow(altitudeField, orbLocks, OL_DIST, this::randomizeDist), 1, 1);
         orbMidForm.add(orbEccLbl, 0, 2);
         orbMidForm.add(fieldRow(eccentricityField, orbLocks, OL_ECC, this::randomizeEcc), 1, 2);
         orbMidForm.add(orbNuLbl, 0, 3);
@@ -354,7 +356,7 @@ public class SatelliteCreatorPopup extends Stage {
                 Satellite tempSat = new Satellite();
                 boolean hasError = tempSat.initialiseSatelliteValuesAngles(
                         getSatelliteName(), getSatelliteMass(), "", getMassOfBody(),
-                        getDistance(), getEccentricity(), getTrueAnomaly(),
+                        getaltitude(), getEccentricity(), getTrueAnomaly(),
                         getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
                 if (hasError) {
                     errorLabel.setText(tempSat.getLatestError());
@@ -407,13 +409,13 @@ public class SatelliteCreatorPopup extends Stage {
             }
             double dist;
             try {
-                dist = Double.parseDouble(distanceField.getText());
+                dist = Double.parseDouble(altitudeField.getText());
             } catch (NumberFormatException e) {
-                errorLabel.setText("Distance must be a number.");
+                errorLabel.setText("altitude must be a number.");
                 return false;
             }
             if (dist <= 0) {
-                errorLabel.setText("Distance must be positive.");
+                errorLabel.setText("altitude must be positive.");
                 return false;
             }
             double ecc;
@@ -444,6 +446,7 @@ public class SatelliteCreatorPopup extends Stage {
                 }
             }
             errorLabel.setText("");
+
             return true;
         } else {
             try {
@@ -476,7 +479,7 @@ public class SatelliteCreatorPopup extends Stage {
 
         previewSatellite = new Satellite();
         if (!previewSatellite.initialiseSatelliteValuesAngles(previewBody, "previewSatellite", getSatelliteMass(),
-                previewBody.getRadius() + getDistance(), getEccentricity(), getTrueAnomaly(),
+                previewBody.getRadius() + getaltitude(), getEccentricity(), getTrueAnomaly(),
                 getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis())) {
             System.err.println("Failed to initialize preview satellite: " + previewSatellite.getLatestError());
         }
@@ -488,11 +491,24 @@ public class SatelliteCreatorPopup extends Stage {
         previewWorld.runWorld();
         previewRenderer.setWorld(previewWorld);
         previewRenderer.setFocusObject(previewSatellite.getData().name);
+
+        altitudeField.textProperty().addListener((obs, oldText, newText) -> updatePreview());
+        eccentricityField.textProperty().addListener((obs, oldText, newText) -> updatePreview());
+        trueAnomalyField.textProperty().addListener((obs, oldText, newText) -> updatePreview());
+        colorOrbDropdown.setOnAction(e -> updatePreviewColor()); // Update preview colour when changed
     }
 
     private void updatePreview() {
-        previewWorld.updateOrbitalElements(previewSatellite.getData().name, getSatelliteMass(),
-                previewBody.getRadius() + getDistance(), getEccentricity(), getTrueAnomaly(),
+        SatelliteData data = previewSatellite.getData();
+
+        double altitude = Math.clamp(getaltitude(), Constant.MINIMUM_ALTITUDE, (data.maxDistanceToBody / 1000) - previewBody.getRadius() - 1);
+
+        double eccentricity = Math.clamp(getEccentricity(), 1e-10, 0.99);
+
+        System.out.println(data.a);
+
+        previewWorld.updateOrbitalElements(data.name, getSatelliteMass(),
+                altitude, eccentricity, getTrueAnomaly(),
                 getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
     }
 
@@ -549,8 +565,8 @@ public class SatelliteCreatorPopup extends Stage {
         return new double[] { p(rotIField), p(rotLField), p(rotWField) };
     }
 
-    public double getDistance() {
-        return p(distanceField);
+    public double getaltitude() {
+        return p(altitudeField);
     }
 
     public double getEccentricity() {
@@ -628,7 +644,7 @@ public class SatelliteCreatorPopup extends Stage {
 
     private void randomizeDist() {
         // Log-uniform between 1.5× and 100× the body's radius (km)
-        distanceField.setText(String.format("%.1f",
+        altitudeField.setText(String.format("%.1f",
                 randomLog(bodyRadius * 1.5, bodyRadius * 100.0)));
     }
 
@@ -646,13 +662,13 @@ public class SatelliteCreatorPopup extends Stage {
     }
 
     private void randomizeCartPosX() {
-        // Place satellite at a body-dependent orbital distance (metres)
+        // Place satellite at a body-dependent orbital altitude (metres)
         double distM = randomLog(bodyRadius * 1.5, bodyRadius * 100.0) * 1000.0;
         posXField.setText(String.format("%.4e", distM));
     }
 
     private void randomizeCartSpeed() {
-        // Circular orbit speed at the current posX distance
+        // Circular orbit speed at the current posX altitude
         try {
             double x = Double.parseDouble(posXField.getText());
             if (x > 0) {
@@ -692,7 +708,6 @@ public class SatelliteCreatorPopup extends Stage {
             lock[0] = lockBtn.isSelected();
             lockBtn.setText(lock[0] ? "\uD83D\uDD12" : "\uD83D\uDD13");
         });
-        dropdown.setOnAction(e -> updatePreviewColor());
         HBox row = new HBox(5, dropdown, randBtn, lockBtn);
         row.setAlignment(Pos.CENTER_LEFT);
         return row;

@@ -249,19 +249,19 @@ public class World implements Cloneable {
      * Updates the orbital elements of the satellite with the given name.
      * @param satelliteName the name of the satellite whose orbital elements will be updated.
      * @param massOfSatellite the mass of the satellite, in kilograms.
-     * @param distance the distance of the satellite from the central body, in kilometers.
+     * @param altitude the altitude of the satellite, in kilometers.
      * @param ecentricity the eccentricity of the satellite's orbit (unitless).
      * @param trueAnomaly the true anomaly of the satellite's orbit, in degrees.
      * @param longitudeAscendingNode the longitude of the ascending node of the satellite's orbit, in degrees.
      * @param inclination the inclination of the satellite's orbit, in degrees.
      * @param argumentOfPeriapisis the argument of periapsis of the satellite's orbit, in degrees.
      */
-    public void updateOrbitalElements(String satelliteName, double massOfSatellite, double distance, double ecentricity,
+    public void updateOrbitalElements(String satelliteName, double massOfSatellite, double altitude, double ecentricity,
             double trueAnomaly, double longitudeAscendingNode, double inclination, double argumentOfPeriapisis) {
 
         Satellite satellite = body.getSatellite(satelliteName);
 
-        if(!satellite.initialiseSatelliteValuesAngles(body, satelliteName, massOfSatellite, distance, ecentricity,
+        if(!satellite.initialiseSatelliteValuesAngles(body, satelliteName, massOfSatellite, altitude, ecentricity,
                 trueAnomaly, longitudeAscendingNode, inclination, argumentOfPeriapisis)) {
             System.err.println(satellite.getLatestError());
             System.err.println("Failed to update orbital elements for satellite: " + satelliteName);

@@ -42,19 +42,19 @@ public class Satellite implements Runnable {
             return false;
         }
 
-        if (px < Constant.MINIMUM_DISTANCE_TO_BODY) {
+        if (px < Constant.MINIMUM_ALTITUDE) {
             latestError = "initial position in x is too close to the body: " + px + " km. Minimum distance is "
-                    + Constant.MINIMUM_DISTANCE_TO_BODY + " km";
+                    + Constant.MINIMUM_ALTITUDE + " km";
             return false;
         }
-        if (py < Constant.MINIMUM_DISTANCE_TO_BODY) {
+        if (py < Constant.MINIMUM_ALTITUDE) {
             latestError = "initial position in y is too close to the body: " + py + " km. Minimum distance is "
-                    + Constant.MINIMUM_DISTANCE_TO_BODY + " km";
+                    + Constant.MINIMUM_ALTITUDE + " km";
             return false;
         }
-        if (pz < Constant.MINIMUM_DISTANCE_TO_BODY) {
+        if (pz < Constant.MINIMUM_ALTITUDE) {
             latestError = "initial position in z is too close to the body: " + pz + " km. Minimum distance is "
-                    + Constant.MINIMUM_DISTANCE_TO_BODY + " km";
+                    + Constant.MINIMUM_ALTITUDE + " km";
             return false;
         }
 
@@ -72,7 +72,7 @@ public class Satellite implements Runnable {
      * @param body                   the central body that the satellite is orbiting
      * @param satName                name (and id) of the satellite
      * @param massOfSatellite        mass of the the satellite in kg
-     * @param distance               distance of the satellite to the body in km
+     * @param altitude               distance of the satellite to the body's surface in km
      * @param ecentricity            of the orbit (between 0 and 1 for elliptical
      *                               orbits) 0 >= ecentricity || ecentricity >= 1
      * @param trueAnomaly            true anomaly at the initial position in degrees
@@ -85,7 +85,7 @@ public class Satellite implements Runnable {
      * @return
      */
     public boolean initialiseSatelliteValuesAngles(Body body, String satName, double massOfSatellite,
-            double distance, double ecentricity, double trueAnomaly, double longitudeAscendingNode, double inclination,
+            double altitude, double ecentricity, double trueAnomaly, double longitudeAscendingNode, double inclination,
             double argumentOfPeriapisis) {
         if (!this.initName(satName, body.getName())) {
             return false;
@@ -93,20 +93,20 @@ public class Satellite implements Runnable {
 
         this.massOfBody = body.getMass();
         this.getData().mass = massOfSatellite;
-        this.getData().inputDistance = distance;
+        this.getData().altitude = altitude;
 
         if (0 >= ecentricity || ecentricity >= 1) {
             this.latestError = "eccentricity not supported " + ecentricity;
             return false;
         }
 
-        if (distance < Constant.MINIMUM_DISTANCE_TO_BODY) {
-            latestError = "initial position is too close to the body: " + distance + " km. Minimum distance is "
-                    + Constant.MINIMUM_DISTANCE_TO_BODY + " km";
+        if (altitude < Constant.MINIMUM_ALTITUDE) {
+            latestError = "initial position is too close to the body: " + altitude + " km. Minimum distance is "
+                    + Constant.MINIMUM_ALTITUDE + " km";
             return false;
         }
 
-        distance *= 1000; // convert to meters
+        double distance = (altitude + body.getRadius()) * 1000; // convert distance to center of body from km to m
 
         MathOrbits.constructSatelliteUsingAngle(this, massOfBody, distance, ecentricity, trueAnomaly,
                 longitudeAscendingNode, inclination, argumentOfPeriapisis);

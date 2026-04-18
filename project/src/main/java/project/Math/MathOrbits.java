@@ -66,7 +66,7 @@ public class MathOrbits {
      * @param largerMass    mass of the larger body (e.g. the sun) in kilograms.
      * @return the hill radius in meters. If the larger mass is 0, returns -1.
      */
-    private static double hillRadius(double semiMajorAxis, double eccentricity, double lesserMass,
+    public static double hillRadius(double semiMajorAxis, double eccentricity, double lesserMass,
             double largerMass) {
         if (largerMass == 0) {
             return -1;
@@ -84,13 +84,13 @@ public class MathOrbits {
     // ---------------------------------------------------------------------------------------------------------------------------
     //
     private static double apoapsis(double semiLatusRectum, double eccentricity) {
-        return semiLatusRectum / (1 + eccentricity);
+        return semiLatusRectum / (1 - eccentricity);
     }
 
     // ---------------------------------------------------------------------------------------------------------------------------
     //
     private static double periapsis(double semiLatusRectum, double eccentricity) {
-        return semiLatusRectum / (1 - eccentricity);
+        return semiLatusRectum / (1 + eccentricity);
     }
 
     // ---------------------------------------------------------------------------------------------------------------------------
@@ -277,14 +277,14 @@ public class MathOrbits {
 
         data.eccentricity = ece;
 
-        data.maximumDistanceToBody = hillRadius(celestialBody.getSemiMajorAxis() * 1000d, celestialBody.getEccentricity(),
-                celestialBody.getMass(), celestialBody.getMassOfSun());
-
         data.p = semiLatusRectum(data.angularMomentum, data.mu);
         data.radiusOfPeriapsis = periapsis(data.p, data.eccentricity);
         data.radiusOfApoapsis = apoapsis(data.p, data.eccentricity);
 
         data.a = semiMajorAxis(data.p, data.eccentricity);
+
+        data.maxDistanceToBody = celestialBody.getHillRadius() * 1000;
+
         data.period = period(data.a, data.mu);
         data.meanMotion = meanMotion(data.a, data.mu);
 
@@ -295,14 +295,14 @@ public class MathOrbits {
         data.eccentricAnomaly = initialEccentricAnomaly(data.eccentricity, data.trueAnomaly);
         data.meanAnomaly = initialMeanAnomaly(data.eccentricAnomaly, data.eccentricity);
 
-        double distance = initialDistance(data.p, data.eccentricity, data.trueAnomaly, data.maximumDistanceToBody);
+        double distance = initialDistance(data.p, data.eccentricity, data.trueAnomaly, data.maxDistanceToBody);
         if (Double.isNaN(distance)) {
             satellite.setLatestError(
                     "Initial distance of the satellite is larger than the hill radius. The orbit is not stable.");
             return false;
         }
 
-        if (data.radiusOfApoapsis > data.maximumDistanceToBody) {
+        if (data.radiusOfApoapsis > data.maxDistanceToBody) {
             satellite.setLatestError(
                     "Radius of apoapsis of the satellite is larger than the hill radius. The orbit is not stable.");
             return false;
@@ -339,7 +339,7 @@ public class MathOrbits {
         data.trueAnomaly = trueAnomaly(data.eccentricity, data.eccentricAnomaly);
 
         // distance
-        double distance = distance(data.a, data.eccentricity, data.trueAnomaly, data.maximumDistanceToBody);
+        double distance = distance(data.a, data.eccentricity, data.trueAnomaly, data.maxDistanceToBody);
         if (Double.isNaN(distance)) {
             satellite.setLatestError(
                     "Distance of the satellite is larger than the hill radius. The orbit is not stable.");
@@ -385,7 +385,7 @@ public class MathOrbits {
 
         SatelliteData data = satellite.getData();
 
-        double p = distance + (distance * eccentricity * Math.cos(trueAnomaly));
+        double p = distance * (1 + eccentricity * Math.cos(trueAnomaly));
         double mu = Constant.GRAVITATIONAL_CONSTANT * massOfCelestialBody;
 
         data.longitudeOfAscendingNode = Math.toRadians(longitudeAscendingNode);
