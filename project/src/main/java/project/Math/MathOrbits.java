@@ -97,7 +97,7 @@ public class MathOrbits {
     private static double periapsis(double semiLatusRectum, double eccentricity, double radiusOfBody) {
         double res = semiLatusRectum / (1 + eccentricity);
 
-        if (res < (Constant.MINIMUM_ALTITUDE + radiusOfBody) * 1000) {
+        if (res < (radiusOfBody) * 1000) {
             return Double.NaN;
         }
         return res;
@@ -284,7 +284,7 @@ public class MathOrbits {
         if (Double.isNaN(radiusOfPeriapsis)) {
             satellite.setLatestError(
                     "Radius of periapsis of the satellite is smaller than the minimum distance to the body." +
-                            " Need to be bigger than: " + (Constant.MINIMUM_ALTITUDE + radiusOfBody) + "km.");
+                            " Need to be bigger than: " + radiusOfBody + "km.");
             return false;
         }
         data.radiusOfPeriapsis = radiusOfPeriapsis;
@@ -359,7 +359,6 @@ public class MathOrbits {
         data.currentVelocity = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
                 data.argumentOfPeriapsis)
                 .transform(constructVelocityPQWvect(data.mu, data.p, data.eccentricity, data.trueAnomaly));
-        ;
 
         // excessSpeed
         data.excessSpeed = excessSpeed(data.mu, data.distance);

@@ -1,6 +1,7 @@
 package project.Renderer.World;
 
 import java.nio.FloatBuffer;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
@@ -70,14 +71,6 @@ public class World implements Cloneable {
      * I.e. 1 AU is equal to this many renderer units.
      */
     private transient final float UNIT_SCALE = 10_000.f;
-
-    /**
-     * Fixed radius for rendering satellites, set to 1000 km in radius. Smaller,
-     * more realitic radii maybe be used, but might make it difficult to see the
-     * satellites. Perhaps we should consider making a fixed-sized 2D circle follow
-     * the satellite to be able to locate it from a distance.
-     */
-    private transient final float SATELLITE_RADIUS = (float) (1000.d / Constant.AU * UNIT_SCALE);
 
     /**
      * Meshes for rendering the bodies and orbits.
@@ -304,7 +297,9 @@ public class World implements Cloneable {
                 (float) (data.initialPosition.z / 1000.d / Constant.AU * UNIT_SCALE),
                 (float) (data.initialPosition.x / 1000.d / Constant.AU * UNIT_SCALE)));
 
-        satelliteObject.scale(new Vector3f(SATELLITE_RADIUS, SATELLITE_RADIUS, SATELLITE_RADIUS));
+        float satelliteRadius = (float) (body.getRadius() / Constant.AU * UNIT_SCALE / 50.f);
+
+        satelliteObject.scale(new Vector3f(satelliteRadius, satelliteRadius, satelliteRadius));
 
         bodyObjects.put(satelliteObject.getName(), satelliteObject);
 

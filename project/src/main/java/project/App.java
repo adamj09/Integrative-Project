@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import project.Math.Body;
 import project.Presets.PresetManager;
 import project.Renderer.Renderer;
 import project.UI.BottomPane;
@@ -45,11 +46,21 @@ public class App extends Application {
 
         // Wire menu bar buttons to sidebar actions
         menuBar.getNewBodyButton().setOnAction(e -> {
-            sidebar.openNewBodyPopup(stage, menuBar.getThemeSelector().getValue() != null ? menuBar.getThemeSelector().getValue().toStyleString() : "");
+            sidebar.openNewBodyPopup(stage,
+                    menuBar.getThemeSelector().getValue() != null
+                            ? menuBar.getThemeSelector().getValue().toStyleString()
+                            : "");
         });
         menuBar.getNewSatelliteButton().setOnAction(e -> {
-            if(pool.getCurrentWorld() != null) {
-                sidebar.openNewSatellitePopup(stage, menuBar.getThemeSelector().getValue() != null ? menuBar.getThemeSelector().getValue().toStyleString() : "");
+            Body body = pool.getCurrentWorld().getBody();
+            // TODO: this check for whether a body can actually have a satellite orbiting it
+            // (sufficient mass) is probably not great, but is good enough for now.
+            if (pool.getCurrentWorld() != null && body.getHillRadius() > body.getRadius()) {
+
+                sidebar.openNewSatellitePopup(stage,
+                        menuBar.getThemeSelector().getValue() != null
+                                ? menuBar.getThemeSelector().getValue().toStyleString()
+                                : "");
             }
         });
         menuBar.getSaveAsMenuItem().setOnAction(e -> presetManager.savePresetAs(stage, sidebar));

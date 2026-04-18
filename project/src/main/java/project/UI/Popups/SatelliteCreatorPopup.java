@@ -48,6 +48,8 @@ public class SatelliteCreatorPopup extends Stage {
     private TextField posXField, posYField, posZField;
     private TextField rotIField, rotLField, rotWField;
 
+    private Label errorLabel = new Label("");
+
     // --- Orbital-elements-mode fields ---
     private TextField nameOrbField;
     private TextField massOrbField;
@@ -338,7 +340,6 @@ public class SatelliteCreatorPopup extends Stage {
         randAllRow.setAlignment(Pos.CENTER_RIGHT);
         randAllRow.setPadding(new Insets(6, 14, 0, 14));
 
-        Label errorLabel = new Label("");
         errorLabel.getStyleClass().add("error-label");
 
         Button cancelBtn = new Button("CANCEL");
@@ -354,7 +355,7 @@ public class SatelliteCreatorPopup extends Stage {
         });
 
         createBtn.setOnAction(e -> {
-            if (!validate(errorLabel))
+            if (!validate())
                 return;
             if (orbitalElementsMode) {
                 // Run the math to check physical validity and surface any error
@@ -414,7 +415,7 @@ public class SatelliteCreatorPopup extends Stage {
         setScene(scene);
     }
 
-    private boolean validate(Label errorLabel) {
+    private boolean validate() {
         if (orbitalElementsMode) {
             try {
                 Double.parseDouble(massOrbField.getText());
@@ -514,6 +515,7 @@ public class SatelliteCreatorPopup extends Stage {
                 getaltitude(), getEccentricity(), getTrueAnomaly(),
                 getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis())) {
             System.err.println("Failed to initialize preview satellite: " + previewSatellite.getLatestError());
+            return;
         }
 
         // Add the preview satellite to the world.
@@ -551,6 +553,7 @@ public class SatelliteCreatorPopup extends Stage {
         if (!testSatellite.initialiseSatelliteValuesAngles(previewBody, "testSatellite", getSatelliteMass(),
                 getaltitude(), getEccentricity(), getTrueAnomaly(),
                 getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis())) {
+            System.err.println("Failed to update preview satellite: " + testSatellite.getLatestError());
             return;
         }
 
@@ -616,6 +619,20 @@ public class SatelliteCreatorPopup extends Stage {
     }
 
     public double getaltitude() {
+        double altitude = p(altitudeField);
+        
+        Satellite testSatellite = new Satellite();
+
+        if (!testSatellite.initialiseSatelliteValuesAngles(previewBody, "testSatellite", getSatelliteMass(),
+                altitude, getEccentricity(), getTrueAnomaly(),
+                getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis())) {
+
+            errorLabel.setText(testSatellite.getLatestError());
+            return previewSatellite.getData().altitude; // Return last altitude if current one doesn't work.
+        }
+
+        errorLabel.setText("");
+
         return p(altitudeField);
     }
 
@@ -695,7 +712,7 @@ public class SatelliteCreatorPopup extends Stage {
     private void randomizeDist() {
         // Log-uniform between 1.5× and 100× the body's radius (km)
         altitudeField.setText(String.format("%.1f",
-                randomLog(bodyRadius * 1.5, bodyRadius * 100.0)));
+                randomLog(bodyRadius * 1.5, bodyRadius * 100)));
     }
 
     private void randomizeEcc() {

@@ -285,13 +285,22 @@ public class BodyCreatorPopup extends Stage {
             return false;
         }
         try {
-            Double.parseDouble(massField.getText());
+            double mass = Double.parseDouble(massField.getText());
+            if(mass <= 0) {
+                errorLabel.setText("Mass must be a positive number.");
+                return false;
+            }
         } catch (NumberFormatException e) {
             errorLabel.setText("Mass must be a number.");
             return false;
         }
         try {
-            Double.parseDouble(radiusField.getText());
+            double radius = Double.parseDouble(radiusField.getText());
+
+            if(radius <= 0) {
+                errorLabel.setText("Radius must be a positive number.");
+                return false;
+            }
         } catch (NumberFormatException e) {
             errorLabel.setText("Radius must be a number.");
             return false;

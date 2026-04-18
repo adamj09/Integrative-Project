@@ -100,9 +100,10 @@ public class Satellite implements Runnable {
             return false;
         }
 
-        if (altitude < Constant.MINIMUM_ALTITUDE) {
-            latestError = "initial position is too close to the body: " + altitude + " km. Minimum distance is "
-                    + Constant.MINIMUM_ALTITUDE + " km";
+        double minimumAltitude = Float.MIN_VALUE;
+
+        if (altitude < minimumAltitude) {
+            latestError = "initial position is too close to the body: " + altitude;
             return false;
         }
 

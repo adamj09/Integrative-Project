@@ -156,7 +156,7 @@ public class FixedCameraController {
 
         minRadius = focusedWorldObject.getScale().x + Renderer.DEFAULT_NEAR;
         maxRadius = focusedWorldObject.getScale().x + 1_000d;
-        radius = minRadius + 5.f;
+        radius = (focusedWorldObject.getScale().x + minRadius) * 2f;
 
         this.lookatPosition = new Vector3d(focusedWorldObject.getTranslation());
 

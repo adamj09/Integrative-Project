@@ -23,7 +23,7 @@ public class SimulationPool {
     }
 
     public void createWorld(String name, Body body, Vector3f color) {
-        body.setTimeScale(1000); // TODO: add time scale adjustments
+        body.setTimeScale(0.001); // TODO: add time scale adjustments
         worlds.put(name, new World(body, color));
     }
 
