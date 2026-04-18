@@ -13,9 +13,9 @@ import project.Math.Constant;
 import project.Math.Satellite;
 import project.Math.SatelliteData;
 import project.Renderer.Camera.Camera;
-import project.Renderer.Model.Mesh;
-import project.Renderer.Model.RingGenerator;
-import project.Renderer.Model.SphereGenerator;
+import project.Renderer.Mesh.Mesh;
+import project.Renderer.Mesh.RingGenerator;
+import project.Renderer.Mesh.SphereGenerator;
 
 // TODO: saving and loading of worlds
 

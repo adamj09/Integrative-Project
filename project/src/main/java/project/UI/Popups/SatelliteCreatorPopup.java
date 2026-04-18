@@ -492,9 +492,15 @@ public class SatelliteCreatorPopup extends Stage {
         previewRenderer.setWorld(previewWorld);
         previewRenderer.setFocusObject(previewSatellite.getData().name);
 
-        altitudeField.textProperty().addListener((obs, oldText, newText) -> updatePreview());
-        eccentricityField.textProperty().addListener((obs, oldText, newText) -> updatePreview());
-        trueAnomalyField.textProperty().addListener((obs, oldText, newText) -> updatePreview());
+        altitudeField.textProperty().addListener(_-> updatePreview());
+        eccentricityField.textProperty().addListener(_-> updatePreview());
+        trueAnomalyField.textProperty().addListener(_-> updatePreview());
+        
+        lonAscNodeField.textProperty().addListener(_-> updatePreview());
+        inclinationField.textProperty().addListener(_-> updatePreview());
+        argPeriapsisField.textProperty().addListener(_-> updatePreview());
+
+
         colorOrbDropdown.setOnAction(e -> updatePreviewColor()); // Update preview colour when changed
     }
 
