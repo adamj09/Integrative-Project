@@ -41,6 +41,8 @@ public abstract class RenderSystem {
      */
     public abstract void loop();
 
+    public abstract void dispose();
+
     /**
      * @return The world to be rendered by this render system.
      */

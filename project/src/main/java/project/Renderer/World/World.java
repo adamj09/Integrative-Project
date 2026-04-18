@@ -3,6 +3,7 @@ package project.Renderer.World;
 import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
@@ -184,13 +185,13 @@ public class World implements Cloneable {
     /**
      * Updates the positions of all satellites in the world.
      */
-    public void updateSatellites() {
-        HashMap<String, Satellite> satellites = body.getSatellites();
-
-        for (Map.Entry<String, Satellite> item : satellites.entrySet()) {
+    public void updateSatellitePositions() {
+        for (Map.Entry<String, Satellite> item : body.getSatellites().entrySet()) {
             SatelliteData data = item.getValue().getData();
 
             WorldObject object = bodyObjects.get(item.getKey());
+
+            Vector3f scale = object.getScale();
 
             object.resetTransforms();
 
@@ -199,11 +200,75 @@ public class World implements Cloneable {
                     (float) (data.currentPosition.z / 1000.d / Constant.AU * UNIT_SCALE),
                     (float) (data.currentPosition.x / 1000.d / Constant.AU * UNIT_SCALE)));
 
-            object.scale(new Vector3f(SATELLITE_RADIUS, SATELLITE_RADIUS, SATELLITE_RADIUS));
+            object.scale(new Vector3f(scale.x, scale.y, scale.z));
         }
 
         bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
         orbitMatrixBuffer = updateMatrixBuffer(orbits);
+    }
+
+    /**
+     * Updates the color of the world object with the given name.
+     * 
+     * @param objectName the name of the world object whose color will be updated.
+     * @param color      the new color to set for the world object.
+     */
+    public void updateColor(String objectName, Vector3f color) {
+        if (bodyObjects.containsKey(objectName)) {
+            bodyObjects.get(objectName).setColor(color);
+        }
+
+        colorsBuffer = updateColorBuffer(bodyObjects);
+    }
+
+    /**
+     * Updates the radius of the world object with the given name.
+     * 
+     * @param objectName the name of the world object whose radius will be updated.
+     * @param radius     the new radius to set for the world object, in kilometers.
+     */
+    public void updateRadius(String objectName, float radius) {
+        if (bodyObjects.containsKey(objectName)) {
+            WorldObject object = bodyObjects.get(objectName);
+            object.resetTransforms();
+            object.scale(new Vector3f((float) (radius / Constant.AU * UNIT_SCALE),
+                    (float) (radius / Constant.AU * UNIT_SCALE),
+                    (float) (radius / Constant.AU * UNIT_SCALE)));
+
+            if (objectName.equals(body.getName())) {
+                body.setRadius(radius);
+
+                updateSatellitePositions();
+            }
+        }
+
+        bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
+    }
+
+    /**
+     * Updates the orbital elements of the satellite with the given name.
+     * @param satelliteName the name of the satellite whose orbital elements will be updated.
+     * @param massOfSatellite the mass of the satellite, in kilograms.
+     * @param distance the distance of the satellite from the central body, in kilometers.
+     * @param ecentricity the eccentricity of the satellite's orbit (unitless).
+     * @param trueAnomaly the true anomaly of the satellite's orbit, in degrees.
+     * @param longitudeAscendingNode the longitude of the ascending node of the satellite's orbit, in degrees.
+     * @param inclination the inclination of the satellite's orbit, in degrees.
+     * @param argumentOfPeriapisis the argument of periapsis of the satellite's orbit, in degrees.
+     */
+    public void updateOrbitalElements(String satelliteName, double massOfSatellite, double distance, double ecentricity,
+            double trueAnomaly, double longitudeAscendingNode, double inclination, double argumentOfPeriapisis) {
+
+        Satellite satellite = body.getSatellite(satelliteName);
+
+        if(!satellite.initialiseSatelliteValuesAngles(body, satelliteName, massOfSatellite, distance, ecentricity,
+                trueAnomaly, longitudeAscendingNode, inclination, argumentOfPeriapisis)) {
+            System.err.println(satellite.getLatestError());
+            System.err.println("Failed to update orbital elements for satellite: " + satelliteName);
+            return;
+        }
+
+        transformOrbit(satelliteName);
     }
 
     /**
@@ -251,10 +316,23 @@ public class World implements Cloneable {
      * @param satellite the satellite whose orbit will be added.
      */
     private void addOrbit(Satellite satellite) {
-        SatelliteData data = satellite.getData();
-
         // Add satellite orbit object.
-        WorldObject orbit = new WorldObject(data.name, orbitMesh);
+        WorldObject orbit = new WorldObject(satellite.getData().name, orbitMesh);
+        orbits.put(orbit.getName(), orbit);
+
+        transformOrbit(orbit.getName());
+    }
+
+    private void transformOrbit(String orbitName) {
+        if (!orbits.containsKey(orbitName) || !body.getSatellites().containsKey(orbitName)) {
+            System.err.println("Failed to transform orbit: " + orbitName + ". Orbit or satellite not found.");
+            return;
+        }
+
+        WorldObject orbit = orbits.get(orbitName);
+        SatelliteData data = body.getSatellite(orbitName).getData();
+
+        orbit.resetTransforms();
 
         // Notes:
         // Y -> X, Z -> Y, X -> Z due to different coordinate systems used in the
@@ -264,7 +342,7 @@ public class World implements Cloneable {
         // is due to the non-commutative nature of matrix multiplication, which is used
         // to apply the transformations to the orbit object.
 
-        // Rotate orbit to correct orientation based on orbital parameters:
+        // --- Rotate orbit to correct orientation based on orbital parameters ---
 
         // Rotate by argument of periapsis around angular momentum vector (which is a
         // vector normal to the orbital plane).
@@ -273,25 +351,28 @@ public class World implements Cloneable {
 
         // Rotate by inclination around line of nodes vector (which is the intersection
         // of the orbital plane and the reference plane).
-        orbit.rotate((float) (data.inclination), new Vector3f((float) data.lineOfNodesVect.y,
+
+        if(data.inclination != 0) {
+            orbit.rotate((float) (data.inclination), new Vector3f((float) data.lineOfNodesVect.y,
                 (float) data.lineOfNodesVect.z, (float) data.lineOfNodesVect.x).normalize());
+        }
 
         // Rotate by longitude of ascending node around reference plane normal vector
         // (Y-axis).
         orbit.rotate((float) (-data.longitudeOfAscendingNode), new Vector3f(0.f, 1.f, 0.f));
 
-        // Calculate the semi-major and semi-minor axes of the orbit in renderer units.
+        // --- Calculate the semi-major and semi-minor axes of the orbit in renderer units ---
         double semiMajorAxis = data.a / 1000.d / Constant.AU * UNIT_SCALE;
         double semiMinorAxis = semiMajorAxis * Math.sqrt(1.0 - Math.pow(data.eccentricity, 2));
 
-        // Translate orbit so that the central body is at a focal point.
+        // --- Translate orbit so that the central body is at a focal point ---
         float focalDistance = (float) Math.sqrt(Math.pow(semiMajorAxis, 2) - Math.pow(semiMinorAxis, 2));
         orbit.translate(new Vector3f((float) 0, 0, -focalDistance));
 
-        // Scale orbit according to orbital parameters.
+        // --- Scale orbit according to orbital parameters ---
         orbit.scale(new Vector3f((float) semiMinorAxis, 1.f, (float) semiMajorAxis));
 
-        orbits.put(orbit.getName(), orbit);
+        orbitMatrixBuffer = updateMatrixBuffer(orbits);
     }
 
     /**
@@ -323,6 +404,18 @@ public class World implements Cloneable {
         body.start();
 
         body.resetTime();
+    }
+
+    public void stopWorld() {
+        body.stop();
+        body.stopSatellites();
+        body.stopTimeThread();
+    }
+
+    public void dispose() {
+        bodyMesh.dispose();
+        orbitMesh.dispose();
+        lightSourceMesh.dispose();
     }
 
     /**

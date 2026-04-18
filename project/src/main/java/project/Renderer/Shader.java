@@ -61,6 +61,10 @@ public class Shader {
         this.shaderType = shaderType;
     }
 
+    public void dispose() {
+        glDeleteShader(shader);
+    }
+
     /**
      * @return The OpenGL shader ID.
      */

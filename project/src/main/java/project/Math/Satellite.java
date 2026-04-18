@@ -95,12 +95,6 @@ public class Satellite implements Runnable {
         this.getData().mass = massOfSatellite;
         this.getData().inputDistance = distance;
 
-        // normalization of an angle 0 to 360
-        trueAnomaly = trueAnomaly % 360;
-        longitudeAscendingNode = longitudeAscendingNode % 360;
-        inclination = inclination % 360;
-        argumentOfPeriapisis = argumentOfPeriapisis % 360;
-
         if (0 >= ecentricity || ecentricity >= 1) {
             this.latestError = "eccentricity not supported " + ecentricity;
             return false;
@@ -124,7 +118,7 @@ public class Satellite implements Runnable {
     //
     private boolean initName(String satName, String bodyName) {
         if (satName.equals(bodyName)) {
-            latestError = "satellite name is the same has the bodys name. Not allowd";
+            latestError = "Satellite name is the same has the body's name. Not allowed";
             return false;
         } else {
             this.getData().name = satName;

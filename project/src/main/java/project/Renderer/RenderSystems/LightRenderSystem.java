@@ -113,4 +113,10 @@ public class LightRenderSystem extends RenderSystem {
         glDrawElementsInstanced(GL_TRIANGLES, super.getWorld().getLightSourceMesh().getIndices().size() * 3, GL_UNSIGNED_INT,
                 0, 1);
     }
+
+    @Override
+    public void dispose() {
+        glDeleteBuffers(vboColor);
+        glDeleteBuffers(vboModelMatrix);
+    }
 }

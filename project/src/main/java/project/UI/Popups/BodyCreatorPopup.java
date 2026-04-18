@@ -30,7 +30,8 @@ import project.Renderer.Renderer;
 import project.Renderer.World.World;
 
 public class BodyCreatorPopup extends Stage {
-    private Renderer previewRenderer;
+    private Renderer previewRenderer = new Renderer();
+    private Body previewBody;
     private TextField nameField;
     private TextField massField;
     private TextField radiusField;
@@ -71,7 +72,7 @@ public class BodyCreatorPopup extends Stage {
         colorDropdown.getItems().addAll("Red", "Blue", "Green", "Orange", "Purple", "White");
         colorDropdown.setValue("Red");
         colorDropdown.getStyleClass().add("combo-box");
-        colorDropdown.setOnAction(e -> updatePreview());
+        colorDropdown.setOnAction(e -> updatePreviewColor());
 
         // --- Mass row: field + randomize + lock ---
         ToggleButton massLockBtn = lockButton();
@@ -79,8 +80,6 @@ public class BodyCreatorPopup extends Stage {
         massRandBtn.setOnAction(e -> {
             if (!massLocked)
                 randomizeMass();
-
-            updatePreview();
         });
         massLockBtn.setOnAction(e -> {
             massLocked = massLockBtn.isSelected();
@@ -96,7 +95,7 @@ public class BodyCreatorPopup extends Stage {
             if (!radiusLocked)
                 randomizeRadius();
 
-            updatePreview();
+            updatePreviewRadius();
         });
         radiusLockBtn.setOnAction(e -> {
             radiusLocked = radiusLockBtn.isSelected();
@@ -129,7 +128,8 @@ public class BodyCreatorPopup extends Stage {
                 randomizeRadius();
             randomizeColor();
 
-            updatePreview();
+            updatePreviewRadius();
+            updatePreviewColor();
         });
         HBox randAllRow = new HBox(randAllBtn);
         randAllRow.setAlignment(Pos.CENTER_RIGHT);
@@ -162,7 +162,10 @@ public class BodyCreatorPopup extends Stage {
         randomizeColor();
 
         // Init preview
-        updatePreview();
+        setUpPreview();
+
+        previewRenderer.getViewport().getGLCanvas().setPrefSize(200, 200);
+        preview.getChildren().add(previewRenderer.getViewport().getGLCanvas());
 
         VBox formCol = new VBox(form, randAllRow, errorLabel, buttons);
 
@@ -185,22 +188,27 @@ public class BodyCreatorPopup extends Stage {
         Platform.runLater(() -> root.requestFocus());
     }
 
-    private void updatePreview() {
-        // TODO: add distance to sun and eccentricity
-        Body previewBody = new Body(getBodyName(), getBodyMass(), getBodyRadius(),
+    private void updatePreviewColor() {
+        Color color = getBodyColor();
+        previewRenderer.getWorld().updateColor(previewBody.getName(),
+                new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
+    }
+
+    private void updatePreviewRadius() {
+        previewRenderer.getWorld().updateRadius(previewBody.getName(), (float) getBodyRadius());
+    }
+
+    private void setUpPreview() {
+        // TODO: add distance to sun
+
+        // Note that the name, mass, and eccentricity remain the same, as they don't
+        // affect the preview's appearance.
+        previewBody = new Body("preview", 20, getBodyRadius(),
                 Constant.EARTH_ORBIT_SEMIMAJOR_AXIS, Constant.EARTH_ORBIT_ECCENTRICITY);
         Color color = getBodyColor();
 
-        previewRenderer = new Renderer();
-        previewRenderer.setWorld(new World(previewBody,
-                new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue())));
-
+        previewRenderer.setWorld(new World(previewBody, new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue())));
         previewRenderer.setFocusObject(previewBody.getName());
-
-        preview.getChildren().clear();
-
-        preview.getChildren().add(previewRenderer.getViewport().getGLCanvas());
-        previewRenderer.getViewport().getGLCanvas().setPrefSize(200, 200);
     }
 
     // Log-uniform random — appropriate for values spanning many orders of magnitude
@@ -221,7 +229,6 @@ public class BodyCreatorPopup extends Stage {
     private void randomizeColor() {
         var items = colorDropdown.getItems();
         colorDropdown.setValue(items.get(rand.nextInt(items.size())));
-        updatePreviewColor();
     }
 
     private Button randButton() {
@@ -238,10 +245,6 @@ public class BodyCreatorPopup extends Stage {
         btn.setMinWidth(28);
         btn.setPrefWidth(28);
         return btn;
-    }
-
-    private void updatePreviewColor() {
-        // previewCircle.setFill(getBodyColor());
     }
 
     private boolean validate(Label errorLabel) {

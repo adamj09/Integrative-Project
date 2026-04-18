@@ -117,6 +117,10 @@ public class Body extends OrbitsTime {
         return this.satellites.get(name);
     }
 
+    public void setSatellite(Satellite satellite) {
+        this.satellites.put(satellite.getData().name, satellite);
+    }
+
     public HashMap<String, Satellite> getSatellites() {
         return this.satellites;
     }

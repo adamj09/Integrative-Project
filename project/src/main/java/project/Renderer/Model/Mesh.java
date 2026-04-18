@@ -258,4 +258,12 @@ public class Mesh {
     public int getEBO() {
         return this.EBO;
     }
+
+    public void dispose() {
+        glDeleteVertexArrays(VAO);
+        glDeleteBuffers(VBO);
+        glDeleteBuffers(EBO);
+        glDeleteBuffers(NBO);
+        glDeleteBuffers(TBO);
+    }
 }

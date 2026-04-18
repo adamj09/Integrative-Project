@@ -97,6 +97,10 @@ public class BodyRenderSystem extends RenderSystem {
     public void loop() {
         super.getShaderProgram().use();
 
+        glBindBuffer(GL_ARRAY_BUFFER, vboColors);
+        glBufferData(GL_ARRAY_BUFFER, super.getWorld().getColorsBuffer(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
         glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrices);
         glBufferData(GL_ARRAY_BUFFER, super.getWorld().getBodyMatrixBuffer(), GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -105,5 +109,11 @@ public class BodyRenderSystem extends RenderSystem {
         glBindVertexArray(super.getWorld().getBodyMesh().getVAO());
         glDrawElementsInstanced(GL_TRIANGLES, super.getWorld().getBodyMesh().getIndices().size() * 3, GL_UNSIGNED_INT, 0,
                 super.getWorld().getBodyObjects().size());
+    }
+
+    @Override
+    public void dispose() {
+        glDeleteBuffers(vboColors);
+        glDeleteBuffers(vboModelMatrices);
     }
 }
