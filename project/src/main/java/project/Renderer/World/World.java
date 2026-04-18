@@ -92,7 +92,7 @@ public class World implements Cloneable {
 
         // Generate the meshes upon world creation.
         bodyMesh = new SphereGenerator().create(4);
-        orbitMesh = new RingGenerator().create(2);
+        orbitMesh = new RingGenerator().create(1);
         lightSourceMesh = new SphereGenerator().create(4);
 
         // Set initial camera position (this only affects the free look camera).
