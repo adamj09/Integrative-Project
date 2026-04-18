@@ -148,11 +148,16 @@ public class BodyCreatorPopup extends Stage {
         buttons.setAlignment(Pos.CENTER_RIGHT);
         buttons.setPadding(new Insets(0, 14, 14, 14));
 
-        cancelBtn.setOnAction(e -> close());
+        cancelBtn.setOnAction(e -> {
+            previewRenderer.getViewport().dispose();
+            close();
+        });
         createBtn.setOnAction(e -> {
             if (!validate(errorLabel))
                 return;
             confirmed = true;
+
+            previewRenderer.getViewport().dispose();
             close();
         });
 
@@ -186,6 +191,8 @@ public class BodyCreatorPopup extends Stage {
 
         setScene(scene);
         Platform.runLater(() -> root.requestFocus());
+
+        setOnCloseRequest(_ -> previewRenderer.getViewport().dispose());
     }
 
     private void updatePreviewColor() {

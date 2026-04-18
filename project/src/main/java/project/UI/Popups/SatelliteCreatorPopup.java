@@ -33,7 +33,7 @@ import project.Renderer.World.World;
 import project.StyleSheet;
 
 public class SatelliteCreatorPopup extends Stage {
-    private Renderer previewRenderer = new Renderer();;
+    private Renderer previewRenderer = new Renderer();
     private StackPane preview = new StackPane();
     private Satellite previewSatellite;
     private Body previewBody;
@@ -344,10 +344,14 @@ public class SatelliteCreatorPopup extends Stage {
         Button createBtn = new Button("CREATE");
         cancelBtn.getStyleClass().add("style-button");
         createBtn.getStyleClass().add("style-button");
+        
         cancelBtn.setOnAction(e -> {
             previewWorld.stopWorld();
+            previewRenderer.getViewport().dispose();
+
             close();
         });
+
         createBtn.setOnAction(e -> {
             if (!validate(errorLabel))
                 return;
@@ -366,6 +370,8 @@ public class SatelliteCreatorPopup extends Stage {
             confirmed = true;
 
             previewWorld.stopWorld();
+            previewRenderer.getViewport().dispose();
+
             close();
         });
 
@@ -384,7 +390,10 @@ public class SatelliteCreatorPopup extends Stage {
         Scene scene = new Scene(root);
         scene.getStylesheets().add(new StyleSheet().styleSheet);
 
-        owner.setOnCloseRequest(_ -> previewWorld.stopWorld());
+        setOnCloseRequest(_ -> { 
+            previewWorld.stopWorld(); 
+            previewRenderer.getViewport().dispose();
+        });
 
         setScene(scene);
     }
