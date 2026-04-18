@@ -104,7 +104,7 @@ public class Main {
         System.out.printf("Initial Mean Anomaly: %.6f rad%n", data.initialMeanAnomaly);
         System.out.printf("Time0: %.3f s | currentTime: %.3f s | lastTime: %.3f s%n", data.time0, data.currentTime,
                 data.lastTime);
-        System.out.printf("Max distance (km): %.6f%n", (data.maxDistanceToBody / 1000));
+        System.out.printf("Max distance (km): %.6f%n", (data.hillRadius / 1000));
         System.out.println();
 
         System.out.println("=== Satellite Orbital Calculation Test ===");

@@ -506,7 +506,7 @@ public class SatelliteCreatorPopup extends Stage {
     private void updatePreview() {
         SatelliteData data = previewSatellite.getData();
 
-        double altitude = Math.clamp(getaltitude(), Constant.MINIMUM_ALTITUDE, (data.maxDistanceToBody / 1000) - previewBody.getRadius() - 1);
+        double altitude = Math.clamp(getaltitude(), Constant.MINIMUM_ALTITUDE, (data.hillRadius / 1000) - previewBody.getRadius() - 1);
 
         double eccentricity = Math.clamp(getEccentricity(), 1e-10, 0.99);
 

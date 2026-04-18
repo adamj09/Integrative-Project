@@ -83,14 +83,24 @@ public class MathOrbits {
 
     // ---------------------------------------------------------------------------------------------------------------------------
     //
-    private static double apoapsis(double semiLatusRectum, double eccentricity) {
-        return semiLatusRectum / (1 - eccentricity);
+    private static double apoapsis(double semiLatusRectum, double eccentricity,double hillRadius) {
+        double res =semiLatusRectum / (1 - eccentricity);
+
+        if(res > hillRadius){
+            return Double.NaN;
+        }
+        return res;
     }
 
     // ---------------------------------------------------------------------------------------------------------------------------
-    //
-    private static double periapsis(double semiLatusRectum, double eccentricity) {
-        return semiLatusRectum / (1 + eccentricity);
+    // radius of body in km
+    private static double periapsis(double semiLatusRectum, double eccentricity, double radiusOfBody) {
+        double res = semiLatusRectum / (1 + eccentricity);
+
+        if(res < (Constant.MINIMUM_ALTITUDE+radiusOfBody)*1000){
+            return Double.NaN;
+        }
+        return res;
     }
 
     // ---------------------------------------------------------------------------------------------------------------------------
@@ -203,28 +213,15 @@ public class MathOrbits {
 
     // ---------------------------------------------------------------------------------------------------------------------------
     //
-    private static double initialDistance(double semiLatusRectum, double eccentricity, double trueAnomaly,
-            double hillRadius) {
-        double distance = semiLatusRectum / (1 + (eccentricity * Math.cos(trueAnomaly)));
-
-        if (distance > hillRadius) {
-            return Double.NaN;
-        }
-
-        return distance;
+    private static double initialDistance(double semiLatusRectum, double eccentricity, double trueAnomaly) {
+        return semiLatusRectum / (1 + (eccentricity * Math.cos(trueAnomaly)));
     }
 
     // ---------------------------------------------------------------------------------------------------------------------------
     //
-    private static double distance(double semiMajorAxis, double eccentricity, double trueAnomaly, double hillRadius) {
-        double distance = (semiMajorAxis * (1 - Math.pow(eccentricity, 2)))
+    private static double distance(double semiMajorAxis, double eccentricity, double trueAnomaly) {
+        return (semiMajorAxis * (1 - Math.pow(eccentricity, 2)))
                 / (1 + (eccentricity * Math.cos(trueAnomaly)));
-
-        if (distance > hillRadius) {
-            return Double.NaN;
-        }
-
-        return distance;
     }
 
     // ---------------------------------------------------------------------------------------------------------------------------
@@ -277,13 +274,33 @@ public class MathOrbits {
 
         data.eccentricity = ece;
 
+        data.hillRadius = hillRadius(celestialBody.getSemiMajorAxis() * 1000d, celestialBody.getEccentricity(),
+                celestialBody.getMass(), celestialBody.getMassOfSun());
+
         data.p = semiLatusRectum(data.angularMomentum, data.mu);
-        data.radiusOfPeriapsis = periapsis(data.p, data.eccentricity);
-        data.radiusOfApoapsis = apoapsis(data.p, data.eccentricity);
+
+        double radiusOfBody = celestialBody.getRadius(); //in km
+        double radiusOfPeriapsis = periapsis(data.p, data.eccentricity, radiusOfBody);
+        if(Double.isNaN(radiusOfPeriapsis)) {
+            satellite.setLatestError(
+                    "Radius of periapsis of the satellite is smaller than the minimum distance to the body." +
+                    " Need to be bigger than: "+(Constant.MINIMUM_ALTITUDE+radiusOfBody)+"km.");
+            return false;
+        }
+        data.radiusOfPeriapsis = radiusOfPeriapsis;
+        
+        double radiusOfApoapsis = apoapsis(data.p, data.eccentricity, data.hillRadius);
+        if(Double.isNaN(radiusOfApoapsis)) {
+            satellite.setLatestError(
+                    "Radius of apoapsis of the satellite is larger than the hill radius. The orbit is unstable. Sun is intefering the orbit" +
+                    " Need to be smaller than: "+(data.hillRadius/1000)+"km.");
+            return false;
+        }
+        data.radiusOfApoapsis = radiusOfApoapsis;
 
         data.a = semiMajorAxis(data.p, data.eccentricity);
 
-        data.maxDistanceToBody = celestialBody.getHillRadius() * 1000;
+        data.hillRadius = celestialBody.getHillRadius() * 1000;
 
         data.period = period(data.a, data.mu);
         data.meanMotion = meanMotion(data.a, data.mu);
@@ -295,19 +312,7 @@ public class MathOrbits {
         data.eccentricAnomaly = initialEccentricAnomaly(data.eccentricity, data.trueAnomaly);
         data.meanAnomaly = initialMeanAnomaly(data.eccentricAnomaly, data.eccentricity);
 
-        double distance = initialDistance(data.p, data.eccentricity, data.trueAnomaly, data.maxDistanceToBody);
-        if (Double.isNaN(distance)) {
-            satellite.setLatestError(
-                    "Initial distance of the satellite is larger than the hill radius. The orbit is not stable.");
-            return false;
-        }
-
-        if (data.radiusOfApoapsis > data.maxDistanceToBody) {
-            satellite.setLatestError(
-                    "Radius of apoapsis of the satellite is larger than the hill radius. The orbit is not stable.");
-            return false;
-        }
-        data.distance = distance;
+        data.distance = initialDistance(data.p, data.eccentricity, data.trueAnomaly);
 
         // speed
         data.speed = speed(data.mu, data.distance, data.a);
@@ -339,14 +344,7 @@ public class MathOrbits {
         data.trueAnomaly = trueAnomaly(data.eccentricity, data.eccentricAnomaly);
 
         // distance
-        double distance = distance(data.a, data.eccentricity, data.trueAnomaly, data.maxDistanceToBody);
-        if (Double.isNaN(distance)) {
-            satellite.setLatestError(
-                    "Distance of the satellite is larger than the hill radius. The orbit is not stable.");
-            System.out.println(satellite.getLatestError());
-            return false;
-        }
-        data.distance = distance;
+        data.distance = distance(data.a, data.eccentricity, data.trueAnomaly);
 
         // position in 3D space
         data.currentPosition = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
