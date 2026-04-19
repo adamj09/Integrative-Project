@@ -52,10 +52,11 @@ public class App extends Application {
                             : "");
         });
         menuBar.getNewSatelliteButton().setOnAction(e -> {
+            if (pool.getCurrentWorld() == null) return;
             Body body = pool.getCurrentWorld().getBody();
             // TODO: this check for whether a body can actually have a satellite orbiting it
             // (sufficient mass) is probably not great, but is good enough for now.
-            if (pool.getCurrentWorld() != null && body.getHillRadius() > body.getRadius()) {
+            if (body.getHillRadius() > body.getRadius()) {
 
                 sidebar.openNewSatellitePopup(stage,
                         menuBar.getThemeSelector().getValue() != null
