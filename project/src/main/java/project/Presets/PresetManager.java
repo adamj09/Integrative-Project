@@ -12,8 +12,10 @@ import javafx.stage.Stage;
 import project.Presets.PresetConfiguration.BodyPreset;
 import project.Presets.PresetConfiguration.SatellitePreset;
 import project.Renderer.World.World;
+import project.Presets.WorldConfiguration;
 import project.UI.Popups.UnsavedChangesPopup;
 import project.UI.Popups.WarningPopup;
+import project.App;
 import project.UI.SidebarPane;
 
 public class PresetManager {
@@ -80,9 +82,18 @@ public class PresetManager {
 
         try {
             WorldConfiguration configuration = presetFileService.load(path);
-            world.applyWorldConfiguration(configuration);
+            
+            if (world != null) {
+                world.applyWorldConfiguration(configuration);
+                // This loads bodies, initializes renderer buffers and starts the simulation
+                world.applyPendingConfiguration();
+                
+                // Refresh renderer systems because world internals have been completely reset
+                App.getRenderer().refreshRenderSystems();
+            }
 
-            // Restore sidebar from saved config (handles selected/active states)
+            // Restore sidebar UI selection states AFTER world is initialized
+            // This restores add/remove button states exactly as they were saved
             sidebar.applyWorldConfiguration(configuration);
 
             currentPresetPath = path;

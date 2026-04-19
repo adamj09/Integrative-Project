@@ -2,7 +2,9 @@ package project.Renderer.World;
 
 import java.nio.FloatBuffer;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -13,6 +15,7 @@ import project.Math.Body;
 import project.Math.Constant;
 import project.Math.Satellite;
 import project.Math.SatelliteData;
+import project.Presets.WorldConfiguration;
 import project.Renderer.Camera.Camera;
 import project.Renderer.Mesh.Mesh;
 import project.Renderer.Mesh.RingGenerator;
@@ -57,6 +60,11 @@ public class World implements Cloneable {
      * The camera used to view the world.
      */
     private Camera camera = new Camera();
+
+    private String name;
+    private WorldConfiguration pendingConfig;
+    
+    public static final float SATELLITE_RADIUS = 100.0f;
 
     /**
      * Buffers for storing transformation matrices and colours of the bodies and
@@ -512,7 +520,7 @@ public class World implements Cloneable {
 
     public WorldConfiguration toWorldConfiguration(WorldConfiguration.UIConfig uiConfig) {
         Vector3f bodyColor = new Vector3f(1.f, 1.f, 1.f);
-        WorldObject bodyObj = bodyObjects.get(name);
+        WorldObject bodyObj = bodyObjects.get(body.getName());
         if (bodyObj != null) {
             bodyColor = new Vector3f(bodyObj.getColor());
         }
@@ -576,35 +584,28 @@ public class World implements Cloneable {
         lightSource.scale(new Vector3f(lightSourceScale, lightSourceScale, lightSourceScale));
         lightSource.setLightColor(new Vector3f(1.f, 1.f, 1.f));
 
-        WorldObject bodyObject = new WorldObject(name, bodyMesh, new Vector3f(1.0f, 1.0f, 1.0f));
+        WorldObject bodyObject = new WorldObject(body.getName(), bodyMesh, new Vector3f(1.0f, 1.0f, 1.0f));
         float planetScale = (float) (body.getRadius() / Constant.AU * UNIT_SCALE);
         bodyObject.scale(new Vector3f(planetScale, planetScale, planetScale));
         bodyObjects.put(bodyObject.getName(), bodyObject);
 
-        WorldObject bodyObjColor = bodyObjects.get(name);
+        WorldObject bodyObjColor = bodyObjects.get(body.getName());
         if (bodyObjColor != null && config.getBody().color != null) {
             bodyObjColor.setColor(config.getBody().color);
         }
 
         if (config.getSatellites() != null) {
             for (WorldConfiguration.SatelliteConfig satConfig : config.getSatellites()) {
-                if (!satConfig.active) continue;
-
+                // Always load ALL satellites into simulation,
+                // active flag only controls UI visibility later
                 Satellite sat = new Satellite();
                 config.applyToSatelliteData(satConfig, sat.getData());
                 sat.setMassOfBody(body.getMass());
-                body.addSatellite(sat);
-
+                sat.initialiseSatelliteInfo(body);
+                
+                // Use the EXACT same working logic that normally adds satellites
                 Vector3f satColor = satConfig.color != null ? satConfig.color : new Vector3f(1.f, 0.f, 0.f);
-                WorldObject satObj = new WorldObject(satConfig.name, bodyMesh, satColor);
-                satObj.translate(new Vector3f(
-                        (float) (satConfig.currentPosition.y / 1000.d / Constant.AU * UNIT_SCALE),
-                        (float) (satConfig.currentPosition.z / 1000.d / Constant.AU * UNIT_SCALE),
-                        (float) (satConfig.currentPosition.x / 1000.d / Constant.AU * UNIT_SCALE)));
-                satObj.scale(new Vector3f(SATELLITE_RADIUS, SATELLITE_RADIUS, SATELLITE_RADIUS));
-                bodyObjects.put(satObj.getName(), satObj);
-
-                addOrbit(sat);
+                addSatellite(sat, satColor);
             }
         }
 

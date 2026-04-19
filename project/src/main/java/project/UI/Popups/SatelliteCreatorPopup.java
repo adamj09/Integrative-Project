@@ -1,6 +1,5 @@
 package project.UI.Popups;
 
-import java.util.Map;
 import java.util.Random;
 
 import org.joml.Vector3f;
@@ -25,7 +24,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import project.Math.Body;
-import project.Math.Constant;
 import project.Math.Satellite;
 import project.Math.SatelliteData;
 import project.Renderer.Renderer;
@@ -599,13 +597,23 @@ public class SatelliteCreatorPopup extends Stage {
     }
 
     public double getSatelliteMass() {
-        return orbitalElementsMode
-                ? Double.parseDouble(massOrbField.getText())
-                : Double.parseDouble(massField.getText());
+        try {
+            String text = orbitalElementsMode
+                    ? massOrbField.getText().trim()
+                    : massField.getText().trim();
+            return text.isEmpty() ? 0.0 : Double.parseDouble(text);
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
     }
 
     public double getInitialSpeed() {
-        return Double.parseDouble(initialSpeedField.getText());
+        try {
+            String text = initialSpeedField.getText().trim();
+            return text.isEmpty() ? 0.0 : Double.parseDouble(text);
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
     }
 
     public Color getSatelliteColor() {

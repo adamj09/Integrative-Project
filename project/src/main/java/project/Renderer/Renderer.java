@@ -249,10 +249,28 @@ public class Renderer {
         return this.viewport;
     }
 
+    public void refreshRenderSystems() {
+        // This is called when existing world is updated (after applying loaded configuration)
+        // All render systems need to be refreshed because world internals have been completely reset
+        world.getBodyMesh().setUpBuffers();
+        world.getOrbitMesh().setUpBuffers();
+        world.getLightSourceMesh().setUpBuffers();
+        
+        bodyRenderSystem = new BodyRenderSystem(world, bodyShaderProgram);
+        lightRenderSystem = new LightRenderSystem(world, lightShaderProgram);
+        orbitRenderSystem = new OrbitRenderSystem(world, orbitShaderProgram);
+        
+        cameraMatrixLoader = new CameraMatrixLoader(world.getCamera());
+        setCameraProjection();
+    }
+
     public void setWorld(World world) {
         this.world = world;
         fixedCameraController = new FixedCameraController(this.world, controlManager);
         viewport.getGLCanvas().setVisible(true);
+
+        // Re-initialize render systems with new world
+        viewport.getGLCanvas().addOnInitEvent(_ -> refreshRenderSystems());
 
         initOpenGLRenderEventHandlers();
     }
