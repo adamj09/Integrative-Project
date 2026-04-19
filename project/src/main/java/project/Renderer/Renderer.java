@@ -94,10 +94,81 @@ public class Renderer {
      * Initializes the OpenGL render event handlers.
      */
     private void initOpenGLRenderEventHandlers() {
+<<<<<<< HEAD
         viewport.getGLCanvas().addOnInitEvent(_ -> init());
         viewport.getGLCanvas().addOnRenderEvent(event -> loop(event.delta));
         viewport.getGLCanvas().addOnReshapeEvent(_ -> setCameraProjection());
         viewport.getGLCanvas().addOnDisposeEvent(_-> dispose());
+=======
+        viewport.getGLCanvas().addOnInitEvent(_ -> {
+            // Set up viewport resize handler
+            handleViewportResize();
+
+            // Enable depth testing
+            glEnable(GL_DEPTH_TEST);
+
+            glFrontFace(GL_CCW);
+            glEnable(GL_CULL_FACE);
+
+            controlManager = new ControlManager(viewport.getGLCanvas());
+
+            world = new World("Earth");
+
+            SimulationPool.load();
+            SimulationPool.setCurrentBody(this, "Earth");
+
+            // Create camera controllers
+            freeLookCameraController = new FreeLookCameraController(world, controlManager);
+            //fixedCameraController = new FixedCameraController(world, controlManager);
+            //fixedCameraController.setFocusObject("test");
+
+            Shader mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
+            Shader orbitVertShader = new Shader("project/shaders/orbit.vert", GL_VERTEX_SHADER);
+
+            Shader bodyFragShader = new Shader("project/shaders/body.frag", GL_FRAGMENT_SHADER);
+            Shader lightFragShader = new Shader("project/shaders/light_source.frag", GL_FRAGMENT_SHADER);
+            Shader orbitFragShader = new Shader("project/shaders/orbit.frag", GL_FRAGMENT_SHADER);
+
+            // Create shader programs
+            ShaderProgram bodyShaderProgram = new ShaderProgram(mainVertShader.getShader(), bodyFragShader.getShader());
+            ShaderProgram lightShaderProgram = new ShaderProgram(mainVertShader.getShader(), lightFragShader.getShader());
+            ShaderProgram orbitShaderProgram = new ShaderProgram(orbitVertShader.getShader(), orbitFragShader.getShader());
+
+            // Create render systems
+            bodyRenderSystem = new BodyRenderSystem(world, bodyShaderProgram);
+            cameraRenderSystem = new CameraRenderSystem(world.getCamera());
+            lightRenderSystem = new LightRenderSystem(world, lightShaderProgram);
+            orbitRenderSystem = new OrbitRenderSystem(viewport, world, orbitShaderProgram);
+
+            setCameraProjection();
+            
+            bodyShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
+            lightShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
+            orbitShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
+        });
+
+        viewport.getGLCanvas().addOnRenderEvent(event -> {
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            controlManager.updateMouse();
+            controlManager.handleUnfocus();
+
+            // Apply any pending world configuration from file load (must run on GL thread)
+            world.applyPendingConfiguration();
+
+            //TODO: switch between camera controllers when needed
+            freeLookCameraController.updateCameraTransform((float) event.delta);
+            //fixedCameraController.updateCameraTransform((float) event.delta);
+
+            world.updateSatellites();
+
+            cameraRenderSystem.loop();
+            bodyRenderSystem.loop();
+            lightRenderSystem.loop();
+            orbitRenderSystem.loop();
+        });
+>>>>>>> 1df136d (Implement World-based JSON save/load for presets)
     }
 
     /**
