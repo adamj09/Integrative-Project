@@ -2,7 +2,9 @@ package project.Renderer.World;
 
 import java.nio.FloatBuffer;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -13,6 +15,7 @@ import project.Math.Body;
 import project.Math.Constant;
 import project.Math.Satellite;
 import project.Math.SatelliteData;
+import project.Presets.WorldConfiguration;
 import project.Renderer.Camera.Camera;
 import project.Renderer.Mesh.Mesh;
 import project.Renderer.Mesh.RingGenerator;
@@ -57,6 +60,11 @@ public class World implements Cloneable {
      * The camera used to view the world.
      */
     private Camera camera = new Camera();
+
+    private String name;
+    private WorldConfiguration pendingConfig;
+    
+    public static final float SATELLITE_RADIUS = 100.0f;
 
     /**
      * Buffers for storing transformation matrices and colours of the bodies and
@@ -504,5 +512,110 @@ public class World implements Cloneable {
      */
     public Vector3f getColour() {
         return this.colour;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public WorldConfiguration toWorldConfiguration(WorldConfiguration.UIConfig uiConfig) {
+        Vector3f bodyColor = new Vector3f(1.f, 1.f, 1.f);
+        WorldObject bodyObj = bodyObjects.get(body.getName());
+        if (bodyObj != null) {
+            bodyColor = new Vector3f(bodyObj.getColor());
+        }
+
+        WorldConfiguration.BodyConfig bodyConfig = new WorldConfiguration.BodyConfig(
+                body.getName(), body.getMass(), body.getRadius(),
+                body.getSemiMajorAxis(), body.getMassOfSun(), bodyColor);
+
+        WorldConfiguration.CameraConfig cameraConfig = new WorldConfiguration.CameraConfig(
+                new Vector3f(camera.getPosition()), new Vector3f(camera.getDirection()));
+
+        List<WorldConfiguration.SatelliteConfig> satConfigs = new ArrayList<>();
+        for (Map.Entry<String, Satellite> entry : body.getSatellites().entrySet()) {
+            SatelliteData data = entry.getValue().getData();
+            Vector3f satColor = new Vector3f(1.f, 0.f, 0.f);
+            WorldObject satObj = bodyObjects.get(entry.getKey());
+            if (satObj != null) {
+                satColor = new Vector3f(satObj.getColor());
+            }
+            satConfigs.add(WorldConfiguration.fromSatelliteData(data, satColor));
+        }
+
+        return new WorldConfiguration(name, bodyConfig, cameraConfig, satConfigs, uiConfig);
+    }
+
+    public void applyWorldConfiguration(WorldConfiguration config) {
+        this.pendingConfig = config;
+    }
+
+    public void applyPendingConfiguration() {
+        WorldConfiguration config = this.pendingConfig;
+        if (config == null) {
+            return;
+        }
+        this.pendingConfig = null;
+
+        body.stop();
+        body.stopSatellites();
+        body.stopTimeThread();
+
+        this.name = config.getWorldName();
+        body.setName(config.getBody().name);
+        body.setMass(config.getBody().mass);
+        body.setRadius(config.getBody().radius);
+        body.setSemiMajorAxis(config.getBody().distanceToSun);
+        body.setMassOfSun(config.getBody().massOfSun);
+
+        if (config.getCamera() != null) {
+            camera.setView(config.getCamera().position, config.getCamera().direction);
+        }
+
+        for (String satName : new ArrayList<>(body.getSatellites().keySet())) {
+            body.removeSatellite(satName);
+        }
+        bodyObjects.clear();
+        orbits.clear();
+
+        float lightSourceScale = (float) (696_340d / Constant.AU * UNIT_SCALE);
+        lightSource.resetTransforms();
+        lightSource.translate(new Vector3f((float) (body.getSemiMajorAxis() / Constant.AU * UNIT_SCALE), 0.f, 0.f));
+        lightSource.scale(new Vector3f(lightSourceScale, lightSourceScale, lightSourceScale));
+        lightSource.setLightColor(new Vector3f(1.f, 1.f, 1.f));
+
+        WorldObject bodyObject = new WorldObject(body.getName(), bodyMesh, new Vector3f(1.0f, 1.0f, 1.0f));
+        float planetScale = (float) (body.getRadius() / Constant.AU * UNIT_SCALE);
+        bodyObject.scale(new Vector3f(planetScale, planetScale, planetScale));
+        bodyObjects.put(bodyObject.getName(), bodyObject);
+
+        WorldObject bodyObjColor = bodyObjects.get(body.getName());
+        if (bodyObjColor != null && config.getBody().color != null) {
+            bodyObjColor.setColor(config.getBody().color);
+        }
+
+        if (config.getSatellites() != null) {
+            for (WorldConfiguration.SatelliteConfig satConfig : config.getSatellites()) {
+                // Always load ALL satellites into simulation,
+                // active flag only controls UI visibility later
+                Satellite sat = new Satellite();
+                config.applyToSatelliteData(satConfig, sat.getData());
+                sat.setMassOfBody(body.getMass());
+                sat.initialiseSatelliteInfo(body);
+                
+                // Use the EXACT same working logic that normally adds satellites
+                Vector3f satColor = satConfig.color != null ? satConfig.color : new Vector3f(1.f, 0.f, 0.f);
+                addSatellite(sat, satColor);
+            }
+        }
+
+        bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
+        orbitMatrixBuffer = updateMatrixBuffer(orbits);
+        colorsBuffer = updateColorBuffer(bodyObjects);
+
+        body.startTimeThread();
+        body.startSatellites();
+        body.start();
+        body.resetTime();
     }
 }

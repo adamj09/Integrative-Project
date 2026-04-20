@@ -52,20 +52,20 @@ public class App extends Application {
                             : "");
         });
         menuBar.getNewSatelliteButton().setOnAction(e -> {
+            if (pool.getCurrentWorld() == null) return;
             Body body = pool.getCurrentWorld().getBody();
             // TODO: this check for whether a body can actually have a satellite orbiting it
             // (sufficient mass) is probably not great, but is good enough for now.
-            if (pool.getCurrentWorld() != null && body.getHillRadius() > body.getRadius()) {
-
+            if (body.getHillRadius() > body.getRadius()) {
                 sidebar.openNewSatellitePopup(stage,
                         menuBar.getThemeSelector().getValue() != null
                                 ? menuBar.getThemeSelector().getValue().toStyleString()
                                 : "");
             }
         });
-        menuBar.getSaveAsMenuItem().setOnAction(e -> presetManager.savePresetAs(stage, sidebar));
-        menuBar.getSaveMenuItem().setOnAction(e -> presetManager.savePreset(stage, sidebar));
-        menuBar.getLoadMenuItem().setOnAction(e -> presetManager.loadPreset(stage, sidebar));
+        menuBar.getSaveAsMenuItem().setOnAction(e -> presetManager.savePresetAs(stage, pool.getCurrentWorld(), sidebar));
+        menuBar.getSaveMenuItem().setOnAction(e -> presetManager.savePreset(stage, pool.getCurrentWorld(), sidebar));
+        menuBar.getLoadMenuItem().setOnAction(e -> presetManager.loadPreset(stage, pool.getCurrentWorld(), sidebar));
         menuBar.getInfoButton().setOnAction(e -> InfoPopup.show("""
                 Orbital Motion Simulator
 
@@ -76,7 +76,10 @@ public class App extends Application {
                         ? menuBar.getThemeSelector().getValue().toStyleString()
                         : ""));
 
-        presetManager.markCurrentStateSaved(sidebar);
+        presetManager.markCurrentStateSaved(mainRenderer.getWorld(), sidebar);
+
+        // Note: mainRenderer.getWorld() may be null here since the GL context
+        // hasn't initialized yet. PresetManager handles null World gracefully.
 
         Preferences preferences = Preferences.userNodeForPackage(App.class);
         UiTheme selectedTheme = UiTheme.fromStoredValue(
@@ -112,7 +115,7 @@ public class App extends Application {
         stage.setTitle("Orbital Motion Simulator");
         stage.setResizable(true);
         stage.setOnCloseRequest(event -> {
-            if (!presetManager.canClose(stage, sidebar)) {
+            if (!presetManager.canClose(stage, mainRenderer.getWorld(), sidebar)) {
                 event.consume();
             }
         });
