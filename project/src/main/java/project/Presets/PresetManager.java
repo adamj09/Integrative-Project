@@ -11,11 +11,14 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import project.Presets.PresetConfiguration.BodyPreset;
 import project.Presets.PresetConfiguration.SatellitePreset;
+import project.Presets.WorldConfiguration.BodyConfig;
 import project.Renderer.World.World;
 import project.Presets.WorldConfiguration;
 import project.UI.Popups.UnsavedChangesPopup;
 import project.UI.Popups.WarningPopup;
 import project.App;
+import project.SimulationPool;
+import project.Math.Body;
 import project.UI.SidebarPane;
 
 public class PresetManager {
@@ -36,7 +39,7 @@ public class PresetManager {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Save preset");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Preset Files", "*.preset"));
-        chooser.setInitialFileName("simulation-preset.preset");
+        chooser.setInitialFileName(world.getName() + ".preset");
 
         File selectedFile = chooser.showSaveDialog(stage);
         if (selectedFile == null) {
@@ -60,37 +63,39 @@ public class PresetManager {
         saveToPath(currentPresetPath, world, sidebar);
     }
 
-    public void loadPreset(Stage stage, World world, SidebarPane sidebar) {
-        if (hasUnsavedChanges(world, sidebar)) {
-            boolean shouldContinue = UnsavedChangesPopup.confirm(
-                "Current changes are not saved. Loading a preset will discard them. Continue?");
-            if (!shouldContinue) {
-                return;
-            }
-        }
-
+    public World loadPreset(Stage stage, SidebarPane sidebar) {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Load preset");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Preset Files", "*.preset"));
 
         File selectedFile = chooser.showOpenDialog(stage);
         if (selectedFile == null) {
-            return;
+            WarningPopup.show("Could not load preset file.");
+            return null;
         }
 
         Path path = selectedFile.toPath();
 
         try {
             WorldConfiguration configuration = presetFileService.load(path);
-            
-            if (world != null) {
-                world.applyWorldConfiguration(configuration);
+
+            BodyConfig bodyConfig = configuration.getBody();
+            Body body = new Body(bodyConfig.name, bodyConfig.mass, bodyConfig.radius, bodyConfig.distanceToSun, bodyConfig.eccentricity, bodyConfig.massOfSun);
+
+            World world = new World(body, bodyConfig.color);
+
+            for(String name : sidebar.getBodyNames()) {
+                if(name.equals(world.getName())) {
+                    UnsavedChangesPopup.confirm("A preset with this name is already loaded! Continue and overwrite the loaded preset's data with this one?");
+                }
+            }
+        
+            world.setPendingWorldConfiguration(configuration);
                 // This loads bodies, initializes renderer buffers and starts the simulation
-                world.applyPendingConfiguration();
+            world.applyPendingConfiguration();
                 
                 // Refresh renderer systems because world internals have been completely reset
-                App.getRenderer().refreshRenderSystems();
-            }
+                //App.getRenderer().refreshRenderSystems();
 
             // Restore sidebar UI selection states AFTER world is initialized
             // This restores add/remove button states exactly as they were saved
@@ -98,8 +103,11 @@ public class PresetManager {
 
             currentPresetPath = path;
             lastSavedSnapshot = configuration;
+
+            return world;
         } catch (IOException ex) {
             WarningPopup.show("Could not load preset file.");
+            return null;
         }
     }
 
@@ -121,6 +129,7 @@ public class PresetManager {
         List<Boolean> satelliteActiveStates = sidebar.getSatelliteActiveStates();
         List<WorldConfiguration.SidebarBody> sidebarBodies = new ArrayList<>();
         List<BodyPreset> bodies = presetConfig.getBodies();
+
         for (int i = 0; i < bodies.size(); i++) {
             BodyPreset bp = bodies.get(i);
             boolean selected = i < bodySelectedStates.size() && bodySelectedStates.get(i);
@@ -154,18 +163,19 @@ public class PresetManager {
             if (matchingConfig != null) {
                 matchingConfig.active = active;
                 allSatConfigs.add(matchingConfig);
-            } else {
-                // Satellite exists in sidebar but not in World (was removed/inactive)
-                // Save with available data so it can be restored
-                WorldConfiguration.SatelliteConfig minConfig = new WorldConfiguration.SatelliteConfig();
-                minConfig.name = sp.name();
-                minConfig.color = new org.joml.Vector3f(
-                        (float) sp.color().getRed(),
-                        (float) sp.color().getGreen(),
-                        (float) sp.color().getBlue());
-                minConfig.active = active;
-                allSatConfigs.add(minConfig);
-            }
+            // } else {
+            //     // Satellite exists in sidebar but not in World (was removed/inactive)
+            //     // Save with available data so it can be restored
+            //     WorldConfiguration.SatelliteConfig minConfig = new WorldConfiguration.SatelliteConfig();
+            //     minConfig.name = sp.name();
+            //     minConfig.color = new org.joml.Vector3f(
+            //             (float) sp.color().getRed(),
+            //             (float) sp.color().getGreen(),
+            //             (float) sp.color().getBlue());
+            //     minConfig.active = active;
+            //     allSatConfigs.add(minConfig);
+            // }
+}
         }
         configuration.setSatellites(allSatConfigs);
 

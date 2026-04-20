@@ -33,6 +33,7 @@ import project.Renderer.World.World;
 public class BodyCreatorPopup extends Stage {
     private Renderer previewRenderer = new Renderer();
     private Body previewBody;
+    private String worldName;
     private TextField nameField;
     private TextField massField;
     private TextField radiusField;
@@ -160,7 +161,10 @@ public class BodyCreatorPopup extends Stage {
 
             // Create a world with this body.
             // TODO: add following parameters: semi-major axis and eccentricity.
-            String worldName = getBodyName();
+
+            String nameFromField = nameField.getText().trim();
+
+            worldName = nameFromField.isEmpty() ? String.format("Body-%02d", ++bodyCounter) : nameFromField;
             Color color = getBodyColor();
 
             pool.createWorld(worldName, new Body(worldName, getBodyMass(), getBodyRadius(),
@@ -313,8 +317,7 @@ public class BodyCreatorPopup extends Stage {
     }
 
     public String getBodyName() {
-        String n = nameField.getText().trim();
-        return n.isEmpty() ? String.format("Body-%02d", ++bodyCounter) : n;
+        return worldName;
     }
 
     public double getBodyMass() {

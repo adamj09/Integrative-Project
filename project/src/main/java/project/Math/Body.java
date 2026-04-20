@@ -7,10 +7,10 @@ public class Body extends OrbitsTime {
     private double mass = Constant.EARTH_DEFAULT_MASS; // in kg
     private double radius = Constant.EARTH_DEFAULT_RADIUS; // in km
     private double semiMajorAxis = Constant.EARTH_ORBIT_SEMIMAJOR_AXIS; // in km (distance to the sun, used for the
-                                                                           // calculation of the solar radiation
-                                                                           // pressure)
+                                                                        // calculation of the solar radiation
+                                                                        // pressure)
 
-    private double hillRadius; // in km
+    private double hillRadius = 1.4714e7; // in km
     private double eccentricity = Constant.EARTH_ORBIT_ECCENTRICITY;
     private double massOfSun = Constant.SUN_DEFAULT_MASS; // in kg (mass of the sun, used for the calculation of )
     private String latestError = "null";
@@ -63,7 +63,7 @@ public class Body extends OrbitsTime {
         this.eccentricity = eccentricity;
 
         this.hillRadius = MathOrbits.hillRadius(semiMajorAxis * 1000d, eccentricity, mass, this.massOfSun);
-        
+
         satellites = new HashMap<>();
         satelliteThreads = new HashMap<>();
     }
@@ -101,10 +101,10 @@ public class Body extends OrbitsTime {
      */
     public boolean addSatellite(Satellite sat) {
         // If satellite already exists, return false.
-        if(satellites.containsKey(sat.getData().name)) {
+        if (satellites.containsKey(sat.getData().name)) {
             return false;
         }
- 
+
         if (satellites.size() + 1 > Constant.MAXIMUM_NUMBER_OF_SATELITE) {
             this.latestError = "Maximum number of satelite reached!";
             return false;
@@ -217,6 +217,15 @@ public class Body extends OrbitsTime {
     }
 
     /**
+     * Update the hill radius for this object using current values for
+     * semi-major axis, eccentricity, mass of sun, and mass of this object
+     * 
+     */
+    public void updateHillRadius() {
+        this.hillRadius = MathOrbits.hillRadius(this.semiMajorAxis, this.eccentricity, this.mass, this.mass);
+    }
+
+    /**
      * Starts a thread for each satellite in the hash map.
      * Each satellite runs its own simulation calculations.
      */
@@ -267,7 +276,7 @@ public class Body extends OrbitsTime {
             if (!thread.isAlive()) {
                 thread.start();
             }
-        }else {
+        } else {
             Satellite sat = satellites.get(name);
             if (sat != null) {
                 Thread thread = new Thread(sat);

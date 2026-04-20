@@ -611,4 +611,8 @@ public class SidebarPane extends VBox {
     public String getFocusedItemName() {
         return focusedItemName;
     }
+
+    public final List<String> getBodyNames() {
+        return bodyNames;
+    }
 }

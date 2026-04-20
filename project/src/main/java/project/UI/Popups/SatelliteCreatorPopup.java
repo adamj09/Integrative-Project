@@ -38,6 +38,7 @@ public class SatelliteCreatorPopup extends Stage {
     private Body previewBody;
     private World previewWorld;
     private World currentWorld;
+    private String satelliteName;
 
     private TextField nameField;
     private TextField massField;
@@ -363,9 +364,13 @@ public class SatelliteCreatorPopup extends Stage {
                 return;
             if (orbitalElementsMode) {
                 // Run the math to check physical validity and surface any error
+                String nameFromField = nameOrbField.getText().trim();
+
+                satelliteName = nameFromField.isEmpty() ? String.format("Sat-%02d", ++satCounter) : nameFromField;
+
                 Satellite tempSat = new Satellite();
                 boolean hasError = tempSat.initialiseSatelliteValuesAngles(
-                        getSatelliteName(), getSatelliteMass(), "", getMassOfBody(),
+                        satelliteName, getSatelliteMass(), "", getMassOfBody(),
                         p(altitudeField), getEccentricity(), getTrueAnomaly(),
                         getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
                 if (hasError) {
@@ -377,7 +382,7 @@ public class SatelliteCreatorPopup extends Stage {
 
                 Satellite newSatellite = new Satellite();
 
-                newSatellite.initialiseSatelliteValuesAngles(currentWorld.getBody(), getSatelliteName(),
+                newSatellite.initialiseSatelliteValuesAngles(currentWorld.getBody(), satelliteName,
                         getSatelliteMass(),
                         p(altitudeField), getEccentricity(), getTrueAnomaly(),
                         getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
@@ -588,12 +593,7 @@ public class SatelliteCreatorPopup extends Stage {
     }
 
     public String getSatelliteName() {
-        if (orbitalElementsMode) {
-            String n = nameOrbField.getText().trim();
-            return n.isEmpty() ? String.format("Sat-%02d", ++satCounter) : n;
-        }
-        String n = nameField.getText().trim();
-        return n.isEmpty() ? String.format("Sat-%02d", ++satCounter) : n;
+        return satelliteName;
     }
 
     public double getSatelliteMass() {

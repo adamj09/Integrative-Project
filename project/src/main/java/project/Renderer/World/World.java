@@ -1,12 +1,10 @@
 package project.Renderer.World;
 
 import java.nio.FloatBuffer;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
@@ -20,8 +18,6 @@ import project.Renderer.Camera.Camera;
 import project.Renderer.Mesh.Mesh;
 import project.Renderer.Mesh.RingGenerator;
 import project.Renderer.Mesh.SphereGenerator;
-
-// TODO: saving and loading of worlds
 
 /**
  * Represents a scene to be rendered.
@@ -63,7 +59,7 @@ public class World implements Cloneable {
 
     private String name;
     private WorldConfiguration pendingConfig;
-    
+
     public static final float SATELLITE_RADIUS = 100.0f;
 
     /**
@@ -97,17 +93,21 @@ public class World implements Cloneable {
     public World(Body body, Vector3f colour) {
         this.body = body;
         this.colour = colour;
+        this.name = body.getName();
 
         // Generate the meshes upon world creation.
         bodyMesh = new SphereGenerator().create(4);
         orbitMesh = new RingGenerator().create(1);
         lightSourceMesh = new SphereGenerator().create(4);
 
+        // Light source object.
+        lightSource = new WorldObject("light", lightSourceMesh);
+
         // Set initial camera position (this only affects the free look camera).
         camera.setView(new Vector3f(10.f, 10.f, 10.f), camera.getDirection());
 
         // Create the light source and central body objects.
-        createLightSource();
+        initLightSource();
         createCentralBody();
 
         // Update the buffers with the initial data.
@@ -158,14 +158,11 @@ public class World implements Cloneable {
     /**
      * Creates the light source for the world.
      */
-    private void createLightSource() {
+    private void initLightSource() {
         float lightSourceScale = (float) (696_340d / Constant.AU * UNIT_SCALE); // Sun's radius in AUs times scale
 
-        lightSource = new WorldObject("light", lightSourceMesh);
-
-        float distance = (float) (UNIT_SCALE); // Make sun 1 AU away
-
-        lightSource.translate(new Vector3f(-distance, 0.f, 0.f));
+        lightSource.resetTransforms();
+        lightSource.translate(new Vector3f((float) (body.getSemiMajorAxis() / Constant.AU * UNIT_SCALE), 0.f, 0.f));
         lightSource.scale(new Vector3f(lightSourceScale, lightSourceScale, lightSourceScale));
         lightSource.setLightColor(new Vector3f(1.f, 1.f, 1.f));
     }
@@ -190,7 +187,7 @@ public class World implements Cloneable {
         for (Map.Entry<String, Satellite> item : body.getSatellites().entrySet()) {
             SatelliteData data = item.getValue().getData();
 
-            if(data.currentPosition == null) {
+            if (data.currentPosition == null) {
                 System.err.println("current position null");
                 return;
             }
@@ -245,31 +242,38 @@ public class World implements Cloneable {
 
                 updateSatellitePositions();
             }
-            
+
             bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
         }
     }
 
     /**
      * Updates the orbital elements of the satellite with the given name.
-     * @param satelliteName the name of the satellite whose orbital elements will be updated.
-     * @param massOfSatellite the mass of the satellite, in kilograms.
-     * @param altitude the altitude of the satellite, in kilometers.
-     * @param ecentricity the eccentricity of the satellite's orbit (unitless).
-     * @param trueAnomaly the true anomaly of the satellite's orbit, in degrees.
-     * @param longitudeAscendingNode the longitude of the ascending node of the satellite's orbit, in degrees.
-     * @param inclination the inclination of the satellite's orbit, in degrees.
-     * @param argumentOfPeriapisis the argument of periapsis of the satellite's orbit, in degrees.
+     * 
+     * @param satelliteName          the name of the satellite whose orbital
+     *                               elements will be updated.
+     * @param massOfSatellite        the mass of the satellite, in kilograms.
+     * @param altitude               the altitude of the satellite, in kilometers.
+     * @param ecentricity            the eccentricity of the satellite's orbit
+     *                               (unitless).
+     * @param trueAnomaly            the true anomaly of the satellite's orbit, in
+     *                               degrees.
+     * @param longitudeAscendingNode the longitude of the ascending node of the
+     *                               satellite's orbit, in degrees.
+     * @param inclination            the inclination of the satellite's orbit, in
+     *                               degrees.
+     * @param argumentOfPeriapisis   the argument of periapsis of the satellite's
+     *                               orbit, in degrees.
      */
     public void updateOrbitalElements(String satelliteName, double massOfSatellite, double altitude, double ecentricity,
             double trueAnomaly, double longitudeAscendingNode, double inclination, double argumentOfPeriapisis) {
-        if(!body.getSatellites().containsKey(satelliteName)) {
+        if (!body.getSatellites().containsKey(satelliteName)) {
             return;
         }
 
         Satellite satellite = body.getSatellite(satelliteName);
 
-        if(!satellite.initialiseSatelliteValuesAngles(body, satelliteName, massOfSatellite, altitude, ecentricity,
+        if (!satellite.initialiseSatelliteValuesAngles(body, satelliteName, massOfSatellite, altitude, ecentricity,
                 trueAnomaly, longitudeAscendingNode, inclination, argumentOfPeriapisis)) {
             System.err.println(satellite.getLatestError());
             System.err.println("Failed to update orbital elements for satellite: " + satelliteName);
@@ -362,16 +366,17 @@ public class World implements Cloneable {
         // Rotate by inclination around line of nodes vector (which is the intersection
         // of the orbital plane and the reference plane).
 
-        if(data.inclination != 0) {
+        if (data.inclination != 0) {
             orbit.rotate((float) (data.inclination), new Vector3f((float) data.lineOfNodesVect.y,
-                (float) data.lineOfNodesVect.z, (float) data.lineOfNodesVect.x).normalize());
+                    (float) data.lineOfNodesVect.z, (float) data.lineOfNodesVect.x).normalize());
         }
 
         // Rotate by longitude of ascending node around reference plane normal vector
         // (Y-axis).
         orbit.rotate((float) (-data.longitudeOfAscendingNode), new Vector3f(0.f, 1.f, 0.f));
 
-        // --- Calculate the semi-major and semi-minor axes of the orbit in renderer units ---
+        // --- Calculate the semi-major and semi-minor axes of the orbit in renderer
+        // units ---
         double semiMajorAxis = data.a / 1000.d / Constant.AU * UNIT_SCALE;
         double semiMinorAxis = semiMajorAxis * Math.sqrt(1.0 - Math.pow(data.eccentricity, 2));
 
@@ -521,21 +526,25 @@ public class World implements Cloneable {
     public WorldConfiguration toWorldConfiguration(WorldConfiguration.UIConfig uiConfig) {
         Vector3f bodyColor = new Vector3f(1.f, 1.f, 1.f);
         WorldObject bodyObj = bodyObjects.get(body.getName());
+
         if (bodyObj != null) {
             bodyColor = new Vector3f(bodyObj.getColor());
         }
 
         WorldConfiguration.BodyConfig bodyConfig = new WorldConfiguration.BodyConfig(
                 body.getName(), body.getMass(), body.getRadius(),
-                body.getSemiMajorAxis(), body.getMassOfSun(), bodyColor);
+                body.getSemiMajorAxis(), body.getEccentricity(), body.getMassOfSun(), bodyColor);
 
         WorldConfiguration.CameraConfig cameraConfig = new WorldConfiguration.CameraConfig(
                 new Vector3f(camera.getPosition()), new Vector3f(camera.getDirection()));
 
         List<WorldConfiguration.SatelliteConfig> satConfigs = new ArrayList<>();
+
         for (Map.Entry<String, Satellite> entry : body.getSatellites().entrySet()) {
             SatelliteData data = entry.getValue().getData();
+
             Vector3f satColor = new Vector3f(1.f, 0.f, 0.f);
+
             WorldObject satObj = bodyObjects.get(entry.getKey());
             if (satObj != null) {
                 satColor = new Vector3f(satObj.getColor());
@@ -546,7 +555,7 @@ public class World implements Cloneable {
         return new WorldConfiguration(name, bodyConfig, cameraConfig, satConfigs, uiConfig);
     }
 
-    public void applyWorldConfiguration(WorldConfiguration config) {
+    public void setPendingWorldConfiguration(WorldConfiguration config) {
         this.pendingConfig = config;
     }
 
@@ -557,52 +566,37 @@ public class World implements Cloneable {
         }
         this.pendingConfig = null;
 
-        body.stop();
-        body.stopSatellites();
-        body.stopTimeThread();
-
-        this.name = config.getWorldName();
-        body.setName(config.getBody().name);
-        body.setMass(config.getBody().mass);
-        body.setRadius(config.getBody().radius);
-        body.setSemiMajorAxis(config.getBody().distanceToSun);
-        body.setMassOfSun(config.getBody().massOfSun);
+        if (body.getRunningSatus()) {
+            body.stop();
+            body.stopSatellites();
+            body.stopTimeThread();
+        }
 
         if (config.getCamera() != null) {
             camera.setView(config.getCamera().position, config.getCamera().direction);
         }
 
-        for (String satName : new ArrayList<>(body.getSatellites().keySet())) {
-            body.removeSatellite(satName);
-        }
-        bodyObjects.clear();
-        orbits.clear();
+        initLightSource();
 
-        float lightSourceScale = (float) (696_340d / Constant.AU * UNIT_SCALE);
-        lightSource.resetTransforms();
-        lightSource.translate(new Vector3f((float) (body.getSemiMajorAxis() / Constant.AU * UNIT_SCALE), 0.f, 0.f));
-        lightSource.scale(new Vector3f(lightSourceScale, lightSourceScale, lightSourceScale));
-        lightSource.setLightColor(new Vector3f(1.f, 1.f, 1.f));
-
-        WorldObject bodyObject = new WorldObject(body.getName(), bodyMesh, new Vector3f(1.0f, 1.0f, 1.0f));
-        float planetScale = (float) (body.getRadius() / Constant.AU * UNIT_SCALE);
-        bodyObject.scale(new Vector3f(planetScale, planetScale, planetScale));
-        bodyObjects.put(bodyObject.getName(), bodyObject);
-
-        WorldObject bodyObjColor = bodyObjects.get(body.getName());
-        if (bodyObjColor != null && config.getBody().color != null) {
-            bodyObjColor.setColor(config.getBody().color);
-        }
-
+        // Add satellites to world.
         if (config.getSatellites() != null) {
             for (WorldConfiguration.SatelliteConfig satConfig : config.getSatellites()) {
                 // Always load ALL satellites into simulation,
                 // active flag only controls UI visibility later
                 Satellite sat = new Satellite();
-                config.applyToSatelliteData(satConfig, sat.getData());
-                sat.setMassOfBody(body.getMass());
-                sat.initialiseSatelliteInfo(body);
-                
+
+
+                if(!sat.initialiseSatelliteValuesAngles(body, satConfig.name,
+                        satConfig.mass,
+                        satConfig.altitude, satConfig.eccentricity, satConfig.trueAnomaly,
+                        satConfig.longitudeOfAscendingNode, satConfig.inclination, satConfig.argumentOfPeriapsis)) {
+                            System.err.println(sat.getLatestError());
+                        }
+
+                // config.applyToSatelliteData(satConfig, sat.getData());
+                // sat.setMassOfBody(body.getMass());
+                // sat.initialiseSatelliteInfo(body);
+
                 // Use the EXACT same working logic that normally adds satellites
                 Vector3f satColor = satConfig.color != null ? satConfig.color : new Vector3f(1.f, 0.f, 0.f);
                 addSatellite(sat, satColor);
@@ -613,9 +607,9 @@ public class World implements Cloneable {
         orbitMatrixBuffer = updateMatrixBuffer(orbits);
         colorsBuffer = updateColorBuffer(bodyObjects);
 
-        body.startTimeThread();
-        body.startSatellites();
-        body.start();
-        body.resetTime();
+        // body.startTimeThread();
+        // body.startSatellites();
+        // body.start();
+        // body.resetTime();
     }
 }

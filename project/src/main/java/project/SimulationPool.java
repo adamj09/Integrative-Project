@@ -12,9 +12,10 @@ public class SimulationPool {
     // Currently loaded worlds
     private Renderer renderer;
     private HashMap<String, World> worlds = new HashMap<>();
-    private String currentWorld = "";
+    private String currentWorld;
 
     public SimulationPool(Renderer renderer) {
+        this.currentWorld = "";
         this.renderer = renderer;
     }
 
@@ -25,6 +26,10 @@ public class SimulationPool {
     public void createWorld(String name, Body body, Vector3f color) {
         body.setTimeScale(1000); // TODO: add time scale adjustments
         worlds.put(name, new World(body, color));
+    }
+
+    public void addWorld(World world) {
+        worlds.put(world.getName(), world);
     }
 
     public void runWorld(String worldName) {

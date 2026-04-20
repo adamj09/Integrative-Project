@@ -1,21 +1,10 @@
 package project.Renderer;
 
-import static org.lwjgl.opengl.GL11.GL_CCW;
-import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11.glClear;
-import static org.lwjgl.opengl.GL11.glClearColor;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glFrontFace;
-import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
+import static org.lwjgl.opengl.GL41.*;
 
 import project.ControlManager;
 import project.Renderer.Camera.CameraMatrixLoader;
 import project.Renderer.Camera.FixedCameraController;
-import project.Renderer.Camera.FreeLookCameraController;
 import project.Renderer.RenderSystems.BodyRenderSystem;
 import project.Renderer.RenderSystems.LightRenderSystem;
 import project.Renderer.RenderSystems.OrbitRenderSystem;
@@ -69,9 +58,8 @@ public class Renderer {
     private ControlManager controlManager;
 
     /**
-     * The camera controllers for handling different camera modes.
+     * The camera controller.
      */
-    private FreeLookCameraController freeLookCameraController;
     private FixedCameraController fixedCameraController;
 
     /**
@@ -116,7 +104,6 @@ public class Renderer {
      * shader programs, and creating render systems.
      */
     private void init() {
-
         world.getBodyMesh().setUpBuffers();
         world.getOrbitMesh().setUpBuffers();
         world.getLightSourceMesh().setUpBuffers();
@@ -155,8 +142,6 @@ public class Renderer {
         // Note: always update world before camera.
         world.updateSatellitePositions();
 
-        // TODO: switch between camera controllers when needed
-        // freeLookCameraController.updateCameraTransform(event.delta);
         fixedCameraController.updateCameraTransform(deltaTime);
 
         cameraMatrixLoader.update();
@@ -196,9 +181,9 @@ public class Renderer {
     }
 
     private void setUpShaders() {
+        // Create shaders if necessary.
         // We check if each and every one of these needs to be created because these are
         // fairly expensive operations.
-        // Create shaders if necessary.
         if (mainVertShader == null) {
             mainVertShader = new Shader("project/shaders/main.vert", GL_VERTEX_SHADER);
         }
@@ -267,10 +252,11 @@ public class Renderer {
     public void setWorld(World world) {
         this.world = world;
         fixedCameraController = new FixedCameraController(this.world, controlManager);
+        setFocusObject(world.getName());
         viewport.getGLCanvas().setVisible(true);
 
         // Re-initialize render systems with new world
-        viewport.getGLCanvas().addOnInitEvent(_ -> refreshRenderSystems());
+        // viewport.getGLCanvas().addOnInitEvent(_ -> refreshRenderSystems());
 
         initOpenGLRenderEventHandlers();
     }

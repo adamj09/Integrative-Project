@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 import project.Math.Body;
 import project.Presets.PresetManager;
 import project.Renderer.Renderer;
+import project.Renderer.World.World;
 import project.UI.BottomPane;
 import project.UI.MainMenuBar;
 import project.UI.Popups.InfoPopup;
@@ -42,9 +43,13 @@ public class App extends Application {
         BottomPane bottom = new BottomPane();
         MainMenuBar menuBar = new MainMenuBar();
         SidebarPane sidebar = new SidebarPane(bottom, pool);
+
+
         PresetManager presetManager = new PresetManager();
 
         // Wire menu bar buttons to sidebar actions
+        // TODO: perhaps these lambda functions should be instead methods moved in appropriate classes?
+        // This is okay for now, but as we add functionality may get confusing later.
         menuBar.getNewBodyButton().setOnAction(e -> {
             sidebar.openNewBodyPopup(stage,
                     menuBar.getThemeSelector().getValue() != null
@@ -53,6 +58,7 @@ public class App extends Application {
         });
         menuBar.getNewSatelliteButton().setOnAction(e -> {
             if (pool.getCurrentWorld() == null) return;
+
             Body body = pool.getCurrentWorld().getBody();
             // TODO: this check for whether a body can actually have a satellite orbiting it
             // (sufficient mass) is probably not great, but is good enough for now.
@@ -65,7 +71,14 @@ public class App extends Application {
         });
         menuBar.getSaveAsMenuItem().setOnAction(e -> presetManager.savePresetAs(stage, pool.getCurrentWorld(), sidebar));
         menuBar.getSaveMenuItem().setOnAction(e -> presetManager.savePreset(stage, pool.getCurrentWorld(), sidebar));
-        menuBar.getLoadMenuItem().setOnAction(e -> presetManager.loadPreset(stage, pool.getCurrentWorld(), sidebar));
+        menuBar.getLoadMenuItem().setOnAction(e -> { 
+            World newWorld = presetManager.loadPreset(stage, sidebar);
+
+            pool.addWorld(newWorld);
+            pool.runWorld(newWorld.getName());
+
+            mainRenderer.setWorld(pool.getCurrentWorld());
+        });
         menuBar.getInfoButton().setOnAction(e -> InfoPopup.show("""
                 Orbital Motion Simulator
 
