@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
@@ -84,8 +86,8 @@ public class PresetManager {
 
             World world = new World(body, bodyConfig.color);
 
-            for(String name : sidebar.getBodyNames()) {
-                if(name.equals(world.getName())) {
+            for(Map.Entry<String, SatellitePreset> entry : sidebar.getSatelliteEntries(body.getName()).entrySet()) {
+                if(entry.getKey().equals(world.getName())) {
                     UnsavedChangesPopup.confirm("A preset with this name is already loaded! Continue and overwrite the loaded preset's data with this one?");
                 }
             }
@@ -125,24 +127,20 @@ public class PresetManager {
 
         // Capture sidebar state so UI customizations are preserved
         PresetConfiguration presetConfig = sidebar.toPresetConfiguration();
-        List<Boolean> bodySelectedStates = sidebar.getBodySelectedStates();
-        List<Boolean> satelliteActiveStates = sidebar.getSatelliteActiveStates();
-        List<WorldConfiguration.SidebarBody> sidebarBodies = new ArrayList<>();
-        List<BodyPreset> bodies = presetConfig.getBodies();
 
-        for (int i = 0; i < bodies.size(); i++) {
-            BodyPreset bp = bodies.get(i);
-            boolean selected = i < bodySelectedStates.size() && bodySelectedStates.get(i);
-            sidebarBodies.add(new WorldConfiguration.SidebarBody(
-                    bp.name(), colorToHex(bp.color()), bp.preset(), bp.mass(), bp.radius(), selected));
-        }
+        HashMap<String, Boolean> satelliteActiveStates = sidebar.getSatelliteActiveStates();
+
+        BodyPreset body = presetConfig.getBody();
+        WorldConfiguration.SidebarBody sidebarBody = new WorldConfiguration.SidebarBody(body.name(), colorToHex(body.color()), body.preset(), body.mass(), body.radius());
+        
         List<WorldConfiguration.SidebarSatellite> sidebarSatellites = new ArrayList<>();
-        List<SatellitePreset> sats = presetConfig.getSatellites();
+        HashMap<String, SatellitePreset> sats = presetConfig.getSatellites();
 
         // Build complete satellite config list from sidebar (source of truth for what exists)
         // matching with World simulation data for orbital info
         List<WorldConfiguration.SatelliteConfig> worldSatConfigs = configuration.getSatellites();
         List<WorldConfiguration.SatelliteConfig> allSatConfigs = new ArrayList<>();
+
         for (int i = 0; i < sats.size(); i++) {
             SatellitePreset sp = sats.get(i);
             boolean active = i < satelliteActiveStates.size() && satelliteActiveStates.get(i);
@@ -163,23 +161,11 @@ public class PresetManager {
             if (matchingConfig != null) {
                 matchingConfig.active = active;
                 allSatConfigs.add(matchingConfig);
-            // } else {
-            //     // Satellite exists in sidebar but not in World (was removed/inactive)
-            //     // Save with available data so it can be restored
-            //     WorldConfiguration.SatelliteConfig minConfig = new WorldConfiguration.SatelliteConfig();
-            //     minConfig.name = sp.name();
-            //     minConfig.color = new org.joml.Vector3f(
-            //             (float) sp.color().getRed(),
-            //             (float) sp.color().getGreen(),
-            //             (float) sp.color().getBlue());
-            //     minConfig.active = active;
-            //     allSatConfigs.add(minConfig);
-            // }
-}
+            } 
         }
         configuration.setSatellites(allSatConfigs);
 
-        configuration.setSidebarBodies(sidebarBodies);
+        configuration.setSidebarBody(sidebarBody);
         configuration.setSidebarSatellites(sidebarSatellites);
         configuration.setFocusedItemName(sidebar.getFocusedItemName());
 
@@ -215,9 +201,9 @@ public class PresetManager {
         com.google.gson.Gson gson = GsonFactory.create();
 
         // Compare sidebar bodies (names, colors, selected states, mass, radius)
-        String savedBodies = gson.toJson(saved.getSidebarBodies());
-        String currentBodies = gson.toJson(buildCurrentSidebarBodies(sidebar));
-        if (!savedBodies.equals(currentBodies)) return false;
+        String savedSideBarBody = gson.toJson(saved.getSidebarBody());
+        String currentSideBarBody = gson.toJson(buildCurrentSidebarBodies(sidebar));
+        if (!savedSideBarBody.equals(currentSideBarBody)) return false;
 
         // Compare sidebar satellites (names, colors, active states)
         String savedSats = gson.toJson(saved.getSidebarSatellites());
@@ -246,28 +232,31 @@ public class PresetManager {
 
     private List<WorldConfiguration.SidebarBody> buildCurrentSidebarBodies(SidebarPane sidebar) {
         PresetConfiguration presetConfig = sidebar.toPresetConfiguration();
-        List<Boolean> bodySelectedStates = sidebar.getBodySelectedStates();
+        String selectedBody = sidebar.getSelectedBody();
+
         List<WorldConfiguration.SidebarBody> result = new ArrayList<>();
-        List<BodyPreset> bodies = presetConfig.getBodies();
-        for (int i = 0; i < bodies.size(); i++) {
-            BodyPreset bp = bodies.get(i);
-            boolean selected = i < bodySelectedStates.size() && bodySelectedStates.get(i);
-            result.add(new WorldConfiguration.SidebarBody(
-                    bp.name(), colorToHex(bp.color()), bp.preset(), bp.mass(), bp.radius(), selected));
-        }
+        BodyPreset body = presetConfig.getBody();
+
+        result.add(new WorldConfiguration.SidebarBody(body.name(), colorToHex(body.color()), body.preset(), body.mass(), body.radius()));
+
         return result;
     }
 
     private List<WorldConfiguration.SidebarSatellite> buildCurrentSidebarSatellites(SidebarPane sidebar) {
         PresetConfiguration presetConfig = sidebar.toPresetConfiguration();
-        List<Boolean> satelliteActiveStates = sidebar.getSatelliteActiveStates();
+        HashMap<String, Boolean> satelliteActiveStates = sidebar.getSatelliteActiveStates();
         List<WorldConfiguration.SidebarSatellite> result = new ArrayList<>();
-        List<SatellitePreset> sats = presetConfig.getSatellites();
-        for (int i = 0; i < sats.size(); i++) {
-            SatellitePreset sp = sats.get(i);
-            boolean active = i < satelliteActiveStates.size() && satelliteActiveStates.get(i);
-            result.add(new WorldConfiguration.SidebarSatellite(
-                    sp.name(), colorToHex(sp.color()), active));
+
+
+        HashMap<String, SatellitePreset> sats = presetConfig.getSatellites();
+
+
+        for (Map.Entry<String, SatellitePreset> entry : sats.entrySet()) {
+            SatellitePreset preset = entry.getValue();
+
+            boolean active = satelliteActiveStates.get(entry.getKey());
+
+            result.add(new WorldConfiguration.SidebarSatellite(preset.name(), colorToHex(preset.color()), active));
         }
         return result;
     }

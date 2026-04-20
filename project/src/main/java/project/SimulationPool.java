@@ -33,6 +33,10 @@ public class SimulationPool {
     }
 
     public void runWorld(String worldName) {
+        if(worldName == currentWorld) {
+            return;
+        }
+
         if (!worlds.containsKey(worldName)) {
             return;
         }
@@ -73,5 +77,9 @@ public class SimulationPool {
             return null;
         }
         return worlds.get(currentWorld);
+    }
+
+    public Renderer getRenderer() {
+        return this.renderer;
     }
 }

@@ -171,8 +171,6 @@ public class BodyCreatorPopup extends Stage {
                     Constant.EARTH_ORBIT_SEMIMAJOR_AXIS, Constant.EARTH_ORBIT_ECCENTRICITY), 
                 new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
 
-            pool.runWorld(worldName);
-
             previewRenderer.getViewport().dispose();
             close();
         });

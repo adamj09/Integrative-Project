@@ -1,31 +1,30 @@
 package project.Presets;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 import javafx.scene.paint.Color;
 
 public class PresetConfiguration {
-    private final List<BodyPreset> bodies;
-    private final List<SatellitePreset> satellites;
+    private final BodyPreset body;
+    private final HashMap<String, SatellitePreset> satellites;
     private final BottomPanePreset bottomPanePreset;
 
     public PresetConfiguration(
-        List<BodyPreset> bodies,
-        List<SatellitePreset> satellites,
+        BodyPreset body,
+        HashMap<String, SatellitePreset> satellites,
         BottomPanePreset bottomPanePreset
     ) {
-        this.bodies = new ArrayList<>(bodies);
-        this.satellites = new ArrayList<>(satellites);
+        this.body = body;
+        this.satellites = satellites;
         this.bottomPanePreset = bottomPanePreset;
     }
 
-    public List<BodyPreset> getBodies() {
-        return new ArrayList<>(bodies);
+    public BodyPreset getBody() {
+        return body;
     }
 
-    public List<SatellitePreset> getSatellites() {
-        return new ArrayList<>(satellites);
+    public HashMap<String, SatellitePreset> getSatellites() {
+        return satellites;
     }
 
     public BottomPanePreset getBottomPanePreset() {
