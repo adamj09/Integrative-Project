@@ -406,6 +406,7 @@ public class SidebarPane extends VBox {
 
         bottom.selectSatelliteForView(selectedBody, "");
 
+        pool.getRenderer().setFocusObject(selectedBody);
         pool.getCurrentWorld().removeSatellite(name);
     }
 
