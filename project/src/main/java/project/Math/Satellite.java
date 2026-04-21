@@ -1,7 +1,6 @@
 package project.Math;
 
 import org.joml.Vector3d;
-import org.joml.Vector3f;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -45,18 +44,18 @@ public class Satellite implements Runnable {
         }
 
         if (px < Constant.MINIMUM_ALTITUDE) {
-            latestError = "initial position in x is too close to the body: " + px + " km. Minimum distance is "
-                    + Constant.MINIMUM_ALTITUDE + " km";
+            this.setLatestError("initial position in x is too close to the body: " + px + " km. Minimum distance is "
+                    + Constant.MINIMUM_ALTITUDE + " km");
             return false;
         }
         if (py < Constant.MINIMUM_ALTITUDE) {
-            latestError = "initial position in y is too close to the body: " + py + " km. Minimum distance is "
-                    + Constant.MINIMUM_ALTITUDE + " km";
+            this.setLatestError("initial position in y is too close to the body: " + py + " km. Minimum distance is "
+                    + Constant.MINIMUM_ALTITUDE + " km");
             return false;
         }
         if (pz < Constant.MINIMUM_ALTITUDE) {
-            latestError = "initial position in z is too close to the body: " + pz + " km. Minimum distance is "
-                    + Constant.MINIMUM_ALTITUDE + " km";
+            this.setLatestError("initial position in z is too close to the body: " + pz + " km. Minimum distance is "
+                    + Constant.MINIMUM_ALTITUDE + " km");
             return false;
         }
 
@@ -102,14 +101,14 @@ public class Satellite implements Runnable {
         });
 
         if (0 >= ecentricity || ecentricity >= 1) {
-            this.latestError = "eccentricity not supported " + ecentricity;
+            this.setLatestError("eccentricity not supported " + ecentricity);
             return false;
         }
 
         double minimumAltitude = Float.MIN_VALUE;
 
         if (altitude < minimumAltitude) {
-            latestError = "initial position is too close to the body: " + altitude;
+            this.setLatestError("initial position is too close to the body: " + altitude);
             return false;
         }
 
@@ -125,7 +124,7 @@ public class Satellite implements Runnable {
     //
     private boolean initName(String satName, String bodyName) {
         if (satName.equals(bodyName)) {
-            latestError = "Satellite name is the same has the body's name. Not allowed";
+            this.setLatestError("Satellite name is the same has the body's name. Not allowed");
             return false;
         } else {
             this.updateData(data -> data.name = satName);
