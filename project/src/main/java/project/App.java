@@ -137,11 +137,11 @@ public class App extends Application {
         stage.setScene(scene);
         stage.setTitle("Orbital Motion Simulator");
         stage.setResizable(true);
-        stage.setOnCloseRequest(event -> {
-            if (!presetManager.canClose(stage, mainRenderer.getWorld(), sidebar)) {
-                event.consume();
-            }
-        });
+        // stage.setOnCloseRequest(event -> {
+        //     if (!presetManager.canClose(stage, mainRenderer.getWorld(), sidebar)) {
+        //         event.consume();
+        //     }
+        // });
         stage.show();
 
         // Update live data
