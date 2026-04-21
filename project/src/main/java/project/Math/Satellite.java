@@ -337,13 +337,13 @@ public class Satellite implements Runnable {
 
     // ---------------------------------------------------------------------------------------------------------------------------
     //
-    public synchronized boolean getThreadState() {
+    public synchronized boolean getSimulationRunning() {
         return this.simulationRunning;
     }
 
     // ---------------------------------------------------------------------------------------------------------------------------
     //
-    public synchronized void setThreadState(boolean state) {
+    public synchronized void setSimulationRunning(boolean state) {
         this.simulationRunning = state;
     }
 
@@ -353,27 +353,27 @@ public class Satellite implements Runnable {
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
             
-            if (!this.getThreadState()) {
-                this.setThreadState(true);
+            if (!this.getSimulationRunning()) {
+                this.setSimulationRunning(true);
             }
         
             boolean res = MathOrbits.getRelativeInfo(this);
 
             if (!res) {
                 this.setLatestError(this.getLatestError() + " Simulation stopped for this satellite.");
-                this.setThreadState(false);
+                this.setSimulationRunning(false);
                 Thread.currentThread().interrupt();
             }
 
             try {
                 Thread.sleep(Constant.UPDATE_TIME);
             } catch (InterruptedException e) {
-                this.setThreadState(false);
+                this.setSimulationRunning(false);
                 Thread.currentThread().interrupt();
                 break;
             }
 
         }
-        this.setThreadState(false);
+        this.setSimulationRunning(false);
     }
 }
