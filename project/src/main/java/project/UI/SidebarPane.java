@@ -36,6 +36,7 @@ public class SidebarPane extends VBox {
     private final VBox bodyListBox;
     private final HashMap<String, VBox> bodyCards = new HashMap<>();
     private final HashMap<String, VBox> satelliteLists = new HashMap<>();
+    private final HashMap<String, HashMap<String, VBox>> satelliteCards = new HashMap<>();
     private final HashMap<String, Integer> satelliteCounters = new HashMap<>();
     private final ScrollPane bodyScroll;
     private final ScrollPane satelliteScroll = new ScrollPane();
@@ -139,7 +140,6 @@ public class SidebarPane extends VBox {
 
     public void openNewSatellitePopup(Stage owner, String themeStyle) {
         SatelliteCreatorPopup popup = new SatelliteCreatorPopup(owner, this, themeStyle, pool);
-        SatelliteCreatorPopup.satCounter = satelliteCounters.get(selectedBody);
         popup.showAndWait();
         if (popup.wasConfirmed()) {
             addSatelliteCard(popup.getSatelliteName(), popup.getSatelliteColor());
@@ -300,6 +300,7 @@ public class SidebarPane extends VBox {
         VBox.setVgrow(satelliteView, Priority.ALWAYS);
 
         satelliteLists.put(selectedBody, satelliteView);
+        satelliteCards.put(selectedBody, new HashMap<>());
     }
 
     private void addSatelliteCard(String name, Color color) {
@@ -338,7 +339,7 @@ public class SidebarPane extends VBox {
         topRow.setAlignment(Pos.CENTER_LEFT);
 
         // -- Bottom row: Remove/Add + Focus + View Data --
-        Button toggleButton = new Button(startActive ? "Remove" : "Add");
+        Button toggleButton = new Button("Remove");
         toggleButton.getStyleClass().add(startActive ? "card-button-remove" : "card-button-add");
 
         Button focusButton = new Button("Focus");
@@ -357,30 +358,7 @@ public class SidebarPane extends VBox {
 
         toggleButton.setOnAction(e -> {
             if (active[0]) {
-                // Deactivate: remove from visualization
-                active[0] = false;
-                satelliteActiveStates.put(name, false);
-                activeIndicator.setFill(Color.RED);
-                toggleButton.setText("Add");
-                toggleButton.getStyleClass().set(0, "card-button-add");
-                focusButton.setDisable(true);
-                viewDataButton.setDisable(true);
-                circle.setOpacity(0.4);
-                nameLabel.setOpacity(0.5);
-
-                // TODO: remove satellite from renderer visualization
-            } else {
-                // Reactivate: add back to visualization
-                active[0] = true;
-                satelliteActiveStates.put(name, true);
-                activeIndicator.setFill(Color.LIMEGREEN);
-                toggleButton.setText("Remove");
-                toggleButton.getStyleClass().set(0, "card-button-remove");
-                focusButton.setDisable(false);
-                viewDataButton.setDisable(false);
-                circle.setOpacity(1.0);
-                nameLabel.setOpacity(1.0);
-                // TODO: add satellite back to renderer visualization
+                removeSatellite(name);
             }
         });
 
@@ -392,6 +370,7 @@ public class SidebarPane extends VBox {
         card.setPadding(new Insets(10));
         card.getStyleClass().add("card");
 
+        satelliteCards.get(selectedBody).put(name, card);
         satelliteLists.get(selectedBody).getChildren().add(card);
 
         contentArea.getChildren().set(1, satelliteLists.get(selectedBody));
@@ -417,6 +396,15 @@ public class SidebarPane extends VBox {
         }
     }
 
+    public void removeSatellite(String name) {
+        satelliteEntries.get(selectedBody).remove(name);
+
+        VBox vbox = (VBox) contentArea.getChildren().get(1);
+        vbox.getChildren().remove(satelliteCards.get(selectedBody).get(name));
+
+        pool.getCurrentWorld().removeSatellite(name);
+    }
+
     private void deselectBody(Circle activeIndicator, Button toggleButton,
             Button focusButton, Circle circle, Label nameLabel, VBox card) {
         toggleButton.setText("Select");
@@ -427,12 +415,12 @@ public class SidebarPane extends VBox {
     }
 
     public PresetConfiguration toPresetConfiguration() {
-        if(selectedBody.isEmpty()) {
+        if (selectedBody.isEmpty()) {
             return null;
         }
 
         HashMap<String, SatellitePreset> entries = new HashMap<>();
-        if(satelliteEntries.containsKey(selectedBody)) {
+        if (satelliteEntries.containsKey(selectedBody)) {
             entries = satelliteEntries.get(selectedBody);
         }
 
@@ -539,7 +527,7 @@ public class SidebarPane extends VBox {
     }
 
     public void removeBody(String bodyName) {
-        if(bodyName.equals(selectedBody)) {
+        if (bodyName.equals(selectedBody)) {
             selectedBody = "";
 
             pool.stopWorld();

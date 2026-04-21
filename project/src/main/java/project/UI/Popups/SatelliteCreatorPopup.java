@@ -77,7 +77,6 @@ public class SatelliteCreatorPopup extends Stage {
             CL_SPEED = 4, CL_ROTI = 5, CL_ROTL = 6, CL_ROTW = 7;
     private final boolean[] orbLocks = new boolean[7];
     private final boolean[] cartLocks = new boolean[8];
-    public static int satCounter = 0;
     private final boolean[] cartColorLock = { false };
     private final boolean[] orbColorLock = { false };
 
@@ -98,102 +97,12 @@ public class SatelliteCreatorPopup extends Stage {
         // Set preview background to black to prevent flickering on renderer update.
         preview.setStyle("-fx-background-color: #000000");
 
-        Label scaleLabel = new Label("Scale (km)");
-        scaleLabel.getStyleClass().add("key-label");
-
-        // --- Left: name, mass, color, speed ---
-        nameField = entryField(String.format("Sat-%02d", satCounter + 1));
-        massField = entryField("e.g. 1000");
-        initialSpeedField = entryField("m/s");
-
-        colorDropdown = new ComboBox<>();
-        colorDropdown.getItems().addAll("Blue", "Red", "Green", "Orange", "Purple", "White");
-        colorDropdown.setValue("Blue");
-        colorDropdown.getStyleClass().add("combo-box");
-
-        Label cartNameLbl = formLabel("Name :");
-        Label cartMassLbl = formLabel("Mass (kg) :");
-        Label cartColorLbl = formLabel("Color :");
-        Label cartSpeedLbl = formLabel("Initial speed:");
-        tip(cartNameLbl, nameField, "A unique identifier for this satellite.");
-        tip(cartMassLbl, massField, "Mass of the satellite in kilograms.");
-        tip(cartColorLbl, colorDropdown, "Display colour for this satellite.");
-        tip(cartSpeedLbl, initialSpeedField,
-                "Magnitude of the initial velocity in m/s.\nDirection is derived from position and rotation.");
-
-        GridPane leftForm = new GridPane();
-        leftForm.setHgap(10);
-        leftForm.setVgap(8);
-        leftForm.add(cartNameLbl, 0, 0);
-        leftForm.add(nameField, 1, 0);
-        leftForm.add(cartMassLbl, 0, 1);
-        leftForm.add(fieldRow(massField, cartLocks, CL_MASS, this::randomizeCartMass), 1, 1);
-        leftForm.add(cartColorLbl, 0, 2);
-        leftForm.add(colorRow(colorDropdown, cartColorLock), 1, 2);
-        leftForm.add(cartSpeedLbl, 0, 3);
-        leftForm.add(fieldRow(initialSpeedField, cartLocks, CL_SPEED, this::randomizeCartSpeed), 1, 3);
-
-        // --- Middle: Position ---
-        posXField = entryField("0");
-        posYField = entryField("0");
-        posZField = entryField("0");
-
-        Label posHdr = formLabel("Position (x,y,z) (m):");
-        Label posXLbl = formLabel("x :");
-        Label posYLbl = formLabel("y :");
-        Label posZLbl = formLabel("z :");
-        String posHint = "Initial position of the satellite\nrelative to the central body's centre, in metres.";
-        tip(posHdr, posXField, posHint);
-        tip(posXLbl, posXField, "X component of initial position (metres).");
-        tip(posYLbl, posYField, "Y component of initial position (metres).");
-        tip(posZLbl, posZField, "Z component of initial position (metres).");
-
-        GridPane posForm = new GridPane();
-        posForm.setHgap(10);
-        posForm.setVgap(8);
-        posForm.add(posHdr, 0, 0, 2, 1);
-        posForm.add(posXLbl, 0, 1);
-        posForm.add(fieldRow(posXField, cartLocks, CL_POSX, this::randomizeCartPosX), 1, 1);
-        posForm.add(posYLbl, 0, 2);
-        posForm.add(fieldRow(posYField, cartLocks, CL_POSY, () -> posYField.setText("0")), 1, 2);
-        posForm.add(posZLbl, 0, 3);
-        posForm.add(fieldRow(posZField, cartLocks, CL_POSZ, () -> posZField.setText("0")), 1, 3);
-
-        // --- Right: Rotation ---
-        rotIField = entryField("0");
-        rotLField = entryField("0");
-        rotWField = entryField("0");
-
-        Label rotHdr = formLabel("Rotation (degrees):");
-        Label rotILbl = formLabel("i :");
-        Label rotLLbl = formLabel("I :");
-        Label rotWLbl = formLabel("w :");
-        tip(rotHdr, rotIField, "Initial orientation of the satellite's velocity vector.");
-        tip(rotILbl, rotIField,
-                "i — Inclination: tilt of the velocity direction\nrelative to the reference plane (degrees).");
-        tip(rotLLbl, rotLField, "I — Longitude: azimuthal angle in the\nreference plane (degrees).");
-        tip(rotWLbl, rotWField, "w — Roll / argument offset (degrees).");
-
-        GridPane rotForm = new GridPane();
-        rotForm.setHgap(10);
-        rotForm.setVgap(8);
-        rotForm.add(rotHdr, 0, 0, 2, 1);
-        rotForm.add(rotILbl, 0, 1);
-        rotForm.add(fieldRow(rotIField, cartLocks, CL_ROTI, () -> randomizeAngle360(rotIField)), 1, 1);
-        rotForm.add(rotLLbl, 0, 2);
-        rotForm.add(fieldRow(rotLField, cartLocks, CL_ROTL, () -> randomizeAngle360(rotLField)), 1, 2);
-        rotForm.add(rotWLbl, 0, 3);
-        rotForm.add(fieldRow(rotWField, cartLocks, CL_ROTW, () -> randomizeAngle360(rotWField)), 1, 3);
-
-        HBox cartesianFormRow = new HBox(20, leftForm, posForm, rotForm);
-        cartesianFormRow.setPadding(new Insets(12, 14, 0, 14));
-
         // ================================================================
         // --- ORBITAL ELEMENTS MODE FORM ---
         // ================================================================
 
         // --- Left: name, mass, color ---
-        nameOrbField = entryField(String.format("Sat-%02d", satCounter + 1));
+        nameOrbField = entryField("Satellite Name");
         massOrbField = entryField("e.g. 1000");
         colorOrbDropdown = new ComboBox<>();
         colorOrbDropdown.getItems().addAll("Blue", "Red", "Green", "Orange", "Purple", "White");
@@ -282,46 +191,8 @@ public class SatelliteCreatorPopup extends Stage {
 
         HBox orbitalFormRow = new HBox(20, orbLeftForm, orbMidForm, orbRightForm);
         orbitalFormRow.setPadding(new Insets(12, 14, 0, 14));
-        orbitalFormRow.setVisible(false);
-        orbitalFormRow.setManaged(false);
-
-        // ================================================================
-        // --- MODE TOGGLE ---
-        // ================================================================
-
-        ToggleButton cartesianBtn = new ToggleButton("Cartesian");
-        ToggleButton orbitalBtn = new ToggleButton("Orbital Elements");
-        cartesianBtn.getStyleClass().add("style-button");
-        orbitalBtn.getStyleClass().add("style-button");
-
-        ToggleGroup modeGroup = new ToggleGroup();
-        cartesianBtn.setToggleGroup(modeGroup);
-        orbitalBtn.setToggleGroup(modeGroup);
-        cartesianBtn.setSelected(true);
-
-        HBox modeToggle = new HBox(4, cartesianBtn, orbitalBtn);
-        modeToggle.setPadding(new Insets(8, 14, 0, 14));
-
-        cartesianBtn.setOnAction(e -> {
-            orbitalElementsMode = false;
-            cartesianFormRow.setVisible(true);
-            cartesianFormRow.setManaged(true);
-            orbitalFormRow.setVisible(false);
-            orbitalFormRow.setManaged(false);
-
-            updatePreview();
-        });
-        orbitalBtn.setOnAction(e -> {
-            orbitalElementsMode = true;
-            cartesianFormRow.setVisible(false);
-            cartesianFormRow.setManaged(false);
-            orbitalFormRow.setVisible(true);
-            orbitalFormRow.setManaged(true);
-
-            updatePreview();
-        });
-
-        // ================================================================
+        orbitalFormRow.setVisible(true);
+        orbitalFormRow.setManaged(true);
 
         // Create initial central body (deep copy of current simulation's central
         // celestial body).
@@ -367,16 +238,28 @@ public class SatelliteCreatorPopup extends Stage {
                 return;
             if (orbitalElementsMode) {
                 // Run the math to check physical validity and surface any error
-                String nameFromField = nameOrbField.getText().trim();
+                satelliteName = nameOrbField.getText().trim();
 
-                satelliteName = nameFromField.isEmpty() ? String.format("Sat-%02d", ++satCounter) : nameFromField;
+                if(satelliteName.isEmpty()) {
+                    errorLabel.setText("You must provide a name for the satellite!");
+                    return;
+                }
 
+                if(sideBar.getSatelliteEntries(sidebar.getSelectedBody()) != null) {
+                    if(sideBar.getSatelliteEntries(sidebar.getSelectedBody()).containsKey(satelliteName)) {
+                        if(!UnsavedChangesPopup.confirm("A body with this name is already exists! Continue and overwrite that body's data with this one?")) {
+                            return;
+                        }
+                        sideBar.removeSatellite(satelliteName);
+                    }
+                }
+            
                 Satellite tempSat = new Satellite();
-                boolean hasError = tempSat.initialiseSatelliteValuesAngles(
-                        satelliteName, getSatelliteMass(), "", getMassOfBody(),
+                boolean success = tempSat.initialiseSatelliteValuesAngles(currentWorld.getBody(), satelliteName,
+                        getSatelliteMass(),
                         p(altitudeField), getEccentricity(), getTrueAnomaly(),
                         getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
-                if (hasError) {
+                if (!success) {
                     errorLabel.setText(tempSat.getLatestError());
                     return;
                 }
@@ -412,7 +295,7 @@ public class SatelliteCreatorPopup extends Stage {
         Label titleLabel = new Label("Create new satellite");
         titleLabel.getStyleClass().add("subheading");
 
-        VBox root = new VBox(titleLabel, preview, modeToggle, cartesianFormRow, orbitalFormRow, randAllRow, errorLabel,
+        VBox root = new VBox(titleLabel, preview, orbitalFormRow, randAllRow, errorLabel,
                 buttons);
         root.getStyleClass().add("small-pane");
         root.setStyle(themeStyle);

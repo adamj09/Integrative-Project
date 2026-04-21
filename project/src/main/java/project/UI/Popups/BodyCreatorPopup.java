@@ -50,7 +50,6 @@ public class BodyCreatorPopup extends Stage {
 
     private boolean massLocked = false;
     private boolean radiusLocked = false;
-    private static int bodyCounter = 0;
 
     public BodyCreatorPopup(Stage owner, SidebarPane sideBar, String themeStyle, SimulationPool pool) {
         this.sideBar = sideBar;
@@ -67,7 +66,7 @@ public class BodyCreatorPopup extends Stage {
         scaleLabel.getStyleClass().add("key");
 
         // --- Form fields ---
-        nameField = entryField(String.format("Body-%02d", bodyCounter + 1));
+        nameField = entryField("Body Name");
         massField = entryField("e.g. 5.972e24");
         radiusField = entryField("e.g. 6.371e6");
 
@@ -159,8 +158,11 @@ public class BodyCreatorPopup extends Stage {
             if (!validate(errorLabel))
                 return;
 
-            String nameFromField = nameField.getText().trim();
-            worldName = nameFromField.isEmpty() ? String.format("Body-%02d", ++bodyCounter) : nameFromField;
+            worldName = nameField.getText().trim();
+            if(worldName.isEmpty()) {
+                errorLabel.setText("You must provide a name for the celestial body!");
+                return;
+            }
 
             if(sideBar.getBodyEntries().containsKey(worldName)) {
                 if(!UnsavedChangesPopup.confirm("A body with this name is already exists! Continue and overwrite that body's data with this one?")) {
