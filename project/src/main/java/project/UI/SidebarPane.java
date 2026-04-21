@@ -244,7 +244,8 @@ public class SidebarPane extends VBox {
             selectedBodyRadius = bodyProps[1];
             selectedBodyColor = capturedColor;
 
-            createSatelliteList();
+            createSatelliteList(selectedBody);
+            satelliteCards.put(selectedBody, new HashMap<>());
 
             celestialTab.fire();
 
@@ -259,7 +260,7 @@ public class SidebarPane extends VBox {
             circle.setOpacity(0.4);
             nameLabel.setOpacity(0.5);
 
-            createSatelliteList();
+            createSatelliteList(name);
 
             celestialTab.fire();
 
@@ -288,7 +289,7 @@ public class SidebarPane extends VBox {
         }
     }
 
-    private void createSatelliteList() {
+    private void createSatelliteList(String body) {
         VBox satelliteListBox = new VBox(4);
         satelliteListBox.setPadding(new Insets(6));
 
@@ -300,8 +301,8 @@ public class SidebarPane extends VBox {
         VBox satelliteView = new VBox(satelliteScroll);
         VBox.setVgrow(satelliteView, Priority.ALWAYS);
 
-        satelliteLists.put(selectedBody, satelliteView);
-        satelliteCards.put(selectedBody, new HashMap<>());
+        satelliteLists.put(body, satelliteView);
+        satelliteCards.put(body, new HashMap<>());
     }
 
     private void addSatelliteCard(String name, Color color) {

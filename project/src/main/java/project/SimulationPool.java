@@ -48,11 +48,6 @@ public class SimulationPool {
 
         renderer.setWorld(world);
 
-        // Initalize focus on the central body for new world.
-        if(!worldName.equals(world)) {
-            renderer.setFocusObject(worldName);
-        }
-
         currentWorld = worldName;
     }
 

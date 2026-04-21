@@ -62,15 +62,16 @@ public class Renderer {
      */
     private FixedCameraController fixedCameraController;
 
-    /**
-     * Constructor for the Renderer class, initializes OpenGL and sets up render
-     * event handlers.
-     */
-
     private Shader mainVertShader, orbitVertShader, bodyFragShader, lightFragShader, orbitFragShader;
 
     private ShaderProgram bodyShaderProgram, lightShaderProgram, orbitShaderProgram;
 
+    private String currentFocusedObject = "";
+
+    /**
+     * Constructor for the Renderer class, initializes OpenGL and sets up render
+     * event handlers.
+     */
     public Renderer(World world) {
         this.world = world;
 
@@ -224,6 +225,7 @@ public class Renderer {
     }
 
     public void setFocusObject(String name) {
+        currentFocusedObject = name;
         fixedCameraController.setFocusObject(name);
     }
 
@@ -252,7 +254,12 @@ public class Renderer {
     public void setWorld(World world) {
         this.world = world;
         fixedCameraController = new FixedCameraController(this.world, controlManager);
-        setFocusObject(world.getName());
+        if(currentFocusedObject.isEmpty() || !world.getBodyObjects().containsKey(currentFocusedObject)) {
+            setFocusObject(world.getName());
+        } else {
+            setFocusObject(currentFocusedObject);
+        }
+
         viewport.getGLCanvas().setVisible(true);
 
         initOpenGLRenderEventHandlers();

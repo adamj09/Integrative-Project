@@ -152,10 +152,12 @@ public class BottomPane extends VBox {
         resetButton = new Button("RESET");
         resetButton.getStyleClass().add("reset-button");
         resetButton.setOnAction(e -> {
-            running = false;
+            running = true;
             applyPresetState(new BottomPanePreset("", "1x", false));
             pool.stopWorld();
             pool.resetWorld();
+            pool.runWorld(pool.getCurrentWorld().getName());
+            updateButtonStates();
         });
 
         updateButtonStates();

@@ -24,7 +24,7 @@ import project.Renderer.Mesh.SphereGenerator;
  * 
  * @author Adam Johnston
  */
-public class World implements Cloneable {
+public class World {
     /**
      * The central celestial body of the world.
      */
@@ -74,7 +74,7 @@ public class World implements Cloneable {
      * The scale factor for converting astronomical units (AU) to renderer units.
      * I.e. 1 AU is equal to this many renderer units.
      */
-    private transient final float UNIT_SCALE = 10_000.f;
+    private final float UNIT_SCALE = 10_000.f;
 
     /**
      * Meshes for rendering the bodies and orbits.
