@@ -1,7 +1,6 @@
 package project.Math;
 
 import org.joml.Vector3d;
-import org.joml.Vector3f;
 
 public class Satellite implements Runnable {
     private final SatelliteData data;

@@ -75,7 +75,7 @@ public class SatelliteCreatorPopup extends Stage {
             CL_SPEED = 4, CL_ROTI = 5, CL_ROTL = 6, CL_ROTW = 7;
     private final boolean[] orbLocks = new boolean[7];
     private final boolean[] cartLocks = new boolean[8];
-    private static int satCounter = 0;
+    public static int satCounter = 0;
     private final boolean[] cartColorLock = { false };
     private final boolean[] orbColorLock = { false };
 

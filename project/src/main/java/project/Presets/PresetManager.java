@@ -15,11 +15,8 @@ import project.Presets.PresetConfiguration.BodyPreset;
 import project.Presets.PresetConfiguration.SatellitePreset;
 import project.Presets.WorldConfiguration.BodyConfig;
 import project.Renderer.World.World;
-import project.Presets.WorldConfiguration;
 import project.UI.Popups.UnsavedChangesPopup;
 import project.UI.Popups.WarningPopup;
-import project.App;
-import project.SimulationPool;
 import project.Math.Body;
 import project.UI.SidebarPane;
 
