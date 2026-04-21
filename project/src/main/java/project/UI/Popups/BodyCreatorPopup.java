@@ -329,11 +329,23 @@ public class BodyCreatorPopup extends Stage {
     }
 
     public double getBodyMass() {
-        return Double.parseDouble(massField.getText());
+        try {
+            return Double.parseDouble(massField.getText());
+        } catch (NumberFormatException ex) {
+            return Constant.EARTH_DEFAULT_MASS;
+        }
     }
 
     public double getBodyRadius() {
-        return Double.parseDouble(radiusField.getText());
+        if(radiusField.getText().isEmpty()) {
+            return Constant.EARTH_DEFAULT_RADIUS;
+        }
+
+        try {
+            return Double.parseDouble(radiusField.getText());
+        } catch (NumberFormatException ex) {
+            return Constant.EARTH_DEFAULT_RADIUS;
+        }
     }
 
     public Color getBodyColor() {

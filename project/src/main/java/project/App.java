@@ -148,7 +148,7 @@ public class App extends Application {
         Timeline updateLoop = new Timeline();
         updateLoop.setCycleCount(Timeline.INDEFINITE);
 
-        KeyFrame frame = new KeyFrame(Duration.seconds(1), // Enter the target frame time here.
+        KeyFrame frame = new KeyFrame(Duration.seconds(0.5), // Enter the target frame time here.
                 _ -> {
                     if(pool.getCurrentWorld() != null) {
                         bottom.updateSatelliteData();
