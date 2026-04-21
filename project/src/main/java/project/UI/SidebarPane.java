@@ -349,7 +349,7 @@ public class SidebarPane extends VBox {
         Button viewDataButton = new Button("View Data");
         viewDataButton.getStyleClass().add("card-button-focus");
         viewDataButton.setOnAction(e -> {
-            bottom.selectSatelliteForView(name);
+            bottom.selectSatelliteForView(selectedBody, name);
         });
 
         focusButton.setOnAction(e -> {
@@ -401,6 +401,8 @@ public class SidebarPane extends VBox {
 
         VBox vbox = (VBox) contentArea.getChildren().get(1);
         vbox.getChildren().remove(satelliteCards.get(selectedBody).get(name));
+
+        bottom.selectSatelliteForView(selectedBody, "");
 
         pool.getCurrentWorld().removeSatellite(name);
     }

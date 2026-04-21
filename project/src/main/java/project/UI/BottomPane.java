@@ -13,9 +13,14 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import project.SimulationPool;
+import project.Math.Body;
+import project.Math.Satellite;
+import project.Math.SatelliteData;
 import project.Presets.PresetConfiguration.BottomPanePreset;
 
 public class BottomPane extends VBox {
+    private SimulationPool pool;
 
     private final TextField specificTimeField;
     private final ComboBox<String> timescaleDropdown;
@@ -27,20 +32,26 @@ public class BottomPane extends VBox {
     private final HBox dataGrid;
 
     // Live data view state
-    private String selectedSatellite = null;
-    private String comparedSatellite = null;
+    private String selectedSatellite = "";
+    private String worldName = "";
     private final List<String> satelliteColumnNames = new ArrayList<>();
     private final Label noDataLabel;
-    private final ComboBox<String> compareDropdown;
     private final HBox liveDataControls;
+    private GridPane grid;
 
     private static final String[][] FULL_NAMES = {
-        {"Distance",     "0.0 km",   "Speed",       "0.0 km/s"},
-        {"Altitude",     "0.0 km",   "Period",      "0.0 days"},
-        {"Eccentricity", "0.0",      "Inclination", "0.0 deg"},
+        {"Distance:",     "0.0 km",   "Speed:",       "0.0 km/s"},
+        {"Altitude:",     "0.0 km",   "Period:",      "0.0 days"},
+        {"Eccentricity:", "0.0",      "Inclination:", "0.0 deg"},
+        {"Longitude of Ascending Node:", "0.0 deg",      "Argument of Periapsis:", "0.0 deg"},
+        {"Total Energy:", "0.0 J",      "Kinetic Energy:", "0.0 J"},
+        {"Potential Energy:", "0.0 J",      "Angular Momentum:", "0.0 (kg * m^2) / s"},
+        {"Time since periapsis:", "0.0 days", "", "" },
     };
 
-    public BottomPane() {
+    public BottomPane(SimulationPool pool) {
+        this.pool = pool;
+
         getStyleClass().add("bottom-pane");
 
         Label infoLabel = new Label("Info :");
@@ -109,31 +120,7 @@ public class BottomPane extends VBox {
         Label liveLabel = new Label("Live data");
         liveLabel.getStyleClass().add("subheading");
 
-        compareDropdown = new ComboBox<>();
-        compareDropdown.setPromptText("Compare with...");
-        compareDropdown.getStyleClass().add("combo-box");
-        compareDropdown.setPrefWidth(150);
-        compareDropdown.setVisible(false);
-        compareDropdown.setManaged(false);
-        compareDropdown.setButtonCell(new javafx.scene.control.ListCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(item == null || empty ? "Compare with..." : item);
-            }
-        });
-
-        compareDropdown.setOnAction(e -> {
-            String chosen = compareDropdown.getValue();
-            if (chosen != null && !chosen.isEmpty() && selectedSatellite != null) {
-                comparedSatellite = chosen;
-                // Reset display back to prompt after selection
-                javafx.application.Platform.runLater(() -> compareDropdown.setValue(null));
-                refreshDataView();
-            }
-        });
-
-        liveDataControls = new HBox(8, liveLabel, compareDropdown);
+        liveDataControls = new HBox(8, liveLabel);
         liveDataControls.setAlignment(Pos.CENTER_LEFT);
         liveDataControls.setPadding(new Insets(0, 0, 4, 0));
 
@@ -155,7 +142,7 @@ public class BottomPane extends VBox {
         HBox headerRow = new HBox(header);
         headerRow.setAlignment(Pos.CENTER_LEFT);
 
-        GridPane grid = new GridPane();
+        grid = new GridPane();
         grid.setHgap(12);
         grid.setVgap(4);
         grid.setPadding(new Insets(6));
@@ -163,7 +150,7 @@ public class BottomPane extends VBox {
         for (int r = 0; r < FULL_NAMES.length; r++) {
             for (int c = 0; c < 4; c++) {
                 boolean isKey = c % 2 == 0;
-                Label lbl = new Label(FULL_NAMES[r][c] + (isKey ? ":" : ""));
+                Label lbl = new Label(FULL_NAMES[r][c]);
 
                 if (isKey) {
                     lbl.getStyleClass().add("key");
@@ -180,104 +167,13 @@ public class BottomPane extends VBox {
         VBox dataBox = new VBox(grid);
         dataBox.getStyleClass().add("data-box");
 
-        // Swap dropdown at the bottom of each column
-        ComboBox<String> swapDropdown = new ComboBox<>();
-        swapDropdown.setPromptText("Swap to...");
-        swapDropdown.getStyleClass().add("combo-box");
-        swapDropdown.setPrefWidth(150);
-
-        // Populate with all satellites except this column's satellite
-        for (String s : satelliteColumnNames) {
-            if (!s.equals(title)) {
-                swapDropdown.getItems().add(s);
-            }
-        }
-
-        swapDropdown.setOnAction(e -> {
-            String chosen = swapDropdown.getValue();
-            if (chosen == null || chosen.isEmpty()) return;
-
-            if (title.equals(selectedSatellite)) {
-                selectedSatellite = chosen;
-            } else if (title.equals(comparedSatellite)) {
-                comparedSatellite = chosen;
-            }
-            updateCompareDropdownItems();
-            if (comparedSatellite != null) {
-                compareDropdown.setValue(comparedSatellite);
-            }
-            refreshDataView();
-            rebuildSwapDropdowns();
-        });
-
-        HBox swapRow = new HBox(swapDropdown);
-        swapRow.setAlignment(Pos.CENTER_LEFT);
-        swapRow.setPadding(new Insets(4, 0, 0, 0));
-
-        VBox col = new VBox(4, headerRow, dataBox, swapRow);
+        VBox col = new VBox(4, headerRow, dataBox);
         col.setPadding(new Insets(5));
         col.getStyleClass().add("column-expanded");
         col.setFillWidth(true);
         HBox.setHgrow(col, Priority.ALWAYS);
 
         return col;
-    }
-
-    private void updateCompareDropdownItems() {
-        compareDropdown.getItems().clear();
-        for (String s : satelliteColumnNames) {
-            if (!s.equals(selectedSatellite)) {
-                compareDropdown.getItems().add(s);
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void rebuildSwapDropdowns() {
-        // Collect which satellites are currently shown
-        List<String> shown = new ArrayList<>();
-        if (selectedSatellite != null) shown.add(selectedSatellite);
-        if (comparedSatellite != null) shown.add(comparedSatellite);
-
-        for (int i = 2; i < dataGrid.getChildren().size(); i++) {
-            var node = dataGrid.getChildren().get(i);
-            if (node instanceof VBox col) {
-                String colName = getColumnName(col);
-                var lastChild = col.getChildren().get(col.getChildren().size() - 1);
-                if (lastChild instanceof HBox swapRow && !swapRow.getChildren().isEmpty()
-                        && swapRow.getChildren().get(0) instanceof ComboBox<?>) {
-                    ComboBox<String> dd = (ComboBox<String>) swapRow.getChildren().get(0);
-                    dd.getItems().clear();
-                    for (String s : satelliteColumnNames) {
-                        // Exclude this column's own satellite AND the other shown satellite
-                        if (!s.equals(colName) && !shown.contains(s)) {
-                            dd.getItems().add(s);
-                        }
-                    }
-                    dd.setValue(null);
-                }
-            }
-        }
-    }
-
-    private void refreshDataView() {
-        for (int i = 2; i < dataGrid.getChildren().size(); i++) {
-            var node = dataGrid.getChildren().get(i);
-            if (node instanceof VBox col) {
-                String colName = getColumnName(col);
-                if (colName != null) {
-                    boolean show;
-                    if (comparedSatellite != null) {
-                        show = colName.equals(selectedSatellite) || colName.equals(comparedSatellite);
-                    } else {
-                        show = colName.equals(selectedSatellite);
-                    }
-                    col.setVisible(show);
-                    col.setManaged(show);
-                }
-            }
-        }
-        rebuildSwapDropdowns();
     }
 
     private String getColumnName(VBox col) {
@@ -287,21 +183,6 @@ public class BottomPane extends VBox {
             return label.getText();
         }
         return null;
-    }
-
-    public void selectSatelliteForView(String name) {
-        selectedSatellite = name;
-        comparedSatellite = null;
-
-        updateCompareDropdownItems();
-        compareDropdown.setValue(null);
-        compareDropdown.setVisible(true);
-        compareDropdown.setManaged(true);
-
-        noDataLabel.setVisible(false);
-        noDataLabel.setManaged(false);
-
-        refreshDataView();
     }
 
     public void addSatelliteColumn(String title) {
@@ -317,11 +198,7 @@ public class BottomPane extends VBox {
             dataGrid.getChildren().remove(2, dataGrid.getChildren().size());
         }
         satelliteColumnNames.clear();
-        selectedSatellite = null;
-        comparedSatellite = null;
-        compareDropdown.getItems().clear();
-        compareDropdown.setVisible(false);
-        compareDropdown.setManaged(false);
+        selectedSatellite = "";
         noDataLabel.setVisible(true);
         noDataLabel.setManaged(true);
     }
@@ -345,31 +222,89 @@ public class BottomPane extends VBox {
         updateButtonStates();
     }
 
+    public void selectSatelliteForView(String worldName, String name) {
+        if(name.isEmpty()) {
+            noDataLabel.setVisible(true);
+            noDataLabel.setManaged(true);
+
+            dataGrid.getChildren().clear();
+            dataGrid.getChildren().addAll(liveDataControls, noDataLabel);
+            return;
+        }
+        selectedSatellite = name;
+
+        noDataLabel.setVisible(false);
+        noDataLabel.setManaged(false);
+    }
+
     public void removeSatelliteColumn(String title) {
         dataGrid.getChildren().removeIf(node -> {
             if (node instanceof VBox col) {
                 String colName = getColumnName(col);
                 if (title.equals(colName)) {
-                    if (title.equals(selectedSatellite)) selectedSatellite = null;
-                    if (title.equals(comparedSatellite)) comparedSatellite = null;
+                    if (title.equals(selectedSatellite)) selectedSatellite = "";
                     return true;
                 }
             }
             return false;
         });
         satelliteColumnNames.remove(title);
-        compareDropdown.getItems().remove(title);
 
-        if (selectedSatellite == null) {
+        if (selectedSatellite.isEmpty()) {
             noDataLabel.setVisible(true);
             noDataLabel.setManaged(true);
-            compareDropdown.setVisible(false);
-            compareDropdown.setManaged(false);
         }
     }
 
-    public void updateSatelliteData(int index, String[][] keyValuePairs) {
-        // TODO: implement live data updates once data layer exists
+    public void updateSatelliteData() {
+        if(selectedSatellite.isEmpty()) {
+            return;
+        }
+
+        Body body = pool.getCurrentWorld().getBody();
+
+        Satellite satellite = pool.getCurrentWorld().getBody().getSatellite(selectedSatellite);
+        if(satellite == null) {
+            return;
+        }
+
+        SatelliteData data = satellite.getData();
+
+        double distance = data.distance / 1000.d; // In km
+        double speed = data.speed / 1000.d; // In km/s
+        double altitude = distance - body.getRadius();
+        double period = data.period / 60 / 60 / 24; // In days
+
+        double eccentricity = data.eccentricity;
+        double inclination = Math.toDegrees(data.inclination);
+        double longitudeOfAscendingNode = Math.toDegrees(data.longitudeOfAscendingNode);
+        double argumentOfPeriapsis = Math.toDegrees(data.argumentOfPeriapsis);
+        double totalEnergy = data.totalEnergy;
+        double kineticEnergy = data.kineticEnergy;
+        double potentialEnergy = data.gravitationalPotentialEnergy;
+        double angularMomentum = data.angularMomentum;
+        double timeSincePeriapsis = data.timeSincePeriapsis / 60 / 60 / 24;
+
+        grid.getChildren().clear();
+
+        FULL_NAMES[0][1] = String.format("%.4f km", distance);
+        FULL_NAMES[0][3] = String.format("%.4f km/s", speed);
+        FULL_NAMES[1][1] = String.format("%.4f km", altitude);
+        FULL_NAMES[1][3] = String.format("%.4f days", period);
+        FULL_NAMES[2][1] = String.format("%.4f", eccentricity);
+        FULL_NAMES[2][3] = String.format("%.4f deg", inclination);
+        FULL_NAMES[3][1] = String.format("%.4f deg", longitudeOfAscendingNode);
+        FULL_NAMES[3][3] = String.format("%.4f deg", argumentOfPeriapsis);
+        FULL_NAMES[4][1] = String.format("%.4f J", totalEnergy);
+        FULL_NAMES[4][3] = String.format("%.4f J", kineticEnergy);
+        FULL_NAMES[5][1] = String.format("%.4f J", potentialEnergy);
+        FULL_NAMES[5][3] = String.format("%.4f (kg * m^2) / s", angularMomentum);
+        FULL_NAMES[6][1] = String.format("%.4f days", timeSincePeriapsis);
+
+        VBox col = makeSatelliteColumn(selectedSatellite);
+        col.setVisible(true);
+        col.setManaged(true);
+        dataGrid.getChildren().set(1, col);
     }
 
     private void updateButtonStates() {

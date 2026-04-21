@@ -1,7 +1,11 @@
 package project;
 
+import javafx.util.Duration;
+
 import java.util.prefs.Preferences;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -40,15 +44,15 @@ public class App extends Application {
 
         SimulationPool pool = new SimulationPool(mainRenderer);
 
-        BottomPane bottom = new BottomPane();
+        BottomPane bottom = new BottomPane(pool);
         MainMenuBar menuBar = new MainMenuBar();
         SidebarPane sidebar = new SidebarPane(bottom, pool);
-
 
         PresetManager presetManager = new PresetManager();
 
         // Wire menu bar buttons to sidebar actions
-        // TODO: perhaps these lambda functions should be instead methods moved in appropriate classes?
+        // TODO: perhaps these lambda functions should be instead methods moved in
+        // appropriate classes?
         // This is okay for now, but as we add functionality may get confusing later.
         menuBar.getNewBodyButton().setOnAction(e -> {
             sidebar.openNewBodyPopup(stage,
@@ -57,7 +61,8 @@ public class App extends Application {
                             : "");
         });
         menuBar.getNewSatelliteButton().setOnAction(e -> {
-            if (pool.getCurrentWorld() == null) return;
+            if (pool.getCurrentWorld() == null)
+                return;
 
             Body body = pool.getCurrentWorld().getBody();
             // TODO: this check for whether a body can actually have a satellite orbiting it
@@ -69,12 +74,13 @@ public class App extends Application {
                                 : "");
             }
         });
-        menuBar.getSaveAsMenuItem().setOnAction(e -> presetManager.savePresetAs(stage, pool.getCurrentWorld(), sidebar));
+        menuBar.getSaveAsMenuItem()
+                .setOnAction(e -> presetManager.savePresetAs(stage, pool.getCurrentWorld(), sidebar));
         menuBar.getSaveMenuItem().setOnAction(e -> presetManager.savePreset(stage, pool.getCurrentWorld(), sidebar));
-        menuBar.getLoadMenuItem().setOnAction(e -> { 
+        menuBar.getLoadMenuItem().setOnAction(e -> {
             World newWorld = presetManager.loadPreset(stage, sidebar);
 
-            if(newWorld == null) {
+            if (newWorld == null) {
                 return;
             }
 
@@ -137,6 +143,20 @@ public class App extends Application {
             }
         });
         stage.show();
+
+        // Update live data
+        Timeline updateLoop = new Timeline();
+        updateLoop.setCycleCount(Timeline.INDEFINITE);
+
+        KeyFrame frame = new KeyFrame(Duration.seconds(1), // Enter the target frame time here.
+                _ -> {
+                    if(pool.getCurrentWorld() != null) {
+                        bottom.updateSatelliteData();
+                    }
+                });
+
+        updateLoop.getKeyFrames().add(frame);
+        updateLoop.play();
     }
 
     /**
