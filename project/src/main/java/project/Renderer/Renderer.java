@@ -255,9 +255,6 @@ public class Renderer {
         setFocusObject(world.getName());
         viewport.getGLCanvas().setVisible(true);
 
-        // Re-initialize render systems with new world
-        // viewport.getGLCanvas().addOnInitEvent(_ -> refreshRenderSystems());
-
         initOpenGLRenderEventHandlers();
     }
 

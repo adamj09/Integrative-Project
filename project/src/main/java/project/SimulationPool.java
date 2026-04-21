@@ -13,6 +13,7 @@ public class SimulationPool {
     private Renderer renderer;
     private HashMap<String, World> worlds = new HashMap<>();
     private String currentWorld;
+    private String currentFocusObject;
 
     public SimulationPool(Renderer renderer) {
         this.currentWorld = "";
@@ -32,10 +33,6 @@ public class SimulationPool {
     }
 
     public void runWorld(String worldName) {
-        if(worldName == currentWorld) {
-            return;
-        }
-
         if (!worlds.containsKey(worldName)) {
             return;
         }
@@ -51,8 +48,10 @@ public class SimulationPool {
 
         renderer.setWorld(world);
 
-        // Initalize focus on the central body.
-        renderer.setFocusObject(worldName);
+        // Initalize focus on the central body for new world.
+        if(!worldName.equals(world)) {
+            renderer.setFocusObject(worldName);
+        }
 
         currentWorld = worldName;
     }
@@ -62,6 +61,19 @@ public class SimulationPool {
         if (!currentWorld.isEmpty()) {
             worlds.get(currentWorld).stopWorld();
         }
+    }
+
+    public void resetWorld() {
+        if (!currentWorld.isEmpty()) {
+            worlds.get(currentWorld).getBody().setTime(0);
+        }
+    }
+
+    public void setTimeScale(double timeScale) {
+        if(getCurrentWorld() == null) {
+            return;
+        }
+        getCurrentWorld().getBody().setTimeScale(timeScale);
     }
 
     public World getWorld(String name) {

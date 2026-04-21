@@ -74,6 +74,7 @@ public class SidebarPane extends VBox {
     public SidebarPane(BottomPane bottom, SimulationPool pool) {
         this.pool = pool;
         this.bottom = bottom;
+        
         setPrefWidth(300);
         setMinWidth(250);
         getStyleClass().add("side-pane");

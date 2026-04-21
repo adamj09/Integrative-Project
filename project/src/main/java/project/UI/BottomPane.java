@@ -27,7 +27,7 @@ public class BottomPane extends VBox {
     private final Button startButton;
     private final Button stopButton;
     private final Button resetButton;
-    private boolean running = false;
+    private boolean running = true;
 
     private final HBox dataGrid;
 
@@ -40,13 +40,12 @@ public class BottomPane extends VBox {
     private GridPane grid;
 
     private static final String[][] FULL_NAMES = {
-        {"Distance:",     "0.0 km",   "Speed:",       "0.0 km/s"},
-        {"Altitude:",     "0.0 km",   "Period:",      "0.0 days"},
-        {"Eccentricity:", "0.0",      "Inclination:", "0.0 deg"},
-        {"Longitude of Ascending Node:", "0.0 deg",      "Argument of Periapsis:", "0.0 deg"},
-        {"Total Energy:", "0.0 J",      "Kinetic Energy:", "0.0 J"},
-        {"Potential Energy:", "0.0 J",      "Angular Momentum:", "0.0 (kg * m^2) / s"},
-        {"Time since periapsis:", "0.0 days", "", "" },
+            { "Distance:", "0.0 km", "Speed:", "0.0 km/s" },
+            { "Altitude:", "0.0 km", "Period:", "0.0 days" },
+            { "Eccentricity:", "0.0", "Inclination:", "0.0 deg" },
+            { "Longitude of Ascending Node:", "0.0 deg", "Argument of Periapsis:", "0.0 deg" },
+            { "Total Energy:", "0.0 J", "Kinetic Energy:", "0.0 J" },
+            { "Potential Energy:", "0.0 J", "Angular Momentum:", "0.0 (kg * m^2) / s" },
     };
 
     public BottomPane(SimulationPool pool) {
@@ -65,24 +64,81 @@ public class BottomPane extends VBox {
         specificTimeField.setPrefWidth(70);
         specificTimeField.getStyleClass().add("field");
 
+        specificTimeField.setOnAction(_ -> {
+            double timeScale;
+            try {
+                timeScale = Double.parseDouble(specificTimeField.getText());
+            } catch(NumberFormatException ex) {
+                return;
+            }
+            
+            if(timeScale <= 0) {
+                return;
+            }
+
+            pool.setTimeScale(timeScale);
+        });
+
         Label timescaleLabel = new Label("Time scale:");
         timescaleLabel.getStyleClass().add("body");
 
         timescaleDropdown = new ComboBox<>();
         timescaleDropdown.getItems().addAll(
-            "1x", "2x", "5x", "10x",
-            "100x", "1000x", "10000x", "100000x"
-        );
+                "1x", "2x", "5x", "10x",
+                "100x", "1,000x", "10,000x", "100,000x");
         timescaleDropdown.setValue("1x");
         timescaleDropdown.getStyleClass().add("combo-box");
         timescaleDropdown.setPrefWidth(90);
+
+        timescaleDropdown.setOnAction(_ -> {
+            double timeScale;
+            try {
+                timeScale = Double.parseDouble(specificTimeField.getText());
+                if(timeScale > 0) {
+                    return;
+                }
+            } catch(NumberFormatException ex) {}
+
+            switch (timescaleDropdown.getValue()) {
+                case "1x":
+                    pool.setTimeScale(1);
+                    break;
+                case "2x":
+                    pool.setTimeScale(2);
+                    break;
+                case "5x":
+                    pool.setTimeScale(5);
+                    break;
+                case "10x":
+                    pool.setTimeScale(10);
+                    break;
+                case "100x":
+                    pool.setTimeScale(100);
+                    break;
+                case "1,000x":
+                    pool.setTimeScale(1000);
+                    break;
+                case "10,000x":
+                    pool.setTimeScale(10_000);
+                    break;
+                case "100,000x":
+                    pool.setTimeScale(100_000);
+                    break;
+                default:
+                    pool.setTimeScale(1);
+                    break;
+            }
+        });
 
         startButton = new Button("START");
         startButton.getStyleClass().add("start-button");
         startButton.setOnAction(e -> {
             running = true;
             updateButtonStates();
-            System.out.println("Simulation started");
+
+            if(pool.getCurrentWorld() != null) {
+                pool.runWorld(pool.getCurrentWorld().getName());
+            }
         });
 
         stopButton = new Button("STOP");
@@ -90,7 +146,7 @@ public class BottomPane extends VBox {
         stopButton.setOnAction(e -> {
             running = false;
             updateButtonStates();
-            System.out.println("Simulation stopped");
+            pool.stopWorld();
         });
 
         resetButton = new Button("RESET");
@@ -98,16 +154,16 @@ public class BottomPane extends VBox {
         resetButton.setOnAction(e -> {
             running = false;
             applyPresetState(new BottomPanePreset("", "1x", false));
-            System.out.println("Simulation reset");
+            pool.stopWorld();
+            pool.resetWorld();
         });
 
         updateButtonStates();
 
         HBox controlsRow = new HBox(10,
-            infoLabel, timeLabel, specificTimeField,
-            timescaleLabel, timescaleDropdown,
-            startButton, stopButton, resetButton
-        );
+                infoLabel, timeLabel, specificTimeField,
+                timescaleLabel, timescaleDropdown,
+                startButton, stopButton, resetButton);
         controlsRow.setPadding(new Insets(6, 10, 6, 10));
         controlsRow.setAlignment(Pos.CENTER_LEFT);
 
@@ -223,7 +279,7 @@ public class BottomPane extends VBox {
     }
 
     public void selectSatelliteForView(String worldName, String name) {
-        if(name.isEmpty()) {
+        if (name.isEmpty()) {
             noDataLabel.setVisible(true);
             noDataLabel.setManaged(true);
 
@@ -242,7 +298,8 @@ public class BottomPane extends VBox {
             if (node instanceof VBox col) {
                 String colName = getColumnName(col);
                 if (title.equals(colName)) {
-                    if (title.equals(selectedSatellite)) selectedSatellite = "";
+                    if (title.equals(selectedSatellite))
+                        selectedSatellite = "";
                     return true;
                 }
             }
@@ -257,14 +314,14 @@ public class BottomPane extends VBox {
     }
 
     public void updateSatelliteData() {
-        if(selectedSatellite.isEmpty()) {
+        if (selectedSatellite.isEmpty()) {
             return;
         }
 
         Body body = pool.getCurrentWorld().getBody();
 
         Satellite satellite = pool.getCurrentWorld().getBody().getSatellite(selectedSatellite);
-        if(satellite == null) {
+        if (satellite == null) {
             return;
         }
 
@@ -283,7 +340,6 @@ public class BottomPane extends VBox {
         double kineticEnergy = data.kineticEnergy;
         double potentialEnergy = data.gravitationalPotentialEnergy;
         double angularMomentum = data.angularMomentum;
-        double timeSincePeriapsis = data.timeSincePeriapsis / 60 / 60 / 24;
 
         grid.getChildren().clear();
 
@@ -299,7 +355,6 @@ public class BottomPane extends VBox {
         FULL_NAMES[4][3] = String.format("%.4f J", kineticEnergy);
         FULL_NAMES[5][1] = String.format("%.4f J", potentialEnergy);
         FULL_NAMES[5][3] = String.format("%.4f (kg * m^2) / s", angularMomentum);
-        FULL_NAMES[6][1] = String.format("%.4f days", timeSincePeriapsis);
 
         VBox col = makeSatelliteColumn(selectedSatellite);
         col.setVisible(true);
@@ -310,5 +365,9 @@ public class BottomPane extends VBox {
     private void updateButtonStates() {
         startButton.setDisable(running);
         stopButton.setDisable(!running);
+    }
+
+    public void setWorldName(String worldName) {
+        this.worldName = worldName;
     }
 }
