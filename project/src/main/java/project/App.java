@@ -44,6 +44,9 @@ public class App extends Application {
         MainMenuBar menuBar = new MainMenuBar();
         SidebarPane sidebar = new SidebarPane(bottom, pool);
         PresetManager presetManager = new PresetManager();
+        
+        // Initialize with default Earth using proper preset system
+        PlanetPresets.loadEarth(pool, sidebar);
 
         // Wire menu bar buttons to sidebar actions
         menuBar.getNewBodyButton().setOnAction(e -> {

@@ -135,8 +135,6 @@ public class SidebarPane extends VBox {
         // switch between controller UI and simulation camera)
         this.setOnMouseClicked(_ -> this.requestFocus());
 
-        // Add a placeholder body so it's not empty
-        addBodyCard("Earth (default)", Color.RED, true, 5.972e24, 6371.0, true);
     }
 
     public void openNewBodyPopup(Stage owner, String themeStyle) {
