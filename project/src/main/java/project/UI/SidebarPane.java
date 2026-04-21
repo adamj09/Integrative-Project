@@ -113,8 +113,8 @@ public class SidebarPane extends VBox {
         satellitesTab.setOnAction(e -> {
             contentArea.getChildren().get(0).setVisible(false);
             contentArea.getChildren().get(1).setVisible(true);
-            setTabActive(satellitesTab);
             setTabInactive(celestialTab);
+            setTabActive(satellitesTab);
         });
 
         setTabActive(celestialTab);
@@ -209,19 +209,29 @@ public class SidebarPane extends VBox {
                 selectedBodyRadius = bodyProps[1];
                 selectedBodyColor = capturedColor;
 
-                if(!satelliteLists.containsKey(selectedBody)) {
-                    satelliteLists.put(selectedBody, new VBox());
+                VBox satelliteListBox = new VBox(4);
+                satelliteListBox.setPadding(new Insets(6));
+
+                ScrollPane satelliteScroll = new ScrollPane(satelliteListBox);
+                satelliteScroll.setFitToWidth(true);
+                satelliteScroll.getStyleClass().add("scroll");
+                VBox.setVgrow(satelliteScroll, Priority.ALWAYS);
+
+                VBox satelliteView = new VBox(satelliteScroll);
+                VBox.setVgrow(satelliteView, Priority.ALWAYS);
+
+                if (!satelliteLists.containsKey(selectedBody)) {
+                    satelliteLists.put(selectedBody, satelliteView);
                 }
 
                 contentArea.getChildren().set(1, satelliteLists.get(selectedBody));
-                celestialTab.fire();
 
+                celestialTab.fire();
 
                 pool.runWorld(name);
             }
         });
 
-        // New non-preset bodies start as unselected
         if (selectedBody.isEmpty() && !bodyEntries.isEmpty()) {
             // First selected body — auto-select it
             selectedBody = name;
@@ -237,39 +247,9 @@ public class SidebarPane extends VBox {
 
             celestialTab.fire();
 
-            contentArea.getChildren().set(1, satelliteLists.get(selectedBody));
-
             satelliteCounters.put(selectedBody, 0);
 
             pool.runWorld(name);
-        } else if (name.equals(selectedBody) && selectedBodyToggle != null) {
-            deselectBody(selectedBodyIndicator, selectedBodyToggle,
-                    selectedBodyFocus, selectedBodyCircle, selectedBodyName, selectedBodyCard);
-
-            // Select this body
-            selectedBody = name;
-
-            toggleButton.setText("Selected");
-            toggleButton.getStyleClass().set(0, "card-button-selected");
-            focusButton.setDisable(false);
-            circle.setOpacity(1.0);
-            nameLabel.setOpacity(1.0);
-            selectedBodyToggle = toggleButton;
-            selectedBodyCircle = circle;
-            selectedBodyName = nameLabel;
-            selectedBodyFocus = focusButton;
-            selectedBodyMass = bodyProps[0];
-            selectedBodyRadius = bodyProps[1];
-            selectedBodyColor = capturedColor;
-
-            createSatelliteList();
-
-            celestialTab.fire();
-
-            contentArea.getChildren().set(1, satelliteLists.get(selectedBody));
-
-            satelliteCounters.put(selectedBody, 0);
-
         } else if (!name.equals(selectedBody)) {
             // Additional bodies start deselected
             toggleButton.setText("Select");
@@ -278,9 +258,9 @@ public class SidebarPane extends VBox {
             circle.setOpacity(0.4);
             nameLabel.setOpacity(0.5);
 
-            celestialTab.fire();
-
             createSatelliteList();
+
+            celestialTab.fire();
 
             satelliteCounters.put(name, 0);
         }
@@ -326,7 +306,7 @@ public class SidebarPane extends VBox {
     }
 
     private void addSatelliteCard(String name, Color color, boolean startActive) {
-        if(!satelliteEntries.containsKey(selectedBody)) {
+        if (!satelliteEntries.containsKey(selectedBody)) {
             satelliteEntries.put(selectedBody, new HashMap<>());
         }
 
@@ -367,7 +347,7 @@ public class SidebarPane extends VBox {
         Button viewDataButton = new Button("View Data");
         viewDataButton.getStyleClass().add("card-button-focus");
         viewDataButton.setOnAction(e -> {
-                bottom.selectSatelliteForView(name);
+            bottom.selectSatelliteForView(name);
         });
 
         focusButton.setOnAction(e -> {
@@ -415,7 +395,7 @@ public class SidebarPane extends VBox {
         satelliteLists.get(selectedBody).getChildren().add(card);
 
         contentArea.getChildren().set(1, satelliteLists.get(selectedBody));
-        
+
         // Move to satellite tab upon creation
         satellitesTab.fire();
 
