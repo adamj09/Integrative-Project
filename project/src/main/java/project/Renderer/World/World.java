@@ -318,7 +318,6 @@ public class World implements Cloneable {
         addOrbit(satellite);
 
         bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
-        orbitMatrixBuffer = updateMatrixBuffer(orbits);
         colorsBuffer = updateColorBuffer(bodyObjects);
     }
 
@@ -589,7 +588,7 @@ public class World implements Cloneable {
                 if(!sat.initialiseSatelliteValuesAngles(body, satConfig.name,
                         satConfig.mass,
                         satConfig.altitude, satConfig.eccentricity, satConfig.trueAnomaly,
-                        satConfig.longitudeOfAscendingNode, satConfig.inclination, satConfig.argumentOfPeriapsis)) {
+                        Math.toDegrees(satConfig.longitudeOfAscendingNode), Math.toDegrees(satConfig.inclination), Math.toDegrees(satConfig.argumentOfPeriapsis))) {
                             System.err.println(sat.getLatestError());
                         }
 
@@ -602,14 +601,5 @@ public class World implements Cloneable {
                 addSatellite(sat, satColor);
             }
         }
-
-        bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
-        orbitMatrixBuffer = updateMatrixBuffer(orbits);
-        colorsBuffer = updateColorBuffer(bodyObjects);
-
-        // body.startTimeThread();
-        // body.startSatellites();
-        // body.start();
-        // body.resetTime();
     }
 }

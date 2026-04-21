@@ -74,6 +74,10 @@ public class App extends Application {
         menuBar.getLoadMenuItem().setOnAction(e -> { 
             World newWorld = presetManager.loadPreset(stage, sidebar);
 
+            if(newWorld == null) {
+                return;
+            }
+
             pool.addWorld(newWorld);
             pool.runWorld(newWorld.getName());
 

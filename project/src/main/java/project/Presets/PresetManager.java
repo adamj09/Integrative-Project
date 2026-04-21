@@ -83,19 +83,18 @@ public class PresetManager {
 
             World world = new World(body, bodyConfig.color);
 
-            for(Map.Entry<String, SatellitePreset> entry : sidebar.getSatelliteEntries(body.getName()).entrySet()) {
-                if(entry.getKey().equals(world.getName())) {
-                    UnsavedChangesPopup.confirm("A preset with this name is already loaded! Continue and overwrite the loaded preset's data with this one?");
+            if(sidebar.getBodyEntries().containsKey(body.getName())) {
+                if(!UnsavedChangesPopup.confirm("A preset with this name is already loaded! Continue and overwrite that preset's data with this one?")) {
+                    return null;
                 }
+
+                sidebar.removeBody(body.getName());
             }
         
             world.setPendingWorldConfiguration(configuration);
-                // This loads bodies, initializes renderer buffers and starts the simulation
+            // This loads bodies, initializes renderer buffers and starts the simulation
             world.applyPendingConfiguration();
                 
-                // Refresh renderer systems because world internals have been completely reset
-                //App.getRenderer().refreshRenderSystems();
-
             // Restore sidebar UI selection states AFTER world is initialized
             // This restores add/remove button states exactly as they were saved
             sidebar.applyWorldConfiguration(configuration);
@@ -125,6 +124,11 @@ public class PresetManager {
         // Capture sidebar state so UI customizations are preserved
         PresetConfiguration presetConfig = sidebar.toPresetConfiguration();
 
+        if(presetConfig == null) {
+            // World does not exist, cancel.
+            return;
+        }
+
         HashMap<String, Boolean> satelliteActiveStates = sidebar.getSatelliteActiveStates();
 
         BodyPreset body = presetConfig.getBody();
@@ -138,11 +142,11 @@ public class PresetManager {
         List<WorldConfiguration.SatelliteConfig> worldSatConfigs = configuration.getSatellites();
         List<WorldConfiguration.SatelliteConfig> allSatConfigs = new ArrayList<>();
 
-        for (int i = 0; i < sats.size(); i++) {
-            SatellitePreset sp = sats.get(i);
-            boolean active = i < satelliteActiveStates.size() && satelliteActiveStates.get(i);
-            sidebarSatellites.add(new WorldConfiguration.SidebarSatellite(
-                    sp.name(), colorToHex(sp.color()), active));
+        for (Map.Entry<String, SatellitePreset> entry : sats.entrySet()) {
+            SatellitePreset sp = entry.getValue();
+
+            boolean active = satelliteActiveStates.get(entry.getKey());
+            sidebarSatellites.add(new WorldConfiguration.SidebarSatellite(sp.name(), colorToHex(sp.color()), active));
 
             // Find matching satellite data from World simulation
             WorldConfiguration.SatelliteConfig matchingConfig = null;
@@ -229,7 +233,6 @@ public class PresetManager {
 
     private List<WorldConfiguration.SidebarBody> buildCurrentSidebarBodies(SidebarPane sidebar) {
         PresetConfiguration presetConfig = sidebar.toPresetConfiguration();
-        String selectedBody = sidebar.getSelectedBody();
 
         List<WorldConfiguration.SidebarBody> result = new ArrayList<>();
         BodyPreset body = presetConfig.getBody();

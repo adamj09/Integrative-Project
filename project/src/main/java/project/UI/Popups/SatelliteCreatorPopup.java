@@ -28,6 +28,7 @@ import project.Math.Satellite;
 import project.Math.SatelliteData;
 import project.Renderer.Renderer;
 import project.Renderer.World.World;
+import project.UI.SidebarPane;
 import project.SimulationPool;
 import project.StyleSheet;
 
@@ -39,6 +40,7 @@ public class SatelliteCreatorPopup extends Stage {
     private World previewWorld;
     private World currentWorld;
     private String satelliteName;
+    private SidebarPane sideBar;
 
     private TextField nameField;
     private TextField massField;
@@ -82,7 +84,8 @@ public class SatelliteCreatorPopup extends Stage {
     private boolean confirmed = false;
     private boolean orbitalElementsMode = true;
 
-    public SatelliteCreatorPopup(Stage owner, String themeStyle, SimulationPool pool) {
+    public SatelliteCreatorPopup(Stage owner, SidebarPane sidebar, String themeStyle, SimulationPool pool) {
+        this.sideBar = sidebar;
         this.currentWorld = pool.getCurrentWorld();
         this.bodyMass = currentWorld.getBody().getMass();
         this.bodyRadius = currentWorld.getBody().getRadius();

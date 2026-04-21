@@ -26,6 +26,7 @@ import project.Math.Body;
 import project.Math.Constant;
 import project.Renderer.Renderer;
 import project.Renderer.World.World;
+import project.UI.SidebarPane;
 
 public class BodyCreatorPopup extends Stage {
     private Renderer previewRenderer = new Renderer();
@@ -37,6 +38,7 @@ public class BodyCreatorPopup extends Stage {
     private ComboBox<String> colorDropdown;
     private boolean confirmed = false;
     private StackPane preview = new StackPane();
+    private SidebarPane sideBar;
 
     // Realistic planet/body randomiser ranges
     private static final double MASS_MIN = 1e23; // kg — small moon
@@ -50,7 +52,9 @@ public class BodyCreatorPopup extends Stage {
     private boolean radiusLocked = false;
     private static int bodyCounter = 0;
 
-    public BodyCreatorPopup(Stage owner, String themeStyle, SimulationPool pool) {
+    public BodyCreatorPopup(Stage owner, SidebarPane sideBar, String themeStyle, SimulationPool pool) {
+        this.sideBar = sideBar;
+
         initOwner(owner);
         initModality(Modality.APPLICATION_MODAL);
         setTitle("Create new celestial body");
@@ -154,16 +158,23 @@ public class BodyCreatorPopup extends Stage {
         createBtn.setOnAction(e -> {
             if (!validate(errorLabel))
                 return;
+
+            String nameFromField = nameField.getText().trim();
+            worldName = nameFromField.isEmpty() ? String.format("Body-%02d", ++bodyCounter) : nameFromField;
+
+            if(sideBar.getBodyEntries().containsKey(worldName)) {
+                if(!UnsavedChangesPopup.confirm("A body with this name is already exists! Continue and overwrite that body's data with this one?")) {
+                    return;
+                }
+                sideBar.removeBody(worldName);
+            }
+
             confirmed = true;
 
             // Create a world with this body.
             // TODO: add following parameters: semi-major axis and eccentricity.
 
-            String nameFromField = nameField.getText().trim();
-
-            worldName = nameFromField.isEmpty() ? String.format("Body-%02d", ++bodyCounter) : nameFromField;
             Color color = getBodyColor();
-
             pool.createWorld(worldName, new Body(worldName, getBodyMass(), getBodyRadius(),
                     Constant.EARTH_ORBIT_SEMIMAJOR_AXIS, Constant.EARTH_ORBIT_ECCENTRICITY), 
                 new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));

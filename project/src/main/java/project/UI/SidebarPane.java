@@ -34,6 +34,7 @@ public class SidebarPane extends VBox {
     private final Button satellitesTab;
 
     private final VBox bodyListBox;
+    private final HashMap<String, VBox> bodyCards = new HashMap<>();
     private final HashMap<String, VBox> satelliteLists = new HashMap<>();
     private final HashMap<String, Integer> satelliteCounters = new HashMap<>();
     private final ScrollPane bodyScroll;
@@ -128,17 +129,16 @@ public class SidebarPane extends VBox {
     }
 
     public void openNewBodyPopup(Stage owner, String themeStyle) {
-        BodyCreatorPopup popup = new BodyCreatorPopup(owner, themeStyle, pool);
+        BodyCreatorPopup popup = new BodyCreatorPopup(owner, this, themeStyle, pool);
         popup.showAndWait();
         if (popup.wasConfirmed()) {
             addBodyCard(popup.getBodyName(), popup.getBodyColor(), false,
                     popup.getBodyMass(), popup.getBodyRadius());
-
         }
     }
 
     public void openNewSatellitePopup(Stage owner, String themeStyle) {
-        SatelliteCreatorPopup popup = new SatelliteCreatorPopup(owner, themeStyle, pool);
+        SatelliteCreatorPopup popup = new SatelliteCreatorPopup(owner, this, themeStyle, pool);
         SatelliteCreatorPopup.satCounter = satelliteCounters.get(selectedBody);
         popup.showAndWait();
         if (popup.wasConfirmed()) {
@@ -232,7 +232,7 @@ public class SidebarPane extends VBox {
             }
         });
 
-        if (selectedBody.isEmpty() && !bodyEntries.isEmpty()) {
+        if (selectedBody.isEmpty()) {
             // First selected body — auto-select it
             selectedBody = name;
             selectedBodyToggle = toggleButton;
@@ -250,7 +250,7 @@ public class SidebarPane extends VBox {
             satelliteCounters.put(selectedBody, 0);
 
             pool.runWorld(name);
-        } else if (!name.equals(selectedBody)) {
+        } else {
             // Additional bodies start deselected
             toggleButton.setText("Select");
             toggleButton.getStyleClass().set(0, "card-button-select");
@@ -279,6 +279,7 @@ public class SidebarPane extends VBox {
         }
 
         bodyListBox.getChildren().add(card);
+        bodyCards.put(name, card);
 
         // Auto-focus if this card matches the name being restored
         if (focusedNameToRestore != null && focusedNameToRestore.equals(name) && name.equals(selectedBody)) {
@@ -355,7 +356,6 @@ public class SidebarPane extends VBox {
         });
 
         toggleButton.setOnAction(e -> {
-            VBox card = (VBox) toggleButton.getParent().getParent();
             if (active[0]) {
                 // Deactivate: remove from visualization
                 active[0] = false;
@@ -427,7 +427,16 @@ public class SidebarPane extends VBox {
     }
 
     public PresetConfiguration toPresetConfiguration() {
-        return new PresetConfiguration(bodyEntries.get(selectedBody), satelliteEntries.get(selectedBody),
+        if(selectedBody.isEmpty()) {
+            return null;
+        }
+
+        HashMap<String, SatellitePreset> entries = new HashMap<>();
+        if(satelliteEntries.containsKey(selectedBody)) {
+            entries = satelliteEntries.get(selectedBody);
+        }
+
+        return new PresetConfiguration(bodyEntries.get(selectedBody), entries,
                 bottom.toPresetState());
     }
 
@@ -523,5 +532,37 @@ public class SidebarPane extends VBox {
 
     public HashMap<String, SatellitePreset> getSatelliteEntries(String bodyName) {
         return satelliteEntries.get(bodyName);
+    }
+
+    public HashMap<String, BodyPreset> getBodyEntries() {
+        return bodyEntries;
+    }
+
+    public void removeBody(String bodyName) {
+        if(bodyName.equals(selectedBody)) {
+            selectedBody = "";
+
+            pool.stopWorld();
+        }
+
+        bodyEntries.remove(bodyName);
+        satelliteEntries.remove(bodyName);
+        satelliteCounters.remove(bodyName);
+        satelliteLists.remove(bodyName);
+
+        VBox satelliteListBox = new VBox(4);
+        satelliteListBox.setPadding(new Insets(6));
+
+        ScrollPane satelliteScroll = new ScrollPane(satelliteListBox);
+        satelliteScroll.setFitToWidth(true);
+        satelliteScroll.getStyleClass().add("scroll");
+        VBox.setVgrow(satelliteScroll, Priority.ALWAYS);
+
+        VBox satelliteView = new VBox(satelliteScroll);
+        VBox.setVgrow(satelliteView, Priority.ALWAYS);
+
+        contentArea.getChildren().set(1, satelliteView);
+
+        bodyListBox.getChildren().remove(bodyCards.get(bodyName));
     }
 }
