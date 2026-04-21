@@ -2,6 +2,8 @@ package project.Math;
 
 import org.joml.Vector3d;
 import org.joml.Vector3f;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class Satellite implements Runnable {
     private final SatelliteData data;
@@ -59,9 +61,11 @@ public class Satellite implements Runnable {
         }
 
         this.massOfBody = body.getMass();
-        this.getData().mass = massOfSatellite;
-        this.getData().initialPosition = new Vector3d(px * 1000, py * 1000, pz * 1000);
-        this.getData().initialVelocity = new Vector3d(vx, vy, vz);
+        this.updateData(data -> {
+            data.mass = massOfSatellite;
+            data.initialPosition = new Vector3d(px * 1000, py * 1000, pz * 1000);
+            data.initialVelocity = new Vector3d(vx, vy, vz);
+        });
 
         return this.initialiseSatelliteInfo(body);
     }
@@ -92,8 +96,10 @@ public class Satellite implements Runnable {
         }
 
         this.massOfBody = body.getMass();
-        this.getData().mass = massOfSatellite;
-        this.getData().altitude = altitude;
+        this.updateData(data -> {
+            data.mass = massOfSatellite;
+            data.altitude = altitude;
+        });
 
         if (0 >= ecentricity || ecentricity >= 1) {
             this.latestError = "eccentricity not supported " + ecentricity;
@@ -122,14 +128,14 @@ public class Satellite implements Runnable {
             latestError = "Satellite name is the same has the body's name. Not allowed";
             return false;
         } else {
-            this.getData().name = satName;
+            this.updateData(data -> data.name = satName);
             return true;
         }
     }
 
     // ---------------------------------------------------------------------------------------------------------------------------
-
-    public void setMassOfBody(double mass) {
+    //
+    public synchronized void setMassOfBody(double mass) {
         this.massOfBody = mass;
     }
 
@@ -137,24 +143,30 @@ public class Satellite implements Runnable {
      * @param time in secondes
      */
     public void setInitialTime(double time) {
-        this.data.time0 = time;
+        this.updateData(data -> data.time0 = time);
     }
 
     /**
      * @param time in seconds
      */
     public void setCurrentTime(double time) {
-        this.getData().currentTime = time;
+        this.updateData(data -> data.currentTime = time);
     }
 
-    public void setLatestError(String error) {
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
+    public synchronized void setLatestError(String error) {
         this.latestError = error;
     }
 
-    public String getLatestError() {
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
+    public synchronized String getLatestError() {
         return this.latestError;
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     public boolean initialiseSatelliteInfo(Body body) {
         return MathOrbits.getStaticInfo(body, this);
 
@@ -179,9 +191,11 @@ public class Satellite implements Runnable {
             double distance, double eccentricity, double trueAnomaly,
             double longitudeAscendingNode, double inclination, double argumentOfPeriapsis) {
 
-        this.data.name = satName;
-        this.data.mass = massOfSatellite;
         this.massOfBody = massOfBody;
+        this.updateData(data -> {
+            data.name = satName;
+            data.mass = massOfSatellite;
+        });
 
         if (eccentricity <= 0 || eccentricity >= 1) {
             this.setLatestError("Eccentricity must be between 0 and 1 (exclusive). Got: " + eccentricity);
@@ -234,43 +248,132 @@ public class Satellite implements Runnable {
         double vy_ECI = r21 * vx_PQW + r22 * vy_PQW;
         double vz_ECI = r31 * vx_PQW + r32 * vy_PQW;
 
-        this.data.initialPosition = new Vector3d(px_ECI, py_ECI, pz_ECI);
-        this.data.initialVelocity = new Vector3d(vx_ECI, vy_ECI, vz_ECI);
+        this.updateData(data -> {
+            data.initialPosition = new Vector3d(px_ECI, py_ECI, pz_ECI);
+            data.initialVelocity = new Vector3d(vx_ECI, vy_ECI, vz_ECI);
+        });
 
         return false;
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    /**
+     * Use only if need a lot of data feilds. Otherwise, use readData()!!!!!!.
+     * Returns a thread-safe copy of all satellite data fields.
+     * All Vector3d objects are deep-copied to prevent external modifications.
+     * 
+     * @return a complete copy of the satellite data.
+     */
     public synchronized SatelliteData getData() {
-        return this.data;
+        SatelliteData copy = new SatelliteData();
+        
+        // Copy primitive types and strings
+        copy.name = this.data.name;
+        copy.mass = this.data.mass;
+        copy.altitude = this.data.altitude;
+        copy.distance = this.data.distance;
+        copy.hillRadius = this.data.hillRadius;
+        copy.speed = this.data.speed;
+        copy.mu = this.data.mu;
+        copy.period = this.data.period;
+        copy.gravitationalPotentialEnergy = this.data.gravitationalPotentialEnergy;
+        copy.kineticEnergy = this.data.kineticEnergy;
+        copy.initialTotalEnergy = this.data.initialTotalEnergy;
+        copy.totalEnergy = this.data.totalEnergy;
+        copy.angularMomentum = this.data.angularMomentum;
+        copy.eccentricity = this.data.eccentricity;
+        copy.p = this.data.p;
+        copy.a = this.data.a;
+        copy.radiusOfPeriapsis = this.data.radiusOfPeriapsis;
+        copy.radiusOfApoapsis = this.data.radiusOfApoapsis;
+        copy.excessSpeed = this.data.excessSpeed;
+        copy.meanMotion = this.data.meanMotion;
+        copy.meanAnomaly = this.data.meanAnomaly;
+        copy.initialMeanAnomaly = this.data.initialMeanAnomaly;
+        copy.eccentricAnomaly = this.data.eccentricAnomaly;
+        copy.initialEccentricAnomaly = this.data.initialEccentricAnomaly;
+        copy.trueAnomaly = this.data.trueAnomaly;
+        copy.initialTrueAnomaly = this.data.initialTrueAnomaly;
+        copy.inclination = this.data.inclination;
+        copy.longitudeOfAscendingNode = this.data.longitudeOfAscendingNode;
+        copy.argumentOfPeriapsis = this.data.argumentOfPeriapsis;
+        copy.timeSincePeriapsis = this.data.timeSincePeriapsis;
+        copy.time0 = this.data.time0;
+        copy.currentTime = this.data.currentTime;
+        copy.lastTime = this.data.lastTime;
+        
+        // Deep copy Vector3d objects to prevent external modifications
+        copy.angularMomentumVect = this.data.angularMomentumVect != null ? new Vector3d(this.data.angularMomentumVect) : null;
+        copy.eccentricityVect = this.data.eccentricityVect != null ? new Vector3d(this.data.eccentricityVect) : null;
+        copy.initialVelocity = this.data.initialVelocity != null ? new Vector3d(this.data.initialVelocity) : null;
+        copy.currentVelocity = this.data.currentVelocity != null ? new Vector3d(this.data.currentVelocity) : null;
+        copy.initialPosition = this.data.initialPosition != null ? new Vector3d(this.data.initialPosition) : null;
+        copy.currentPosition = this.data.currentPosition != null ? new Vector3d(this.data.currentPosition) : null;
+        copy.lineOfNodesVect = this.data.lineOfNodesVect != null ? new Vector3d(this.data.lineOfNodesVect) : null;
+
+        return copy;
     }
 
+    /**
+     * Safely update satellite data within a synchronized block.
+     * Use this to avoid multiple lock acquisitions for batch updates.
+     * 
+     * @param updater function that modifies the data
+     */
+    public synchronized void updateData(Consumer<SatelliteData> updater) {
+        updater.accept(this.data);
+    }
+
+    /**
+     * Safely read satellite data and compute a result within a synchronized block.
+     * Prevents inconsistent reads across multiple fields.
+     * 
+     * @param reader function that reads from data and returns a result
+     * @return the result from the reader function
+     */
+    public synchronized <T> T readData(Function<SatelliteData, T> reader) {
+        return reader.apply(this.data);
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     public synchronized boolean getThreadState() {
         return this.simulationRunning;
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
+    public synchronized void setThreadState(boolean state) {
+        this.simulationRunning = state;
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
     @Override
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
-            if (!this.simulationRunning) {
-                this.simulationRunning = true;
+            
+            if (!this.getThreadState()) {
+                this.setThreadState(true);
             }
+        
             boolean res = MathOrbits.getRelativeInfo(this);
 
             if (!res) {
-                this.latestError = this.latestError + " Simulation stopped for this satellite.";
-                this.simulationRunning = false;
+                this.setLatestError(this.getLatestError() + " Simulation stopped for this satellite.");
+                this.setThreadState(false);
                 Thread.currentThread().interrupt();
             }
 
             try {
                 Thread.sleep(Constant.UPDATE_TIME);
             } catch (InterruptedException e) {
-                this.simulationRunning = false;
+                this.setThreadState(false);
                 Thread.currentThread().interrupt();
                 break;
             }
 
         }
-        this.simulationRunning = false;
+        this.setThreadState(false);
     }
 }
