@@ -181,9 +181,22 @@ public class SidebarPane extends VBox {
         // TODO: center camera on this body/satellite in renderer
     }
 
-    private void addBodyCard(String name, Color color, boolean isPreset, double mass, double radius, boolean selected) {
-        bodyNames.add(name);
-        BodyPreset entry = new BodyPreset(name, color, isPreset, mass, radius);
+    public void addBodyCard(String name, Color color, boolean isPreset, double mass, double radius, boolean selected) {
+        // Clear existing preset planets before adding new one
+        for (int i = bodyEntries.size() - 1; i >= 0; i--) {
+            if (bodyEntries.get(i).preset()) {
+                bodyNames.remove(i);
+                bodyEntries.remove(i);
+                bodySelectedStates.remove(i);
+                if (i < bodyListBox.getChildren().size()) {
+                    bodyListBox.getChildren().remove(i);
+                }
+            }
+        }
+        
+        String displayName = name + " (Preset)";
+        bodyNames.add(displayName);
+        BodyPreset entry = new BodyPreset(displayName, color, isPreset, mass, radius);
         bodyEntries.add(entry);
         final int bodyIndex = bodySelectedStates.size();
         bodySelectedStates.add(false);
@@ -197,7 +210,7 @@ public class SidebarPane extends VBox {
         // -- Top row: circle + name + active indicator + focus indicator --
         Circle circle = new Circle(22, color);
 
-        Label nameLabel = new Label(name);
+        Label nameLabel = new Label(displayName);
         nameLabel.getStyleClass().add("body");
 
         Region spacer = new Region();
