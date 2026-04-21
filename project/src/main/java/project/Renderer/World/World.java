@@ -592,10 +592,6 @@ public class World implements Cloneable {
                             System.err.println(sat.getLatestError());
                         }
 
-                // config.applyToSatelliteData(satConfig, sat.getData());
-                // sat.setMassOfBody(body.getMass());
-                // sat.initialiseSatelliteInfo(body);
-
                 // Use the EXACT same working logic that normally adds satellites
                 Vector3f satColor = satConfig.color != null ? satConfig.color : new Vector3f(1.f, 0.f, 0.f);
                 addSatellite(sat, satColor);
