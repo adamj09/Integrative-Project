@@ -74,6 +74,15 @@ public class App extends Application {
                                 : "");
             }
         });
+        menuBar.getMercuryPreset().setOnAction(e -> PlanetPresets.loadMercury(pool, sidebar));
+        menuBar.getVenusPreset().setOnAction(e -> PlanetPresets.loadVenus(pool, sidebar));
+        menuBar.getEarthPreset().setOnAction(e -> PlanetPresets.loadEarth(pool, sidebar));
+        menuBar.getMarsPreset().setOnAction(e -> PlanetPresets.loadMars(pool, sidebar));
+        menuBar.getJupiterPreset().setOnAction(e -> PlanetPresets.loadJupiter(pool, sidebar));
+        menuBar.getSaturnPreset().setOnAction(e -> PlanetPresets.loadSaturn(pool, sidebar));
+        menuBar.getUranusPreset().setOnAction(e -> PlanetPresets.loadUranus(pool, sidebar));
+        menuBar.getNeptunePreset().setOnAction(e -> PlanetPresets.loadNeptune(pool, sidebar));
+
         menuBar.getSaveAsMenuItem()
                 .setOnAction(e -> presetManager.savePresetAs(stage, pool.getCurrentWorld(), sidebar));
         menuBar.getSaveMenuItem().setOnAction(e -> presetManager.savePreset(stage, pool.getCurrentWorld(), sidebar));

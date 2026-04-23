@@ -1,6 +1,16 @@
 package project.Renderer;
 
-import static org.lwjgl.opengl.GL41.*;
+import static org.lwjgl.opengl.GL11.GL_CCW;
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
+import static org.lwjgl.opengl.GL11.glClear;
+import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11.glFrontFace;
+import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
+import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
 
 import project.ControlManager;
 import project.Renderer.Camera.CameraMatrixLoader;
@@ -68,6 +78,9 @@ public class Renderer {
 
     private String currentFocusedObject = "";
 
+    // Written from the UI thread, applied at the start of the next GL frame.
+    private volatile World pendingWorld = null;
+
     /**
      * Constructor for the Renderer class, initializes OpenGL and sets up render
      * event handlers.
@@ -87,6 +100,10 @@ public class Renderer {
         controlManager = new ControlManager(this.viewport.getGLCanvas());
 
         viewport.getGLCanvas().setVisible(false);
+
+        // Register once — calling this again in setWorld() would add duplicate
+        // listeners and cause ConcurrentModificationException on the GL thread.
+        initOpenGLRenderEventHandlers();
     }
 
     /**
@@ -104,7 +121,34 @@ public class Renderer {
      * depth testing, loading the world, creating camera controllers, creating
      * shader programs, and creating render systems.
      */
+    private void applyPendingWorld() {
+        this.world = pendingWorld;
+        pendingWorld = null;
+
+        fixedCameraController = new FixedCameraController(this.world, controlManager);
+        if (currentFocusedObject.isEmpty() || !world.getBodyObjects().containsKey(currentFocusedObject)) {
+            setFocusObject(world.getName());
+        } else {
+            setFocusObject(currentFocusedObject);
+        }
+
+        world.getBodyMesh().setUpBuffers();
+        world.getOrbitMesh().setUpBuffers();
+        world.getLightSourceMesh().setUpBuffers();
+
+        if (bodyShaderProgram != null) {
+            bodyRenderSystem = new BodyRenderSystem(world, bodyShaderProgram);
+            lightRenderSystem = new LightRenderSystem(world, lightShaderProgram);
+            orbitRenderSystem = new OrbitRenderSystem(world, orbitShaderProgram);
+            cameraMatrixLoader = new CameraMatrixLoader(world.getCamera());
+            setCameraProjection();
+        }
+    }
+
     private void init() {
+        if (pendingWorld != null) applyPendingWorld();
+        if (world == null) return;
+
         world.getBodyMesh().setUpBuffers();
         world.getOrbitMesh().setUpBuffers();
         world.getLightSourceMesh().setUpBuffers();
@@ -134,6 +178,9 @@ public class Renderer {
      * @param deltaTime The time elapsed since the last frame.
      */
     private void loop(double deltaTime) {
+        if (pendingWorld != null) applyPendingWorld();
+        if (world == null) return;
+
         glClearColor(0.f, 0.f, 0.f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -153,6 +200,8 @@ public class Renderer {
     }
 
     private void dispose() {
+        if (world == null) return;
+
         bodyRenderSystem.dispose();
         lightRenderSystem.dispose();
         orbitRenderSystem.dispose();
@@ -176,6 +225,8 @@ public class Renderer {
      * Sets the camera's projection matrix based on the current viewport dimensions.
      */
     private void setCameraProjection() {
+        if (world == null) return;
+
         world.getCamera().setPerspectiveProjection((float) Math.toRadians(DEFAULT_FOV),
                 (float) viewport.getGLCanvas().getWidth() / (float) viewport.getGLCanvas().getHeight(), DEFAULT_NEAR,
                 DEFAULT_FAR);
@@ -226,7 +277,9 @@ public class Renderer {
 
     public void setFocusObject(String name) {
         currentFocusedObject = name;
-        fixedCameraController.setFocusObject(name);
+        if (fixedCameraController != null) {
+            fixedCameraController.setFocusObject(name);
+        }
     }
 
     /**
@@ -252,17 +305,10 @@ public class Renderer {
     }
 
     public void setWorld(World world) {
-        this.world = world;
-        fixedCameraController = new FixedCameraController(this.world, controlManager);
-        if(currentFocusedObject.isEmpty() || !world.getBodyObjects().containsKey(currentFocusedObject)) {
-            setFocusObject(world.getName());
-        } else {
-            setFocusObject(currentFocusedObject);
-        }
-
+        // Queue the switch — the GL thread applies it at the start of the next frame,
+        // avoiding modification of the listener list from the UI thread.
+        this.pendingWorld = world;
         viewport.getGLCanvas().setVisible(true);
-
-        initOpenGLRenderEventHandlers();
     }
 
     /**

@@ -46,6 +46,7 @@ public class SidebarPane extends VBox {
     private final BottomPane bottom;
 
     // Track entries so we can wire delete/visualize
+    private final HashMap<String, Button> bodyToggleButtons = new HashMap<>();
     private final HashMap<String, BodyPreset> bodyEntries = new HashMap<>();
     private final HashMap<String, HashMap<String, SatellitePreset>> satelliteEntries = new HashMap<>();
     private final HashMap<String, Boolean> satelliteActiveStates = new HashMap<>();
@@ -323,6 +324,7 @@ public class SidebarPane extends VBox {
 
         bodyListBox.getChildren().add(card);
         bodyCards.put(name, card);
+        bodyToggleButtons.put(name, toggleButton);
 
         // Auto-focus if this card matches the name being restored
         if (focusedNameToRestore != null && focusedNameToRestore.equals(name) && name.equals(selectedBody)) {
@@ -472,6 +474,11 @@ public class SidebarPane extends VBox {
 
         return new PresetConfiguration(bodyEntries.get(selectedBody), entries,
                 bottom.toPresetState());
+    }
+
+    public void selectBody(String name) {
+        Button toggle = bodyToggleButtons.get(name);
+        if (toggle != null) toggle.fire();
     }
 
     public void applyPresetConfiguration(PresetConfiguration configuration) {
