@@ -13,14 +13,11 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import project.SimulationPool;
@@ -29,6 +26,7 @@ import project.Math.Body;
 import project.Math.Constant;
 import project.Renderer.Renderer;
 import project.Renderer.World.World;
+import project.UI.SidebarPane;
 
 public class BodyCreatorPopup extends Stage {
     private Renderer previewRenderer = new Renderer();
@@ -40,6 +38,7 @@ public class BodyCreatorPopup extends Stage {
     private ComboBox<String> colorDropdown;
     private boolean confirmed = false;
     private StackPane preview = new StackPane();
+    private SidebarPane sideBar;
 
     // Realistic planet/body randomiser ranges
     private static final double MASS_MIN = 1e23; // kg — small moon
@@ -51,9 +50,10 @@ public class BodyCreatorPopup extends Stage {
 
     private boolean massLocked = false;
     private boolean radiusLocked = false;
-    private static int bodyCounter = 0;
 
-    public BodyCreatorPopup(Stage owner, String themeStyle, SimulationPool pool) {
+    public BodyCreatorPopup(Stage owner, SidebarPane sideBar, String themeStyle, SimulationPool pool) {
+        this.sideBar = sideBar;
+
         initOwner(owner);
         initModality(Modality.APPLICATION_MODAL);
         setTitle("Create new celestial body");
@@ -66,7 +66,7 @@ public class BodyCreatorPopup extends Stage {
         scaleLabel.getStyleClass().add("key");
 
         // --- Form fields ---
-        nameField = entryField(String.format("Body-%02d", bodyCounter + 1));
+        nameField = entryField("Body Name");
         massField = entryField("e.g. 5.972e24");
         radiusField = entryField("e.g. 6.371e6");
 
@@ -157,21 +157,29 @@ public class BodyCreatorPopup extends Stage {
         createBtn.setOnAction(e -> {
             if (!validate(errorLabel))
                 return;
+
+            worldName = nameField.getText().trim();
+            if(worldName.isEmpty()) {
+                errorLabel.setText("You must provide a name for the celestial body!");
+                return;
+            }
+
+            if(sideBar.getBodyEntries().containsKey(worldName)) {
+                if(!UnsavedChangesPopup.confirm("A body with this name is already exists! Continue and overwrite that body's data with this one?")) {
+                    return;
+                }
+                sideBar.removeBody(worldName);
+            }
+
             confirmed = true;
 
             // Create a world with this body.
             // TODO: add following parameters: semi-major axis and eccentricity.
 
-            String nameFromField = nameField.getText().trim();
-
-            worldName = nameFromField.isEmpty() ? String.format("Body-%02d", ++bodyCounter) : nameFromField;
             Color color = getBodyColor();
-
             pool.createWorld(worldName, new Body(worldName, getBodyMass(), getBodyRadius(),
                     Constant.EARTH_ORBIT_SEMIMAJOR_AXIS, Constant.EARTH_ORBIT_ECCENTRICITY), 
                 new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
-
-            pool.runWorld(worldName);
 
             previewRenderer.getViewport().dispose();
             close();
@@ -321,11 +329,23 @@ public class BodyCreatorPopup extends Stage {
     }
 
     public double getBodyMass() {
-        return Double.parseDouble(massField.getText());
+        try {
+            return Double.parseDouble(massField.getText());
+        } catch (NumberFormatException ex) {
+            return Constant.EARTH_DEFAULT_MASS;
+        }
     }
 
     public double getBodyRadius() {
-        return Double.parseDouble(radiusField.getText());
+        if(radiusField.getText().isEmpty()) {
+            return Constant.EARTH_DEFAULT_RADIUS;
+        }
+
+        try {
+            return Double.parseDouble(radiusField.getText());
+        } catch (NumberFormatException ex) {
+            return Constant.EARTH_DEFAULT_RADIUS;
+        }
     }
 
     public Color getBodyColor() {

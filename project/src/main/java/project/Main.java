@@ -16,8 +16,8 @@ import project.Math.SatelliteData;
  */
 public class Main {
     public static void main(String[] args) {
-        //App.main(args);
-        testSatelliteCalculation();
+        App.main(args);
+        //testSatelliteCalculation();
 
     }
 

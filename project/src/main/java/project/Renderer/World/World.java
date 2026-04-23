@@ -24,7 +24,7 @@ import project.Renderer.Mesh.SphereGenerator;
  * 
  * @author Adam Johnston
  */
-public class World implements Cloneable {
+public class World {
     /**
      * The central celestial body of the world.
      */
@@ -74,7 +74,7 @@ public class World implements Cloneable {
      * The scale factor for converting astronomical units (AU) to renderer units.
      * I.e. 1 AU is equal to this many renderer units.
      */
-    private transient final float UNIT_SCALE = 10_000.f;
+    private final float UNIT_SCALE = 10_000.f;
 
     /**
      * Meshes for rendering the bodies and orbits.
@@ -318,7 +318,6 @@ public class World implements Cloneable {
         addOrbit(satellite);
 
         bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
-        orbitMatrixBuffer = updateMatrixBuffer(orbits);
         colorsBuffer = updateColorBuffer(bodyObjects);
     }
 
@@ -589,27 +588,14 @@ public class World implements Cloneable {
                 if(!sat.initialiseSatelliteValuesAngles(body, satConfig.name,
                         satConfig.mass,
                         satConfig.altitude, satConfig.eccentricity, satConfig.trueAnomaly,
-                        satConfig.longitudeOfAscendingNode, satConfig.inclination, satConfig.argumentOfPeriapsis)) {
+                        Math.toDegrees(satConfig.longitudeOfAscendingNode), Math.toDegrees(satConfig.inclination), Math.toDegrees(satConfig.argumentOfPeriapsis))) {
                             System.err.println(sat.getLatestError());
                         }
-
-                // config.applyToSatelliteData(satConfig, sat.getData());
-                // sat.setMassOfBody(body.getMass());
-                // sat.initialiseSatelliteInfo(body);
 
                 // Use the EXACT same working logic that normally adds satellites
                 Vector3f satColor = satConfig.color != null ? satConfig.color : new Vector3f(1.f, 0.f, 0.f);
                 addSatellite(sat, satColor);
             }
         }
-
-        bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
-        orbitMatrixBuffer = updateMatrixBuffer(orbits);
-        colorsBuffer = updateColorBuffer(bodyObjects);
-
-        // body.startTimeThread();
-        // body.startSatellites();
-        // body.start();
-        // body.resetTime();
     }
 }
