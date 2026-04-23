@@ -9,10 +9,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import project.SimulationPool;
 import project.Math.Body;
 import project.Math.Satellite;
@@ -30,6 +32,8 @@ public class BottomPane extends VBox {
     private boolean running = true;
 
     private final HBox dataGrid;
+
+    private final TextField timeValueField;
 
     // Live data view state
     private String selectedSatellite = "";
@@ -156,18 +160,34 @@ public class BottomPane extends VBox {
             applyPresetState(new BottomPanePreset("", "1x", false));
             pool.stopWorld();
             pool.resetWorld();
-            pool.runWorld(pool.getCurrentWorld().getName());
+            // removed because should not automatically start after reset, user should click start
+            //pool.runWorld(pool.getCurrentWorld().getName()); 
             updateButtonStates();
         });
 
         updateButtonStates();
 
+        Label timeValueLabel = new Label("Simulation time (minutes):");
+        timeValueLabel.getStyleClass().add("body");
+        timeValueField = new TextField();
+        timeValueField.getStyleClass().add("field");
+        timeValueField.setText("0.0");
+        timeValueField.setPrefWidth(100);
+
+        HBox timeValueBox = new HBox(4, timeValueLabel, timeValueField);
+        timeValueBox.setPadding(new Insets(6, 10, 6, 10));
+        timeValueBox.setAlignment(Pos.CENTER_LEFT);
+
         HBox controlsRow = new HBox(10,
                 infoLabel, timeLabel, specificTimeField,
                 timescaleLabel, timescaleDropdown,
-                startButton, stopButton, resetButton);
+                startButton, stopButton, resetButton); 
         controlsRow.setPadding(new Insets(6, 10, 6, 10));
         controlsRow.setAlignment(Pos.CENTER_LEFT);
+
+        BorderPane borderPane = new BorderPane();
+        borderPane.setLeft(controlsRow);
+        borderPane.setRight(timeValueBox);
 
         dataGrid = new HBox(6);
         dataGrid.setPadding(new Insets(6));
@@ -190,7 +210,7 @@ public class BottomPane extends VBox {
 
         this.setOnMouseClicked(_ -> this.requestFocus());
 
-        getChildren().addAll(controlsRow, dataGrid);
+        getChildren().addAll(borderPane, dataGrid);
     }
 
     private VBox makeSatelliteColumn(String title) {
@@ -316,11 +336,14 @@ public class BottomPane extends VBox {
     }
 
     public void updateSatelliteData() {
+        //set time simulation
+        Body body = pool.getCurrentWorld().getBody();
+        double timeMinutes = (body.getTimeSeconds()/60.0);
+        timeValueField.setText(String.format("%.4f", timeMinutes));
+
         if (selectedSatellite.isEmpty()) {
             return;
         }
-
-        Body body = pool.getCurrentWorld().getBody();
 
         Satellite satellite = pool.getCurrentWorld().getBody().getSatellite(selectedSatellite);
         if (satellite == null) {

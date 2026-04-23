@@ -60,7 +60,7 @@ public class SimulationPool {
 
     public void resetWorld() {
         if (!currentWorld.isEmpty()) {
-            worlds.get(currentWorld).getBody().setTime(0);
+            worlds.get(currentWorld).getBody().resetTime();
         }
     }
 
