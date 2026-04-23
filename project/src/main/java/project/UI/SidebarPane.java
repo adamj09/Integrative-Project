@@ -147,7 +147,48 @@ public class SidebarPane extends VBox {
         }
     }
 
-    private void addBodyCard(String name, Color color, boolean isPreset, double mass, double radius) {
+    public void selectBody(String name) {
+        if (selectedBodyToggle != null) {
+            deselectBody(selectedBodyIndicator, selectedBodyToggle,
+                    selectedBodyFocus, selectedBodyCircle, selectedBodyName, selectedBodyCard);
+        }
+
+        VBox card = bodyCards.get(name);
+        if (card == null) return;
+
+        HBox buttonRow = (HBox) card.getChildren().get(1);
+        Button toggleButton = (Button) buttonRow.getChildren().get(0);
+        Button focusButton = (Button) buttonRow.getChildren().get(1);
+        HBox topRow = (HBox) card.getChildren().get(0);
+        Circle circle = (Circle) topRow.getChildren().get(0);
+        Label nameLabel = (Label) topRow.getChildren().get(1);
+
+        selectedBody = name;
+        toggleButton.setText("Selected");
+        toggleButton.getStyleClass().set(0, "card-button-selected");
+        focusButton.setDisable(false);
+        circle.setOpacity(1.0);
+        nameLabel.setOpacity(1.0);
+
+        selectedBodyToggle = toggleButton;
+        selectedBodyCircle = circle;
+        selectedBodyName = nameLabel;
+        selectedBodyFocus = focusButton;
+        selectedBodyCard = card;
+
+        if (!satelliteLists.containsKey(selectedBody)) {
+            createSatelliteList(selectedBody);
+            satelliteCards.put(selectedBody, new HashMap<>());
+        }
+
+        contentArea.getChildren().set(1, satelliteLists.get(selectedBody));
+
+        celestialTab.fire();
+
+        pool.runWorld(name);
+    }
+
+    public void addBodyCard(String name, Color color, boolean isPreset, double mass, double radius) {
         bodyEntries.put(name, new BodyPreset(name, color, isPreset, mass, radius));
 
         final double[] bodyProps = { mass, radius };
