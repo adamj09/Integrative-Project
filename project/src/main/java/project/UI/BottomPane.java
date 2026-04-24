@@ -29,7 +29,7 @@ public class BottomPane extends VBox {
     private final Button startButton;
     private final Button stopButton;
     private final Button resetButton;
-    private boolean running = true;
+    private boolean running = true; //TODO fix this
 
     private final HBox dataGrid;
 
@@ -141,7 +141,8 @@ public class BottomPane extends VBox {
             updateButtonStates();
 
             if(pool.getCurrentWorld() != null) {
-                pool.runWorld(pool.getCurrentWorld().getName());
+                //pool.runWorld(pool.getCurrentWorld().getName());
+                pool.startWorld();
             }
         });
 
@@ -156,7 +157,7 @@ public class BottomPane extends VBox {
         resetButton = new Button("RESET");
         resetButton.getStyleClass().add("reset-button");
         resetButton.setOnAction(e -> {
-            running = true;
+            running = false;
             applyPresetState(new BottomPanePreset("", "1x", false));
             pool.stopWorld();
             pool.resetWorld();

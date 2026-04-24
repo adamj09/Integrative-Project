@@ -232,7 +232,9 @@ public class Body extends OrbitsTime {
     public void startSatellites() {
         for (Satellite sat : satellites.values()) {
             String satName = sat.getData().name;
+            
             if (!satelliteThreads.containsKey(satName) || !satelliteThreads.get(satName).isAlive()) {
+                System.out.println(satName+" thread started");
                 Thread thread = new Thread(sat);
                 satelliteThreads.put(satName, thread);
                 thread.start();

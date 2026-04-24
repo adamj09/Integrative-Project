@@ -417,12 +417,12 @@ public class World {
 
         body.start();
 
-        body.resetTime();
+        //body.resetTime();
     }
 
     public void stopWorld() {
         body.stop();
-        body.stopSatellites();
+        //body.stopSatellites();
         body.stopTimeThread();
     }
 
