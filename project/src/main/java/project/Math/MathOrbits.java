@@ -246,80 +246,114 @@ public class MathOrbits {
      * @param satellite
      */
     public static boolean getStaticInfo(Body celestialBody, Satellite satellite) {
-        SatelliteData data = satellite.getData();
 
-        Vector3d initialPosition = data.initialPosition;
-        Vector3d initialVelocity = data.initialVelocity;
+        Vector3d initialPosition = satellite.readData(data -> data.initialPosition);
+        Vector3d initialVelocity = satellite.readData(data -> data.initialVelocity);
 
         // Gravitational parameter of the central body.
-        data.mu = Constant.GRAVITATIONAL_CONSTANT * celestialBody.getMass();
-
+        double mu = Constant.GRAVITATIONAL_CONSTANT * celestialBody.getMass();
+        
         // Initialize energy.
-        data.kineticEnergy = kineticEnergy(initialVelocity);
-        data.gravitationalPotentialEnergy = gravitationalPotentialEnergy(data.mu, initialPosition);
-        data.initialTotalEnergy = data.kineticEnergy + data.gravitationalPotentialEnergy;
+        double kineticEnergy = kineticEnergy(initialVelocity);
+        double gravitationalPotentialEnergy = gravitationalPotentialEnergy(mu, initialPosition);
+        double initialTotalEnergy = kineticEnergy + gravitationalPotentialEnergy;
 
-        data.angularMomentumVect = angularMomentum(initialPosition, initialVelocity);
-        data.angularMomentum = data.angularMomentumVect.length();
+        // Angular momentum
+        Vector3d angularMomentumVect = angularMomentum(initialPosition, initialVelocity);
+        double angularMomentum = angularMomentumVect.length();
 
-        data.eccentricityVect = eccentricityVect(data.angularMomentumVect, initialVelocity, initialPosition, data.mu);
-        double ece = eccentricity(data.eccentricityVect);
+        // Eccentricity
+        Vector3d eccentricityVect = eccentricityVect(angularMomentumVect, initialVelocity, initialPosition, mu);
+        double eccentricity = eccentricity(eccentricityVect);
 
-        if (Double.isNaN(ece)) {
+        if (Double.isNaN(eccentricity)) {
             satellite.setLatestError(
                     "Eccentricity of the satellite is invalid. Need to be bigger than 0 and smaller than 1. Current value: "
-                            + data.eccentricityVect.length());
+                            + eccentricityVect.length());
             return false;
         }
 
-        data.eccentricity = ece;
+        // Batch update energy and angular momentum together
+        satellite.updateData(data -> {
+            data.mu = mu;
+            data.kineticEnergy = kineticEnergy;
+            data.gravitationalPotentialEnergy = gravitationalPotentialEnergy;
+            data.initialTotalEnergy = initialTotalEnergy;
+            data.angularMomentumVect = angularMomentumVect;
+            data.angularMomentum = angularMomentum;
+            data.eccentricityVect = eccentricityVect;
+            data.eccentricity = eccentricity;
+        });
 
-        data.hillRadius = hillRadius(celestialBody.getSemiMajorAxis() * 1000d, celestialBody.getEccentricity(),
-                celestialBody.getMass(), celestialBody.getMassOfSun());
+        //hill radius
+        celestialBody.updateHillRadius();
+        double hillRadius = celestialBody.getHillRadius() * 1000; // in meters
 
-        data.p = semiLatusRectum(data.angularMomentum, data.mu);
+        double p = semiLatusRectum(angularMomentum, mu);
 
         double radiusOfBody = celestialBody.getRadius(); // in km
-        double radiusOfPeriapsis = periapsis(data.p, data.eccentricity, radiusOfBody);
+        double radiusOfPeriapsis = periapsis(p, eccentricity, radiusOfBody);
         if (Double.isNaN(radiusOfPeriapsis)) {
             satellite.setLatestError(
                     "Radius of periapsis of the satellite is smaller than the minimum distance to the body." +
                             " Need to be bigger than: " + radiusOfBody + "km.");
             return false;
         }
-        data.radiusOfPeriapsis = radiusOfPeriapsis;
 
-        double radiusOfApoapsis = apoapsis(data.p, data.eccentricity, data.hillRadius);
+        double radiusOfApoapsis = apoapsis(p, eccentricity, hillRadius);
         if (Double.isNaN(radiusOfApoapsis)) {
             satellite.setLatestError(
                     "Radius of apoapsis of the satellite is larger than the hill radius. The orbit is unstable. Sun is intefering the orbit"
                             +
-                            " Need to be smaller than: " + (data.hillRadius / 1000) + "km.");
+                            " Need to be smaller than: " + (hillRadius / 1000) + "km.");
             return false;
         }
-        data.radiusOfApoapsis = radiusOfApoapsis;
 
-        data.a = semiMajorAxis(data.p, data.eccentricity);
+        // Semi major axis
+        double a = semiMajorAxis(p, eccentricity);
+        double period = period(a, mu);
+        double meanMotion = meanMotion(a, mu);
 
-        data.hillRadius = celestialBody.getHillRadius() * 1000;
+        Vector3d lineOfNodesVect = lineOfNodes(angularMomentumVect);
 
-        data.period = period(data.a, data.mu);
-        data.meanMotion = meanMotion(data.a, data.mu);
-
-        data.lineOfNodesVect = lineOfNodes(data.angularMomentumVect);
+        // Batch update orbital elements
+        satellite.updateData(data -> {
+            data.hillRadius = hillRadius;
+            data.p = p;
+            data.radiusOfPeriapsis = radiusOfPeriapsis;
+            data.radiusOfApoapsis = radiusOfApoapsis;
+            data.a = a;
+            data.period = period;
+            data.meanMotion = meanMotion;
+            data.lineOfNodesVect = lineOfNodesVect;
+        });
 
         // Anomalies
-        data.trueAnomaly = initialTrueAnomaly(initialPosition, initialVelocity, data.eccentricity, data.p);
-        data.eccentricAnomaly = initialEccentricAnomaly(data.eccentricity, data.trueAnomaly);
-        data.meanAnomaly = initialMeanAnomaly(data.eccentricAnomaly, data.eccentricity);
+        double trueAnomaly = initialTrueAnomaly(initialPosition, initialVelocity, eccentricity, p);
+        double eccentricAnomaly = initialEccentricAnomaly(eccentricity, trueAnomaly);
+        double meanAnomaly = initialMeanAnomaly(eccentricAnomaly, eccentricity);
 
-        data.distance = initialDistance(data.p, data.eccentricity, data.trueAnomaly);
+        double distance = initialDistance(p, eccentricity, trueAnomaly);
 
-        // speed
-        data.speed = speed(data.mu, data.distance, data.a);
+        double speed = speed(mu, distance, a);
+        double excessSpeed = excessSpeed(mu, distance);
 
-        // excess velocity
-        data.excessSpeed = excessSpeed(data.mu, data.distance);
+        // Batch update anomalies, distance, and speed together
+        satellite.updateData(data -> {
+            data.trueAnomaly = trueAnomaly;
+            data.eccentricAnomaly = eccentricAnomaly;
+            data.meanAnomaly = meanAnomaly;
+            data.initialTrueAnomaly = trueAnomaly;
+            data.initialEccentricAnomaly = eccentricAnomaly;
+            data.initialMeanAnomaly = meanAnomaly;
+            data.distance = distance;
+            data.speed = speed;
+            data.excessSpeed = excessSpeed;
+        });
+
+        //data.longitudeOfAscendingNode = longitudeOfAscendingNode(data.lineOfNodesVect);
+        //data.inclination = inclination(data.angularMomentumVect);
+        //data.argumentOfPeriapsis = argumentOfPeriapsis(data.lineOfNodesVect, data.eccentricityVect);
 
         return true;
     }
@@ -327,50 +361,72 @@ public class MathOrbits {
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     //
     public static boolean getRelativeInfo(Satellite satellite) {
-        SatelliteData data = satellite.getData();
-
-        double currentTime = data.currentTime;
-        double lastTime = data.lastTime;
+        
+        double currentTime = satellite.readData(data -> data.currentTime);
+        double lastTime = satellite.readData(data -> data.lastTime);
         if (currentTime == lastTime) {
             return true;
         }
 
+        double eccentricity = satellite.readData(data -> data.eccentricity);
+        double a = satellite.readData(data -> data.a);
+        double mu = satellite.readData(data -> data.mu);
+        double longitudeOfAscendingNode = satellite.readData(data -> data.longitudeOfAscendingNode);
+        double inclination = satellite.readData(data -> data.inclination);
+        double argumentOfPeriapsis = satellite.readData(data -> data.argumentOfPeriapsis);
+
+
         // mean anomaly at t2
-        double meanAnomaly = data.initialMeanAnomaly + (data.meanMotion * (data.currentTime - data.time0));
+        double meanAnomaly = satellite.readData(data -> data.initialMeanAnomaly) + (satellite.readData(data -> data.meanMotion) * (currentTime - satellite.readData(data -> data.time0)));
 
         // eccentric anomaly at t2
-        data.eccentricAnomaly = eccentricAnomaly(meanAnomaly, data.eccentricity);
-
+        double eccentricAnomaly = eccentricAnomaly(meanAnomaly, eccentricity);
+        
         // true anomaly at t2
-        data.trueAnomaly = trueAnomaly(data.eccentricity, data.eccentricAnomaly);
-
+        double trueAnomaly = trueAnomaly(eccentricity, eccentricAnomaly);
+        
         // distance
-        data.distance = distance(data.a, data.eccentricity, data.trueAnomaly);
-
-        // position in 3D space
-        data.currentPosition = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
-                data.argumentOfPeriapsis)
-                .transform(constructDistancePQWvect(data.distance, data.trueAnomaly));
+        double distance = distance(a, eccentricity, trueAnomaly);
+        
+        // Batch update anomalies and distance together to maintain consistency
+        satellite.updateData(data -> {
+            data.eccentricAnomaly = eccentricAnomaly;
+            data.trueAnomaly = trueAnomaly;
+            data.distance = distance;
+        });
+        Vector3d currentPosition = rotationPQWtoECI(longitudeOfAscendingNode, inclination,
+                argumentOfPeriapsis)
+                .transform(constructDistancePQWvect(distance, trueAnomaly));
 
         // speed
-        data.speed = speed(data.mu, data.distance, data.a);
+        double speed = speed(mu, distance, a);
 
         // velocity in 3D space
-        data.currentVelocity = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
-                data.argumentOfPeriapsis)
-                .transform(constructVelocityPQWvect(data.mu, data.p, data.eccentricity, data.trueAnomaly));
+        Vector3d currentVelocity = rotationPQWtoECI(longitudeOfAscendingNode, inclination,
+                argumentOfPeriapsis)
+                .transform(constructVelocityPQWvect(mu, satellite.readData(data -> data.p), eccentricity, trueAnomaly));
 
         // excessSpeed
-        data.excessSpeed = excessSpeed(data.mu, data.distance);
+        double excessSpeed = excessSpeed(mu, distance);
 
         // kinetic energy
-        data.kineticEnergy = kineticEnergy(data.currentVelocity);
+        double kineticEnergy = kineticEnergy(currentVelocity);
         // gravitational potential energy
-        data.gravitationalPotentialEnergy = gravitationalPotentialEnergy(data.mu, data.currentPosition);
+        double gravitationalPotentialEnergy = gravitationalPotentialEnergy(mu, currentPosition);
         // total energy
-        data.totalEnergy = data.kineticEnergy + data.gravitationalPotentialEnergy;
+        double totalEnergy = kineticEnergy + gravitationalPotentialEnergy;
 
-        data.lastTime = currentTime;
+        // Batch update position, velocity, and energy together for consistency
+        satellite.updateData(data -> {
+            data.currentPosition = currentPosition;
+            data.speed = speed;
+            data.currentVelocity = currentVelocity;
+            data.excessSpeed = excessSpeed;
+            data.kineticEnergy = kineticEnergy;
+            data.gravitationalPotentialEnergy = gravitationalPotentialEnergy;
+            data.totalEnergy = totalEnergy;
+            data.lastTime = currentTime;
+        });
 
         return true;
     }
@@ -381,23 +437,25 @@ public class MathOrbits {
             double distance, double eccentricity, double trueAnomaly,
             double longitudeAscendingNode, double inclination, double argumentOfPeriapsis) {
 
-        SatelliteData data = satellite.getData();
-
         double p = distance * (1 + eccentricity * Math.cos(trueAnomaly));
         double mu = Constant.GRAVITATIONAL_CONSTANT * massOfCelestialBody;
 
-        data.longitudeOfAscendingNode = Math.toRadians(longitudeAscendingNode);
-        data.inclination = Math.toRadians(inclination);
-        data.argumentOfPeriapsis = Math.toRadians(argumentOfPeriapsis);
+        double longitudeOfAscendingNodeRad = Math.toRadians(longitudeAscendingNode);
+        double inclinationRad = Math.toRadians(inclination);
+        double argumentOfPeriapsisRad = Math.toRadians(argumentOfPeriapsis);
 
-        Vector3d distanceECI = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
-                data.argumentOfPeriapsis).transform(constructDistancePQWvect(distance, trueAnomaly));
-        Vector3d velocityECI = rotationPQWtoECI(data.longitudeOfAscendingNode, data.inclination,
-                data.argumentOfPeriapsis)
+        satellite.updateData(data -> data.longitudeOfAscendingNode = longitudeOfAscendingNodeRad);
+        satellite.updateData(data -> data.inclination = inclinationRad);
+        satellite.updateData(data -> data.argumentOfPeriapsis = argumentOfPeriapsisRad);
+
+        Vector3d distanceECI = rotationPQWtoECI(longitudeOfAscendingNodeRad, inclinationRad,
+                argumentOfPeriapsisRad).transform(constructDistancePQWvect(distance, trueAnomaly));
+        Vector3d velocityECI = rotationPQWtoECI(longitudeOfAscendingNodeRad, inclinationRad,
+                argumentOfPeriapsisRad)
                 .transform(constructVelocityPQWvect(mu, p, eccentricity, trueAnomaly));
 
-        data.initialPosition = new Vector3d(distanceECI.x, distanceECI.y, distanceECI.z);
-        data.initialVelocity = new Vector3d(velocityECI.x, velocityECI.y, velocityECI.z);
+        satellite.updateData(data -> data.initialPosition = new Vector3d(distanceECI.x, distanceECI.y, distanceECI.z));
+        satellite.updateData(data -> data.initialVelocity = new Vector3d(velocityECI.x, velocityECI.y, velocityECI.z));
     }
 
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------

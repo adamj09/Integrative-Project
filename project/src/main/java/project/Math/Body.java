@@ -1,6 +1,7 @@
 package project.Math;
 
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Body extends OrbitsTime {
     private String name = "earth";
@@ -15,15 +16,15 @@ public class Body extends OrbitsTime {
     private double massOfSun = Constant.SUN_DEFAULT_MASS; // in kg (mass of the sun, used for the calculation of )
     private String latestError = "null";
     private boolean simulationRunning = false;
-    private HashMap<String, Satellite> satellites;
-    private HashMap<String, Thread> satelliteThreads;
+    private ConcurrentHashMap<String, Satellite> satellites;
+    private ConcurrentHashMap<String, Thread> satelliteThreads;
 
     /**
      * constructor for the body object with earth specifcations
      */
     public Body() {
-        satellites = new HashMap<>();
-        satelliteThreads = new HashMap<>();
+        satellites = new ConcurrentHashMap<>();
+        satelliteThreads = new ConcurrentHashMap<>();
     }
 
     /**
@@ -42,8 +43,8 @@ public class Body extends OrbitsTime {
 
         this.hillRadius = MathOrbits.hillRadius(this.semiMajorAxis * 1000d, this.eccentricity, mass, this.massOfSun);
 
-        satellites = new HashMap<>();
-        satelliteThreads = new HashMap<>();
+        satellites = new ConcurrentHashMap<>();
+        satelliteThreads = new ConcurrentHashMap<>();
     }
 
     /**
@@ -64,8 +65,8 @@ public class Body extends OrbitsTime {
 
         this.hillRadius = MathOrbits.hillRadius(semiMajorAxis * 1000d, eccentricity, mass, this.massOfSun);
 
-        satellites = new HashMap<>();
-        satelliteThreads = new HashMap<>();
+        satellites = new ConcurrentHashMap<>();
+        satelliteThreads = new ConcurrentHashMap<>();
     }
 
     /**
@@ -87,8 +88,8 @@ public class Body extends OrbitsTime {
 
         this.hillRadius = MathOrbits.hillRadius(semiMajorAxis * 1000d, eccentricity, mass, massOfSun);
 
-        satellites = new HashMap<>();
-        satelliteThreads = new HashMap<>();
+        satellites = new ConcurrentHashMap<>();
+        satelliteThreads = new ConcurrentHashMap<>();
     }
 
     /**
@@ -100,19 +101,17 @@ public class Body extends OrbitsTime {
      *         the limit of satellite for the body was reached)
      */
     public boolean addSatellite(Satellite sat) {
-        // If satellite already exists, return false.
-        if (satellites.containsKey(sat.getData().name)) {
+        String satName = sat.readData(data -> data.name);
+        
+        // Check size limit first
+        if (satellites.size() >= Constant.MAXIMUM_NUMBER_OF_SATELITE) {
+            this.setLatestError("Maximum number of satelite reached!");
             return false;
         }
-
-        if (satellites.size() + 1 > Constant.MAXIMUM_NUMBER_OF_SATELITE) {
-            this.latestError = "Maximum number of satelite reached!";
-            return false;
-        } else {
-            String name = sat.getData().name;
-            this.satellites.put(name, sat);
-            return true;
-        }
+        
+        // Atomically add if not already present
+        Satellite previous = satellites.putIfAbsent(satName, sat);
+        return previous == null;  // Returns true if added, false if already existed
     }
 
     /**
@@ -132,7 +131,7 @@ public class Body extends OrbitsTime {
     }
 
     public HashMap<String, Satellite> getSatellites() {
-        return this.satellites;
+        return new HashMap<>(this.satellites);
     }
 
     /**
@@ -143,20 +142,14 @@ public class Body extends OrbitsTime {
      *         satellite is not found in the list
      */
     public boolean removeSatellite(String name) {
-        if (satellites.containsKey(name)) {
-            // Stop the thread if it's running
-            if (satelliteThreads.containsKey(name)) {
-                Thread thread = satelliteThreads.get(name);
-                if (thread.isAlive()) {
-                    thread.interrupt();
-                }
-                satelliteThreads.remove(name);
-            }
-            satellites.remove(name);
-            return true;
-        } else {
-            return false;
+        // Stop the thread if it's running (atomically removes from map)
+        Thread thread = satelliteThreads.remove(name);
+        if (thread != null && thread.isAlive()) {
+            thread.interrupt();
         }
+        
+        // Remove satellite atomically
+        return satellites.remove(name) != null;
     }
 
     // getters and setters for name, mass, and radius
@@ -182,10 +175,6 @@ public class Body extends OrbitsTime {
 
     public void setRadius(double radius) {
         this.radius = radius;
-    }
-
-    public String getLatestError() {
-        return this.latestError;
     }
 
     public double getSemiMajorAxis() {
@@ -232,15 +221,16 @@ public class Body extends OrbitsTime {
     public void startSatellites() {
         for (Satellite sat : satellites.values()) {
             String satName = sat.getData().name;
+            Thread existingThread = satelliteThreads.get(satName);
             
-            if (!satelliteThreads.containsKey(satName) || !satelliteThreads.get(satName).isAlive()) {
-                System.out.println(satName+" thread started");
+            // Only start if no thread exists or the existing one is dead
+            if (existingThread == null || !existingThread.isAlive()) {
                 Thread thread = new Thread(sat);
                 satelliteThreads.put(satName, thread);
                 thread.start();
             }
         }
-        this.simulationRunning = true;
+        this.setThreadState(true);
     }
 
     /**
@@ -253,19 +243,16 @@ public class Body extends OrbitsTime {
             }
         }
         satelliteThreads.clear();
-        this.simulationRunning = false;
+        this.setThreadState(false);
     }
 
     /**
      * Stops a specific satellite thread and remove it
      */
     public void stopSatellite(String name) {
-        if (satelliteThreads.containsKey(name)) {
-            Thread thread = satelliteThreads.get(name);
-            if (thread.isAlive()) {
-                thread.interrupt();
-            }
-            satelliteThreads.remove(name);
+        Thread thread = satelliteThreads.remove(name);
+        if (thread != null && thread.isAlive()) {
+            thread.interrupt();
         }
     }
 
@@ -273,19 +260,81 @@ public class Body extends OrbitsTime {
      * Start a specific satellite thread
      */
     public void startSatellite(String name) {
-        if (satelliteThreads.containsKey(name)) {
-            Thread thread = satelliteThreads.get(name);
-            if (!thread.isAlive()) {
-                thread.start();
-            }
-        } else {
-            Satellite sat = satellites.get(name);
-            if (sat != null) {
-                Thread thread = new Thread(sat);
-                satelliteThreads.put(name, thread);
-                thread.start();
+        Satellite sat = satellites.get(name);
+        if (sat == null) {
+            return;  // Satellite doesn't exist
+        }
+        
+        Thread existingThread = satelliteThreads.get(name);
+        if (existingThread != null && existingThread.isAlive()) {
+            return;  // Already running
+        }
+        
+        // Create and start new thread
+        Thread thread = new Thread(sat);
+        Thread previous = satelliteThreads.putIfAbsent(name, thread);
+        
+        // Only start if we successfully added it (or if the existing thread is dead, replace it)
+        if (previous == null || !previous.isAlive()) {
+            thread.start();
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
+    public boolean isAllSatelliteSimulationRunnig(){
+        for (Satellite sat : satellites.values()) {
+            if (!sat.getSimulationRunning()) {
+                this.setLatestError("Maximum number of satelite reached!");
+                return false;
             }
         }
+        return true;
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
+    public boolean getSatelliteSimulationRunning(String name) {
+        Satellite sat = satellites.get(name);
+        if(sat != null) {
+            return sat.getSimulationRunning();
+        }
+        this.setLatestError("Satellite not found! Name: " + name);
+        return false;
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
+    public String getSatelliteLatestError(String name) {
+        Satellite sat = satellites.get(name);
+        if(sat != null) {
+            return sat.getLatestError();
+        }
+        return "Satellite not found! Name: " + name;
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
+    public synchronized boolean getThreadState() {
+        return this.simulationRunning;
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
+    public synchronized void setThreadState(boolean state) {
+        this.simulationRunning = state;
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
+    private synchronized void setLatestError(String error) {
+        this.latestError = error;
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
+    public synchronized String getLatestError() {
+        return this.latestError;
     }
 
     /**
