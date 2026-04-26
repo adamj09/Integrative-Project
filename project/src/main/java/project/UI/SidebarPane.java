@@ -27,6 +27,10 @@ import project.Presets.WorldConfiguration;
 import project.UI.Popups.BodyCreatorPopup;
 import project.UI.Popups.SatelliteCreatorPopup;
 
+/**
+ * @author Ryan Lau
+ * @author Adam Johnston
+ */
 public class SidebarPane extends VBox {
     private SimulationPool pool;
 

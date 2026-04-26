@@ -3,6 +3,9 @@ package project.Math;
 import org.joml.Matrix3d;
 import org.joml.Vector3d;
 
+/**
+ * @author Maxime Gauthier
+ */
 public class MathOrbits {
 
     // ---------------------------------------------------------------------------------------------------------------------------

@@ -23,6 +23,10 @@ import project.Math.Satellite;
 import project.Math.SatelliteData;
 import project.Presets.PresetConfiguration.BottomPanePreset;
 
+/**
+ * @author Ryan Lau
+ * @author Adam Johnston
+ */
 public class BottomPane extends VBox {
     private SimulationPool pool;
 

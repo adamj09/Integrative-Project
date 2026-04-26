@@ -3,6 +3,9 @@ package project.Math;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * @author Maxime Gauthier
+ */
 public class Body extends OrbitsTime {
     private String name = "earth";
     private double mass = Constant.EARTH_DEFAULT_MASS; // in kg

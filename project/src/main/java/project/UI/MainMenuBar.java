@@ -12,6 +12,10 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import project.UiTheme;
 
+/**
+ * @author Ryan Lau
+ * @author Adam Johnston
+ */
 public class MainMenuBar extends HBox {
 
     private final Button newBodyButton;

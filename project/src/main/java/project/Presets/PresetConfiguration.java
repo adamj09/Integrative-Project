@@ -4,6 +4,9 @@ import java.util.HashMap;
 
 import javafx.scene.paint.Color;
 
+/**
+ * @author Ryan Lau
+ */
 public class PresetConfiguration {
     private final BodyPreset body;
     private final HashMap<String, SatellitePreset> satellites;

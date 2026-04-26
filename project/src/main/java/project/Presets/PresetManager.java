@@ -20,6 +20,9 @@ import project.UI.Popups.WarningPopup;
 import project.Math.Body;
 import project.UI.SidebarPane;
 
+/**
+ * @author Ryan Lau
+ */
 public class PresetManager {
 
     private final PresetFileService presetFileService = new PresetFileService();

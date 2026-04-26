@@ -1,5 +1,8 @@
 package project;
 
+/**
+ * @author Ryan Lau
+ */
 public enum UiTheme {
     MIDNIGHT(
         "Midnight",

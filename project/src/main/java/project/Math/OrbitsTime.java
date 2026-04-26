@@ -1,5 +1,8 @@
 package project.Math;
 
+/**
+ * @author Maxime Gauthier
+ */
 public class OrbitsTime implements Runnable {
     private static final long NANOS_PER_MS = 1_000_000L;
     // private static final long NANOS_PER_SECOND = 1_000_000_000L;

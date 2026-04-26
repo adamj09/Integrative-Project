@@ -2,6 +2,9 @@ package project.Math;
 
 import org.joml.Vector3d;
 
+/**
+ * @author Maxime Gauthier
+ */
 public class SatelliteData {
     public String name;
     public double mass;

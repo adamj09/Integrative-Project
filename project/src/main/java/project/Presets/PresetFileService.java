@@ -8,6 +8,9 @@ import java.nio.file.Path;
 
 import com.google.gson.Gson;
 
+/**
+ * @author Ryan Lau
+ */
 public class PresetFileService {
 
     private final Gson gson = GsonFactory.create();

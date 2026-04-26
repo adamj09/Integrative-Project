@@ -8,6 +8,9 @@ import project.Math.Body;
 import project.Renderer.Renderer;
 import project.Renderer.World.World;
 
+/**
+ * @author Adam Johnston
+ */
 public class SimulationPool {
     // Currently loaded worlds
     private Renderer renderer;

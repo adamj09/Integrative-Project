@@ -4,6 +4,9 @@ import org.joml.Vector3d;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * @author Maxime Gauthier
+ */
 public class Satellite implements Runnable {
     private final SatelliteData data;
     private double massOfBody;

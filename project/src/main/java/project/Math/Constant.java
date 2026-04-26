@@ -1,5 +1,8 @@
 package project.Math;
 
+/**
+ * @author Maxime Gauthier
+ */
 public class Constant {
     // math orbits constant
     public static final double GRAVITATIONAL_CONSTANT = 6.67430e-11; // m^3 kg^-1 s^-2
