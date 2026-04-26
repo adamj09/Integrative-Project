@@ -51,8 +51,9 @@ public class App extends Application {
 
         // Wire menu bar buttons to sidebar actions
         menuBar.getNewBodyButton().setOnAction(_ -> openBodyBuilder(stage, menuBar, sidebar));
-        menuBar.getNewSatelliteButton().setOnAction(openSatelliteBuilder(stage, pool, menuBar, sidebar));
-        menuBar.getSaveAsMenuItem().setOnAction(_ -> presetManager.savePresetAs(stage, pool.getCurrentWorld(), sidebar));
+        menuBar.getNewSatelliteButton().setOnAction(_ -> openSatelliteBuilder(stage, pool, menuBar, sidebar));
+        menuBar.getSaveAsMenuItem()
+                .setOnAction(_ -> presetManager.savePresetAs(stage, pool.getCurrentWorld(), sidebar));
         menuBar.getSaveMenuItem().setOnAction(_ -> presetManager.savePreset(stage, pool.getCurrentWorld(), sidebar));
         menuBar.getLoadMenuItem().setOnAction(_ -> loadWorld(stage, mainRenderer, pool, sidebar, presetManager));
         menuBar.getInfoButton().setOnAction(_ -> showInfo(menuBar));
@@ -104,6 +105,12 @@ public class App extends Application {
         bottom.updateLoop();
     }
 
+    /**
+     * Opens the app's information tab.
+     * 
+     * @param menuBar the application's menu bar (used to determine theme to be used
+     *                by the satellite builder).
+     */
     private void showInfo(MainMenuBar menuBar) {
         InfoPopup.show("""
                 Orbital Motion Simulator
@@ -116,24 +123,42 @@ public class App extends Application {
                         : "");
     }
 
-    private EventHandler<ActionEvent> openSatelliteBuilder(Stage stage, SimulationPool pool, MainMenuBar menuBar,
+    /**
+     * Opens the satellite builder.
+     * 
+     * @param stage   the root stage of the JavaFX application.
+     * @param pool    the pool of loaded worlds.
+     * @param menuBar the application's menu bar (used to determine theme to be used
+     *                by the satellite builder).
+     * @param sidebar the side bar to which we'd like to add the satellite upon
+     *                creation.
+     */
+    private void openSatelliteBuilder(Stage stage, SimulationPool pool, MainMenuBar menuBar,
             SidebarPane sidebar) {
-        return e -> {
-            if (pool.getCurrentWorld() == null)
-                return;
+        if (pool.getCurrentWorld() == null)
+            return;
 
-            Body body = pool.getCurrentWorld().getBody();
-            // TODO: this check for whether a body can actually have a satellite orbiting it
-            // (sufficient mass) is probably not great, but is good enough for now.
-            if (body.getHillRadius() > body.getRadius()) {
-                sidebar.openNewSatellitePopup(stage,
-                        menuBar.getThemeSelector().getValue() != null
-                                ? menuBar.getThemeSelector().getValue().toStyleString()
-                                : "");
-            }
-        };
+        Body body = pool.getCurrentWorld().getBody();
+        // TODO: this check for whether a body can actually have a satellite orbiting it
+        // (sufficient mass) is probably not great, but is good enough for now.
+        if (body.getHillRadius() > body.getRadius()) {
+            sidebar.openNewSatellitePopup(stage,
+                    menuBar.getThemeSelector().getValue() != null
+                            ? menuBar.getThemeSelector().getValue().toStyleString()
+                            : "");
+        }
     }
 
+    /**
+     * Load a world using the given parameters.
+     * 
+     * @param stage         the root stage of the JavaFX application.
+     * @param mainRenderer  the simulation's renderer.
+     * @param pool          the pool of loaded worlds.
+     * @param sidebar       the sidebar to which we'd like to add the world upon
+     *                      loading.
+     * @param presetManager the preset manager used to save and load worlds.
+     */
     private void loadWorld(Stage stage, Renderer mainRenderer, SimulationPool pool,
             SidebarPane sidebar, PresetManager presetManager) {
         World newWorld = presetManager.loadPreset(stage, sidebar);
