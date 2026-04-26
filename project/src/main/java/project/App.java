@@ -1,15 +1,14 @@
 package project;
 
-import javafx.util.Duration;
-
 import java.util.prefs.Preferences;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+
 import project.Math.Body;
 import project.Presets.PresetManager;
 import project.Renderer.Renderer;
@@ -51,58 +50,16 @@ public class App extends Application {
         PresetManager presetManager = new PresetManager();
 
         // Wire menu bar buttons to sidebar actions
-        // TODO: perhaps these lambda functions should be instead methods moved in
-        // appropriate classes?
-        // This is okay for now, but as we add functionality may get confusing later.
-        menuBar.getNewBodyButton().setOnAction(e -> {
-            sidebar.openNewBodyPopup(stage,
-                    menuBar.getThemeSelector().getValue() != null
-                            ? menuBar.getThemeSelector().getValue().toStyleString()
-                            : "");
-        });
-        menuBar.getNewSatelliteButton().setOnAction(e -> {
-            if (pool.getCurrentWorld() == null)
-                return;
-
-            Body body = pool.getCurrentWorld().getBody();
-            // TODO: this check for whether a body can actually have a satellite orbiting it
-            // (sufficient mass) is probably not great, but is good enough for now.
-            if (body.getHillRadius() > body.getRadius()) {
-                sidebar.openNewSatellitePopup(stage,
-                        menuBar.getThemeSelector().getValue() != null
-                                ? menuBar.getThemeSelector().getValue().toStyleString()
-                                : "");
-            }
-        });
-        menuBar.getSaveAsMenuItem()
-                .setOnAction(e -> presetManager.savePresetAs(stage, pool.getCurrentWorld(), sidebar));
-        menuBar.getSaveMenuItem().setOnAction(e -> presetManager.savePreset(stage, pool.getCurrentWorld(), sidebar));
-        menuBar.getLoadMenuItem().setOnAction(e -> {
-            World newWorld = presetManager.loadPreset(stage, sidebar);
-
-            if (newWorld == null) {
-                return;
-            }
-
-            pool.addWorld(newWorld);
-            pool.runWorld(newWorld.getName());
-
-            mainRenderer.setWorld(pool.getCurrentWorld());
-        });
-        menuBar.getInfoButton().setOnAction(e -> InfoPopup.show("""
-                Orbital Motion Simulator
-
-                Use 'New celestial body' to add a central body and 'New satellite' to add orbiting objects.
-                Adjust simulation settings in the sidebar and bottom controls.
-                """,
-                menuBar.getThemeSelector().getValue() != null
-                        ? menuBar.getThemeSelector().getValue().toStyleString()
-                        : ""));
-
-        presetManager.markCurrentStateSaved(mainRenderer.getWorld(), sidebar);
+        menuBar.getNewBodyButton().setOnAction(_ -> openBodyBuilder(stage, menuBar, sidebar));
+        menuBar.getNewSatelliteButton().setOnAction(openSatelliteBuilder(stage, pool, menuBar, sidebar));
+        menuBar.getSaveAsMenuItem().setOnAction(_ -> presetManager.savePresetAs(stage, pool.getCurrentWorld(), sidebar));
+        menuBar.getSaveMenuItem().setOnAction(_ -> presetManager.savePreset(stage, pool.getCurrentWorld(), sidebar));
+        menuBar.getLoadMenuItem().setOnAction(_ -> loadWorld(stage, mainRenderer, pool, sidebar, presetManager));
+        menuBar.getInfoButton().setOnAction(_ -> showInfo(menuBar));
 
         // Note: mainRenderer.getWorld() may be null here since the GL context
         // hasn't initialized yet. PresetManager handles null World gracefully.
+        presetManager.markCurrentStateSaved(mainRenderer.getWorld(), sidebar);
 
         Preferences preferences = Preferences.userNodeForPackage(App.class);
         UiTheme selectedTheme = UiTheme.fromStoredValue(
@@ -138,25 +95,64 @@ public class App extends Application {
         stage.setTitle("Orbital Motion Simulator");
         stage.setResizable(true);
         // stage.setOnCloseRequest(event -> {
-        //     if (!presetManager.canClose(stage, mainRenderer.getWorld(), sidebar)) {
-        //         event.consume();
-        //     }
+        // if (!presetManager.canClose(stage, mainRenderer.getWorld(), sidebar)) {
+        // event.consume();
+        // }
         // });
         stage.show();
 
-        // Update live data
-        Timeline updateLoop = new Timeline();
-        updateLoop.setCycleCount(Timeline.INDEFINITE);
+        bottom.updateLoop();
+    }
 
-        KeyFrame frame = new KeyFrame(Duration.seconds(0.5), // Enter the target frame time here.
-                _ -> {
-                    if(pool.getCurrentWorld() != null) {
-                        bottom.updateSatelliteData();
-                    }
-                });
+    private void showInfo(MainMenuBar menuBar) {
+        InfoPopup.show("""
+                Orbital Motion Simulator
 
-        updateLoop.getKeyFrames().add(frame);
-        updateLoop.play();
+                Use 'New celestial body' to add a central body and 'New satellite' to add orbiting objects.
+                Adjust simulation settings in the sidebar and bottom controls.
+                """,
+                menuBar.getThemeSelector().getValue() != null
+                        ? menuBar.getThemeSelector().getValue().toStyleString()
+                        : "");
+    }
+
+    private EventHandler<ActionEvent> openSatelliteBuilder(Stage stage, SimulationPool pool, MainMenuBar menuBar,
+            SidebarPane sidebar) {
+        return e -> {
+            if (pool.getCurrentWorld() == null)
+                return;
+
+            Body body = pool.getCurrentWorld().getBody();
+            // TODO: this check for whether a body can actually have a satellite orbiting it
+            // (sufficient mass) is probably not great, but is good enough for now.
+            if (body.getHillRadius() > body.getRadius()) {
+                sidebar.openNewSatellitePopup(stage,
+                        menuBar.getThemeSelector().getValue() != null
+                                ? menuBar.getThemeSelector().getValue().toStyleString()
+                                : "");
+            }
+        };
+    }
+
+    private void loadWorld(Stage stage, Renderer mainRenderer, SimulationPool pool,
+            SidebarPane sidebar, PresetManager presetManager) {
+        World newWorld = presetManager.loadPreset(stage, sidebar);
+
+        if (newWorld == null) {
+            return;
+        }
+
+        pool.addWorld(newWorld);
+        pool.runWorld(newWorld.getName());
+
+        mainRenderer.setWorld(pool.getCurrentWorld());
+    }
+
+    private void openBodyBuilder(Stage stage, MainMenuBar menuBar, SidebarPane sidebar) {
+        sidebar.openNewBodyPopup(stage,
+                menuBar.getThemeSelector().getValue() != null
+                        ? menuBar.getThemeSelector().getValue().toStyleString()
+                        : "");
     }
 
     /**

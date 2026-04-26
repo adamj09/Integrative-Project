@@ -3,6 +3,8 @@ package project.UI;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -15,6 +17,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 import project.SimulationPool;
 import project.Math.Body;
 import project.Math.Satellite;
@@ -333,6 +336,22 @@ public class BottomPane extends VBox {
             noDataLabel.setVisible(true);
             noDataLabel.setManaged(true);
         }
+    }
+
+    public void updateLoop() {
+        // Update live data
+        Timeline updateLoop = new Timeline();
+        updateLoop.setCycleCount(Timeline.INDEFINITE);
+
+        KeyFrame frame = new KeyFrame(Duration.seconds(0.5), // Enter the target frame time here.
+                _ -> {
+                    if (pool.getCurrentWorld() != null) {
+                        updateSatelliteData();
+                    }
+                });
+
+        updateLoop.getKeyFrames().add(frame);
+        updateLoop.play();
     }
 
     public void updateSatelliteData() {
