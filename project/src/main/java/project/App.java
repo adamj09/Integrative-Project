@@ -165,9 +165,11 @@ public class App extends Application {
         }
 
         pool.addWorld(newWorld);
-        pool.runWorld(newWorld.getName());
+        if(pool.getWorlds().size() == 1) {
+            pool.runWorld(newWorld.getName());
 
         mainRenderer.setWorld(pool.getCurrentWorld());
+        }
     }
 
     private void openBodyBuilder(Stage stage, MainMenuBar menuBar, SidebarPane sidebar) {

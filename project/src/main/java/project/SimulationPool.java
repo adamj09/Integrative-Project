@@ -91,4 +91,8 @@ public class SimulationPool {
     public Renderer getRenderer() {
         return this.renderer;
     }
+
+    public HashMap<String, World> getWorlds() {
+        return this.worlds;
+    }
 }

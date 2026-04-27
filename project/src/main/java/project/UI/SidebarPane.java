@@ -147,7 +147,7 @@ public class SidebarPane extends VBox {
         SatelliteCreatorPopup popup = new SatelliteCreatorPopup(owner, this, themeStyle, pool);
         popup.showAndWait();
         if (popup.wasConfirmed()) {
-            addSatelliteCard(popup.getSatelliteName(), popup.getSatelliteColor());
+            addSatelliteCard(selectedBody, popup.getSatelliteName(), popup.getSatelliteColor());
         }
     }
 
@@ -309,16 +309,16 @@ public class SidebarPane extends VBox {
         satelliteCards.put(body, new HashMap<>());
     }
 
-    private void addSatelliteCard(String name, Color color) {
-        addSatelliteCard(name, color, true);
+    private void addSatelliteCard(String body, String name, Color color) {
+        addSatelliteCard(body, name, color, true);
     }
 
-    private void addSatelliteCard(String name, Color color, boolean startActive) {
-        if (!satelliteEntries.containsKey(selectedBody)) {
-            satelliteEntries.put(selectedBody, new HashMap<>());
+    private void addSatelliteCard(String body, String name, Color color, boolean startActive) {
+        if (!satelliteEntries.containsKey(body)) {
+            satelliteEntries.put(body, new HashMap<>());
         }
 
-        satelliteEntries.get(selectedBody).put(name, new SatellitePreset(name, color));
+        satelliteEntries.get(body).put(name, new SatellitePreset(name, color));
         satelliteActiveStates.put(name, startActive);
 
         // Active state tracking
@@ -351,7 +351,7 @@ public class SidebarPane extends VBox {
         Button viewDataButton = new Button("View Data");
         viewDataButton.getStyleClass().add("card-button-focus");
         viewDataButton.setOnAction(e -> {
-            bottom.selectSatelliteForView(selectedBody, name);
+            bottom.selectSatelliteForView(body, name);
         });
 
         focusButton.setOnAction(e -> {
@@ -372,15 +372,15 @@ public class SidebarPane extends VBox {
         card.setPadding(new Insets(10));
         card.getStyleClass().add("card");
 
-        satelliteCards.get(selectedBody).put(name, card);
-        satelliteLists.get(selectedBody).getChildren().add(card);
+        satelliteCards.get(body).put(name, card);
+        satelliteLists.get(body).getChildren().add(card);
 
-        contentArea.getChildren().set(1, satelliteLists.get(selectedBody));
+        contentArea.getChildren().set(1, satelliteLists.get(body));
 
         // Move to satellite tab upon creation
         satellitesTab.fire();
 
-        satelliteCounters.put(selectedBody, satelliteCounters.get(selectedBody) + 1);
+        satelliteCounters.put(body, satelliteCounters.get(body) + 1);
 
         bottom.addSatelliteColumn(name);
 
@@ -441,7 +441,7 @@ public class SidebarPane extends VBox {
         addBodyCard(body.name(), body.color(), body.preset(), body.mass(), body.radius());
 
         for (Map.Entry<String, SatellitePreset> satellite : configuration.getSatellites().entrySet()) {
-            addSatelliteCard(satellite.getValue().name(), satellite.getValue().color());
+            addSatelliteCard(body.name(), satellite.getValue().name(), satellite.getValue().color());
         }
     }
 
@@ -459,16 +459,6 @@ public class SidebarPane extends VBox {
             WorldConfiguration.SidebarBody sideBarBody = config.getSidebarBody();
             Color bodyColor = sideBarBody.colorHex != null ? Color.web(sideBarBody.colorHex) : Color.RED;
             addBodyCard(sideBarBody.name, bodyColor, sideBarBody.preset, sideBarBody.mass, sideBarBody.radius);
-
-        } else if (config.getBody() != null) {
-            // Fallback for old format with no sidebarBodies
-            org.joml.Vector3f c = config.getBody().color;
-            Color bodyColor = c != null ? Color.color(
-                    Math.min(1, Math.max(0, c.x)),
-                    Math.min(1, Math.max(0, c.y)),
-                    Math.min(1, Math.max(0, c.z))) : Color.RED;
-            addBodyCard(config.getBody().name, bodyColor, true,
-                    config.getBody().mass, config.getBody().radius);
         }
 
         // Add satellite cards — uses SatelliteConfig.active as source of truth
@@ -488,9 +478,11 @@ public class SidebarPane extends VBox {
                         }
                     }
                 }
-                addSatelliteCard(sat.name, satColor, sat.active);
+                addSatelliteCard(config.getBody().name, sat.name, satColor, sat.active);
             }
         }
+
+        contentArea.getChildren().set(1, satelliteLists.get(selectedBody));
 
         focusedNameToRestore = null;
     }
