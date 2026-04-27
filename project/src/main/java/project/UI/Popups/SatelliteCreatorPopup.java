@@ -13,6 +13,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -22,7 +23,9 @@ import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.animation.AnimationTimer;
 import project.Math.Body;
+import project.Math.Utils;
 import project.Math.Satellite;
 import project.Math.SatelliteData;
 import project.Renderer.Renderer;
@@ -61,6 +64,9 @@ public class SatelliteCreatorPopup extends Stage {
     private TextField inclinationField;
     private TextField argPeriapsisField;
     private TextField massOfBodyField;
+
+    private Label timeValueLabelNum;
+    private AnimationTimer timeUpdater;
 
     // --- Randomizer state ---
     private final double bodyMass; // kg
@@ -214,11 +220,86 @@ public class SatelliteCreatorPopup extends Stage {
             updatePreviewColor();
             updatePreview();
         });
+        BorderPane randAllPane = new BorderPane();
+
         HBox randAllRow = new HBox(randAllBtn);
         randAllRow.setAlignment(Pos.CENTER_RIGHT);
-        randAllRow.setPadding(new Insets(6, 14, 0, 14));
+        randAllRow.setPadding(new Insets(12, 14, 0, 14));
+        randAllPane.setRight(randAllRow);
+
+        Button resetButton = new Button("Reset time");
+        resetButton.getStyleClass().add("style-button");
+        resetButton.setOnAction(e -> {
+            previewWorld.getBody().resetTime();
+        });
+
+        Label timescaleLabel = formLabel("Time scale of the preview:");
+        timescaleLabel.getStyleClass().add("body");
+
+        ComboBox<String> timescaleDropdown = new ComboBox<>();
+        timescaleDropdown.getItems().addAll(
+                "1x", "2x", "5x", "10x",
+                "100x", "1,000x", "10,000x", "100,000x");
+        timescaleDropdown.setValue("1x");
+        timescaleDropdown.getStyleClass().add("combo-box");
+        //timescaleDropdown.setPrefWidth(90);
+
+        timescaleDropdown.setOnAction(_ -> {
+
+            switch (timescaleDropdown.getValue()) {
+                case "1x":
+                    previewWorld.getBody().setTimeScale(1);
+                    break;
+                case "2x":
+                    previewWorld.getBody().setTimeScale(2);
+                    System.out.println("Setting time scale to 2x");
+                    break;
+                case "5x":
+                    previewWorld.getBody().setTimeScale(5);
+                    break;
+                case "10x":
+                    previewWorld.getBody().setTimeScale(10);
+                    break;
+                case "100x":
+                    previewWorld.getBody().setTimeScale(100);
+                    break;
+                case "1,000x":
+                    previewWorld.getBody().setTimeScale(1000);
+                    break;
+                case "10,000x":
+                    previewWorld.getBody().setTimeScale(10_000);
+                    break;
+                case "100,000x":
+                    previewWorld.getBody().setTimeScale(100_000);
+                    break;
+                default:
+                    previewWorld.getBody().setTimeScale(1);
+                    break;
+            }
+        });
+
+        timeValueLabelNum = new Label();
+        timeValueLabelNum.setText(Utils.getWorldTimeFormated(0));
+        timeValueLabelNum.getStyleClass().add("body");
+
+        timeUpdater = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                double timeSeconds = previewWorld.getBody().getTimeSeconds();
+                timeValueLabelNum.setText(Utils.getWorldTimeFormated(timeSeconds));
+            }
+        };
+        timeUpdater.start();
+
+        HBox timescaleBox = new HBox(10,resetButton, timescaleLabel, timescaleDropdown,timeValueLabelNum);
+        timescaleBox.setPadding(new Insets(12, 14, 0, 14));
+        timescaleBox.setAlignment(Pos.CENTER_LEFT);
+        randAllPane.setLeft(timescaleBox);
+
+
 
         errorLabel.getStyleClass().add("error-label");
+        errorLabel.setPadding(new Insets(12, 14, 0, 14));
 
         Button cancelBtn = new Button("CANCEL");
         Button createBtn = new Button("CREATE");
@@ -228,6 +309,7 @@ public class SatelliteCreatorPopup extends Stage {
         cancelBtn.setOnAction(e -> {
             previewWorld.stopWorld();
             previewRenderer.getViewport().dispose();
+            timeUpdater.stop();
 
             close();
         });
@@ -263,6 +345,8 @@ public class SatelliteCreatorPopup extends Stage {
                     return;
                 }
 
+                boolean wasWorldRunning = currentWorld.isWorldRunning();
+
                 currentWorld.stopWorld();
 
                 Satellite newSatellite = new Satellite();
@@ -278,10 +362,14 @@ public class SatelliteCreatorPopup extends Stage {
                         new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
 
                 currentWorld.runWorld();
+                if(wasWorldRunning){
+                    currentWorld.startWorld();
+                }
             }
             confirmed = true;
 
             previewWorld.stopWorld();
+            timeUpdater.stop();
             previewRenderer.getViewport().dispose();
 
             close();
@@ -294,7 +382,7 @@ public class SatelliteCreatorPopup extends Stage {
         Label titleLabel = new Label("Create new satellite");
         titleLabel.getStyleClass().add("subheading");
 
-        VBox root = new VBox(titleLabel, preview, orbitalFormRow, randAllRow, errorLabel,
+        VBox root = new VBox(titleLabel, preview, orbitalFormRow, randAllPane, errorLabel,
                 buttons);
         root.getStyleClass().add("small-pane");
         root.setStyle(themeStyle);
@@ -304,6 +392,7 @@ public class SatelliteCreatorPopup extends Stage {
 
         setOnCloseRequest(_ -> {
             previewWorld.stopWorld();
+            timeUpdater.stop();
             previewRenderer.getViewport().dispose();
         });
 
@@ -398,7 +487,7 @@ public class SatelliteCreatorPopup extends Stage {
 
     private void setUpPreview() {
         // Set time scale to be same as current simulation.
-        previewBody.setTimeScale(currentWorld.getBody().getTimeScale());
+        previewBody.setTimeScale(1);
 
         // Create preview world for rendering.
         previewWorld = new World(previewBody, currentWorld.getColour());
