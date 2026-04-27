@@ -78,7 +78,7 @@ public class SidebarPane extends VBox {
     public SidebarPane(BottomPane bottom, SimulationPool pool) {
         this.pool = pool;
         this.bottom = bottom;
-        
+
         setPrefWidth(300);
         setMinWidth(250);
         getStyleClass().add("side-pane");
@@ -482,6 +482,10 @@ public class SidebarPane extends VBox {
             }
         }
 
+        // Reset satellite tab to the list of the selected body (since loading
+        // satellites automatically sets the satellite tab to contain those loaded
+        // satellites, which conflicts with the satellites belonging to the selected
+        // body.)
         contentArea.getChildren().set(1, satelliteLists.get(selectedBody));
 
         focusedNameToRestore = null;
