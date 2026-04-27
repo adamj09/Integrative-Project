@@ -70,6 +70,7 @@ public class App extends Application {
         root.setTop(menuBar);
         root.setLeft(sidebar);
         root.setBottom(bottom);
+        root.getStyleClass().add("border-pane");
 
         menuBar.getThemeSelector().setValue(selectedTheme);
 
