@@ -333,15 +333,11 @@ public class SidebarPane extends VBox {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // Active/live indicator
-        Circle activeIndicator = new Circle(6, startActive ? Color.LIMEGREEN : Color.RED);
-        activeIndicator.getStyleClass().add("active-indicator");
-
         // Focus indicator (star when focused)
         Label focusIndicatorLabel = new Label("");
         focusIndicatorLabel.getStyleClass().add("focus-indicator");
 
-        HBox topRow = new HBox(8, circle, nameLabel, spacer, focusIndicatorLabel, activeIndicator);
+        HBox topRow = new HBox(8, circle, nameLabel, spacer, focusIndicatorLabel);
         topRow.setAlignment(Pos.CENTER_LEFT);
 
         // -- Bottom row: Remove/Add + Focus + View Data --
