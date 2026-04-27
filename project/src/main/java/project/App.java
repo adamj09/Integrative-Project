@@ -71,8 +71,6 @@ public class App extends Application {
         root.setLeft(sidebar);
         root.setBottom(bottom);
 
-        root.setStyle("-fx-background-color: #000000");
-
         menuBar.getThemeSelector().setValue(selectedTheme);
 
         menuBar.getThemeSelector().setOnAction(e -> {
