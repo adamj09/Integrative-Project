@@ -24,10 +24,16 @@ import project.Presets.PresetConfiguration.BottomPanePreset;
  * Class that handles simulation-specific controls and the live satellite data
  * feed.
  * 
+ * Class that handles simulation-specific controls and the live satellite data
+ * feed.
+ * 
  * @author Ryan Lau
  * @author Adam Johnston
  */
 public class BottomPane extends VBox {
+    /**
+     * Simulation pool that this BottomPane controls.
+     */
     /**
      * Simulation pool that this BottomPane controls.
      */
