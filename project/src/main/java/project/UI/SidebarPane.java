@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -34,46 +36,78 @@ import project.UI.Popups.SatelliteCreatorPopup;
 public class SidebarPane extends VBox {
     private SimulationPool pool;
 
-    private final Button celestialTab;
-    private final Button satellitesTab;
+    private Button celestialTab;
+    private Button satellitesTab;
 
-    private final VBox bodyListBox;
-    private final HashMap<String, VBox> bodyCards = new HashMap<>();
-    private final HashMap<String, VBox> satelliteLists = new HashMap<>();
-    private final HashMap<String, HashMap<String, VBox>> satelliteCards = new HashMap<>();
-    private final HashMap<String, Integer> satelliteCounters = new HashMap<>();
-    private final ScrollPane bodyScroll;
-    private final ScrollPane satelliteScroll = new ScrollPane();
+    /**
+     * The VBox containing all Body cards.
+     */
+    private VBox bodyListVBox;
 
-    private final StackPane contentArea;
+    /**
+     * A HashMap containing all body cards, with the body's name as a key and VBox
+     * (the body's card) as the value.
+     * This is useful for removing cards from the bodyListVBox VBox.
+     */
+    private HashMap<String, VBox> bodyCards = new HashMap<>();
 
-    private final BottomPane bottom;
+    /**
+     * The VBoxes each containing a list of satellites for each Body.
+     * The key is the Body's name, the VBox is the list itself (analogous to the
+     * single bodyListVBox variable).
+     */
+    private HashMap<String, VBox> satelliteLists = new HashMap<>();
 
-    // Track entries so we can wire delete/visualize
-    private final HashMap<String, BodyPreset> bodyEntries = new HashMap<>();
-    private final HashMap<String, HashMap<String, SatellitePreset>> satelliteEntries = new HashMap<>();
-    private final HashMap<String, Boolean> satelliteActiveStates = new HashMap<>();
+    /**
+     * 2D HashMap with all satellite cards. The first key corresponds to the Body,
+     * the second to the particular Satellite belonging to that Body. The value of
+     * type VBox holds the Satellite's card that corresponds to the address given
+     * via the two keys.
+     */
+    private HashMap<String, HashMap<String, VBox>> satelliteCards = new HashMap<>();
 
-    private String selectedBody = "";
+    /**
+     * Scroll pane for the bodies tab.
+     */
+    private ScrollPane bodyScroll;
 
-    // Track focused card (only one at a time)
-    private VBox focusedCard = null;
-    private Label focusedIndicator = null;
-    private Button focusedButton = null;
-    private String focusedItemName = null;
+    /**
+     * Scroll pane for the satellites tab.
+     */
+    private ScrollPane satelliteScroll = new ScrollPane();
+
+    /**
+     * Holds each tab's content.
+     * 
+     */
+    private StackPane contentArea;
+
+    /**
+     * The BottomPane (used to display live satellite data).
+     */
+    private BottomPane bottom;
+
+    /**
+     * Track entries so we can wire adding/removing bodies and satellites.
+     */
+    private HashMap<String, BodyPreset> bodyEntries = new HashMap<>();
+    private HashMap<String, HashMap<String, SatellitePreset>> satelliteEntries = new HashMap<>();
+
+    /**
+     * Track focused card (only one at a time)
+     */
+    private String focusedObjectName = null;
     private String focusedNameToRestore = null;
-    private final List<Button> allFocusButtons = new ArrayList<>();
+    private List<Button> allFocusButtons = new ArrayList<>();
 
-    // Track selected celestial body (only one at a time)
+    /**
+     * Track selected celestial body (only one at a time)
+     */
+    private String selectedBody = ""; // Name of the selected body
     private Button selectedBodyToggle = null;
-    private Circle selectedBodyCircle = null;
     private Label selectedBodyName = null;
-    private Circle selectedBodyIndicator = null;
     private Button selectedBodyFocus = null;
     private VBox selectedBodyCard = null;
-    private double selectedBodyMass = 5.972e24; // kg — defaulting to Earth
-    private double selectedBodyRadius = 6371.0; // km
-    private Color selectedBodyColor = Color.RED; // defaulting to Earth
 
     public SidebarPane(BottomPane bottom, SimulationPool pool) {
         this.pool = pool;
@@ -83,18 +117,32 @@ public class SidebarPane extends VBox {
         setMinWidth(250);
         getStyleClass().add("side-pane");
 
-        // --- Tab buttons ---
+        // Add all contents to this pane.
+        getChildren().addAll(setUpTabs(), contentArea);
+
+        // Request focus on the pane when mouse is clicked on it (allows for user to
+        // switch between UI and simulation camera)
+        this.setOnMouseClicked(_ -> this.requestFocus());
+    }
+
+    /**
+     * Sets up the tabs to be used in this SideBarPane.
+     * 
+     * @return the tabs that were set up.
+     */
+    private HBox setUpTabs() {
+        // Set up tab buttons
         celestialTab = tabButton("Celestial body");
         satellitesTab = tabButton("Satellites");
 
-        HBox tabs = new HBox(0, celestialTab, satellitesTab);
+        HBox tabs = new HBox(celestialTab, satellitesTab);
         tabs.getStyleClass().add("tabs");
 
-        // --- Body list ---
-        bodyListBox = new VBox(4);
-        bodyListBox.setPadding(new Insets(6));
+        // Set up Body list
+        bodyListVBox = new VBox(4);
+        bodyListVBox.setPadding(new Insets(6));
 
-        bodyScroll = new ScrollPane(bodyListBox);
+        bodyScroll = new ScrollPane(bodyListVBox);
         bodyScroll.setFitToWidth(true);
         bodyScroll.getStyleClass().add("scroll");
         VBox.setVgrow(bodyScroll, Priority.ALWAYS);
@@ -105,12 +153,12 @@ public class SidebarPane extends VBox {
         VBox satelliteView = new VBox();
         VBox.setVgrow(satelliteView, Priority.ALWAYS);
 
-        // --- Content area switches between body/satellite view ---
+        // Content area is a stackPane that switches between body/satellite view
         contentArea = new StackPane(bodyView, satelliteView);
         satelliteView.setVisible(false);
         VBox.setVgrow(contentArea, Priority.ALWAYS);
 
-        // Tab switching
+        // Set up tab switching
         celestialTab.setOnAction(e -> {
             contentArea.getChildren().get(0).setVisible(true);
             contentArea.getChildren().get(1).setVisible(false);
@@ -124,16 +172,20 @@ public class SidebarPane extends VBox {
             setTabActive(satellitesTab);
         });
 
+        // Set celestial body tab as default active tab.
         setTabActive(celestialTab);
         setTabInactive(satellitesTab);
 
-        getChildren().addAll(tabs, contentArea);
-
-        // Request focus on the pane when mouse is clicked on it (allows for user to
-        // switch between controller UI and simulation camera)
-        this.setOnMouseClicked(_ -> this.requestFocus());
+        return tabs;
     }
 
+    /**
+     * Open a new body builder pop-up window.
+     * 
+     * @param owner      the root stage of the JavaFX application.
+     * @param themeStyle the theme to be used when rendering the body builder pop-up
+     *                   window.
+     */
     public void openNewBodyPopup(Stage owner, String themeStyle) {
         BodyCreatorPopup popup = new BodyCreatorPopup(owner, this, themeStyle, pool);
         popup.showAndWait();
@@ -143,6 +195,13 @@ public class SidebarPane extends VBox {
         }
     }
 
+    /**
+     * Open a new satellite builder pop-up window.
+     * 
+     * @param owner      the root stage of the JavaFX application.
+     * @param themeStyle the theme to be used when rendering the satellite builder
+     *                   pop-up window.
+     */
     public void openNewSatellitePopup(Stage owner, String themeStyle) {
         SatelliteCreatorPopup popup = new SatelliteCreatorPopup(owner, this, themeStyle, pool);
         popup.showAndWait();
@@ -151,13 +210,43 @@ public class SidebarPane extends VBox {
         }
     }
 
+    /**
+     * Adds a new body card.
+     * 
+     * @param name     name of the body.
+     * @param color    colour of the body.
+     * @param isPreset boolean that determines whether this body is a preset.
+     * @param mass     mass of the body.
+     * @param radius   radius of the body.
+     */
     private void addBodyCard(String name, Color color, boolean isPreset, double mass, double radius) {
         bodyEntries.put(name, new BodyPreset(name, color, isPreset, mass, radius));
 
-        final double[] bodyProps = { mass, radius };
-        final Color capturedColor = color;
+        VBox card = buildBodyCard(name, color);
 
-        // -- Top row: circle + name + active indicator + focus indicator --
+        // Set the selectedBodyCard ref once card is created
+        if (selectedBodyCard == null) {
+            selectedBodyCard = card;
+        }
+
+        bodyListVBox.getChildren().add(card);
+        bodyCards.put(name, card);
+
+        // Auto-focus if this card matches the name being restored
+        if (focusedNameToRestore != null && focusedNameToRestore.equals(name) && name.equals(selectedBody)) {
+            pool.getRenderer().setFocusObject(name);
+        }
+    }
+
+    /**
+     * Creates a new body card and sets up its buttons' event handlers.
+     * 
+     * @param name  name of the body.
+     * @param color colour of the body.
+     * @return the new body's card.
+     */
+    private VBox buildBodyCard(String name, Color color) {
+        // Set up the top row: circle, name, and focus indicator
         Circle circle = new Circle(22, color);
 
         Label nameLabel = new Label(name);
@@ -169,7 +258,7 @@ public class SidebarPane extends VBox {
         HBox topRow = new HBox(8, circle, nameLabel, spacer);
         topRow.setAlignment(Pos.CENTER_LEFT);
 
-        // -- Bottom row: Selected/Select + Focus --
+        // Set up bottom row: Selected/Select and Focus buttons.
         Button toggleButton = new Button("Selected");
         toggleButton.getStyleClass().add("card-button-selected");
 
@@ -181,118 +270,95 @@ public class SidebarPane extends VBox {
         focusButton.getStyleClass().add("card-button-focus");
         allFocusButtons.add(focusButton);
 
-        focusButton.setOnAction(e -> {
-            if (!name.equals(selectedBody))
-                return;
-
-            pool.getRenderer().setFocusObject(name);
-        });
-
-        toggleButton.setOnAction(e -> {
-            VBox card = (VBox) toggleButton.getParent().getParent();
-            if (name.equals(selectedBody)) {
-                // Already selected — do nothing, can't deselect
-                return;
-            } else {
-                deselectBody(selectedBodyIndicator, selectedBodyToggle,
-                        selectedBodyFocus, selectedBodyCircle, selectedBodyName, selectedBodyCard);
-
-                // Select this body
-                selectedBody = name;
-                toggleButton.setText("Selected");
-                toggleButton.getStyleClass().set(0, "card-button-selected");
-                focusButton.setDisable(false);
-                circle.setOpacity(1.0);
-                nameLabel.setOpacity(1.0);
-                // Track as the selected body
-                selectedBodyToggle = toggleButton;
-                selectedBodyCircle = circle;
-                selectedBodyName = nameLabel;
-                selectedBodyFocus = focusButton;
-                selectedBodyCard = card;
-                selectedBodyMass = bodyProps[0];
-                selectedBodyRadius = bodyProps[1];
-                selectedBodyColor = capturedColor;
-
-                VBox satelliteListBox = new VBox(4);
-                satelliteListBox.setPadding(new Insets(6));
-
-                ScrollPane satelliteScroll = new ScrollPane(satelliteListBox);
-                satelliteScroll.setFitToWidth(true);
-                satelliteScroll.getStyleClass().add("scroll");
-                VBox.setVgrow(satelliteScroll, Priority.ALWAYS);
-
-                VBox satelliteView = new VBox(satelliteScroll);
-                VBox.setVgrow(satelliteView, Priority.ALWAYS);
-
-                if (!satelliteLists.containsKey(selectedBody)) {
-                    satelliteLists.put(selectedBody, satelliteView);
-                }
-
-                contentArea.getChildren().set(1, satelliteLists.get(selectedBody));
-
-                celestialTab.fire();
-
-                pool.runWorld(name);
-            }
-        });
-
-        if (selectedBody.isEmpty()) {
-            // First selected body — auto-select it
-            selectedBody = name;
-            selectedBodyToggle = toggleButton;
-            selectedBodyCircle = circle;
-            selectedBodyName = nameLabel;
-            selectedBodyFocus = focusButton;
-            selectedBodyMass = bodyProps[0];
-            selectedBodyRadius = bodyProps[1];
-            selectedBodyColor = capturedColor;
-
-            createSatelliteList(selectedBody);
-            satelliteCards.put(selectedBody, new HashMap<>());
-
-            celestialTab.fire();
-
-            satelliteCounters.put(selectedBody, 0);
-
-            pool.runWorld(name);
-        } else {
-            // Additional bodies start deselected
-            toggleButton.setText("Select");
-            toggleButton.getStyleClass().set(0, "card-button-select");
-            focusButton.setDisable(true);
-            circle.setOpacity(0.4);
-            nameLabel.setOpacity(0.5);
-
-            createSatelliteList(name);
-
-            celestialTab.fire();
-
-            satelliteCounters.put(name, 0);
-        }
-
         HBox buttonRow = new HBox(6, toggleButton, focusButton);
         buttonRow.setAlignment(Pos.CENTER_LEFT);
 
+        // Stack rows atop another to create the card.
         VBox card = new VBox(6, topRow, buttonRow);
         card.setAlignment(Pos.CENTER_LEFT);
         card.setPadding(new Insets(10));
         card.getStyleClass().add("card");
 
-        // Set the selectedBodyCard ref once card is created
-        if (selectedBodyCard == null) {
-            selectedBodyCard = card;
+        focusButton.setOnAction(_ -> pool.getRenderer().setFocusObject(selectedBody));
+        toggleButton.setOnAction(_ -> toggleBodySelection(circle, nameLabel, toggleButton, focusButton, card));
+
+        // First body to be added; auto-select it.
+        if (selectedBody.isEmpty()) {
+            createSatelliteList(name);
+            celestialTab.fire();
+            toggleButton.fire();
+
+            pool.runWorld(name);
+
+            return card;
         }
 
-        bodyListBox.getChildren().add(card);
-        bodyCards.put(name, card);
+        createSatelliteList(name);
+        celestialTab.fire();
 
-        // Auto-focus if this card matches the name being restored
-        if (focusedNameToRestore != null && focusedNameToRestore.equals(name) && name.equals(selectedBody)) {
-            pool.getRenderer().setFocusObject(name);
-        }
+        toggleButton.setText("Select");
+        toggleButton.getStyleClass().set(0, "card-button-select");
+        focusButton.setDisable(true);
+        circle.setOpacity(0.4);
+        nameLabel.setOpacity(0.5);
+
+        return card;
     }
 
+    /**
+     * Toggles the selection of a given body.
+     * 
+     * @param circle       the circle that visually represents the body in the UI.
+     * @param nameLabel    the label indicating the body's name.
+     * @param toggleButton the button that toggles selection of the body.
+     * @param focusButton  the button that focuses the camera on the body.
+     * @param card         the body's card.
+     */
+    private void toggleBodySelection(Circle circle, Label nameLabel, Button toggleButton,
+            Button focusButton, VBox card) {
+
+        // Already selected — do nothing, can't deselect
+        if (nameLabel.getText().equals(selectedBody)) {
+            return;
+        }
+
+        // Deselect the currently selected body before selecting this new one (if it
+        // exists).
+        if (selectedBodyToggle != null) {
+            deselectBody(selectedBodyToggle, selectedBodyFocus, selectedBodyName, selectedBodyCard);
+        }
+
+        // Update toggle button
+        toggleButton.setText("Selected");
+        toggleButton.getStyleClass().set(0, "card-button-selected");
+
+        // Update focus button
+        focusButton.setDisable(false);
+        circle.setOpacity(1.0);
+        nameLabel.setOpacity(1.0);
+
+        // Track as the selected body
+        selectedBody = nameLabel.getText();
+        selectedBodyToggle = toggleButton;
+        selectedBodyName = nameLabel;
+        selectedBodyFocus = focusButton;
+        selectedBodyCard = card;
+
+        // Set the satellite view to the selected body's satellite list.
+        // Doing this switches to the satellite tab, and so we need to immediately
+        // switch back to the celestial body tab to prevent unwanted tab switching.
+        contentArea.getChildren().set(1, satelliteLists.get(selectedBody));
+        celestialTab.fire();
+
+        // Run the newly selected celestial body.
+        pool.runWorld(nameLabel.getText());
+    }
+
+    /**
+     * Creates a new satellite list for a given body.
+     * 
+     * @param body the body for which a new list should be created.
+     */
     private void createSatelliteList(String body) {
         VBox satelliteListBox = new VBox(4);
         satelliteListBox.setPadding(new Insets(6));
@@ -309,22 +375,49 @@ public class SidebarPane extends VBox {
         satelliteCards.put(body, new HashMap<>());
     }
 
+    /**
+     * Adds a new satellite card for the given body.
+     * 
+     * @param body  the body to which a new satellite card will be added.
+     * @param name  the name of the satellite.
+     * @param color the colour of the satellite.
+     */
     private void addSatelliteCard(String body, String name, Color color) {
-        addSatelliteCard(body, name, color, true);
-    }
-
-    private void addSatelliteCard(String body, String name, Color color, boolean startActive) {
+        // If the body does not have a list of satellite entries, create that list.
         if (!satelliteEntries.containsKey(body)) {
             satelliteEntries.put(body, new HashMap<>());
         }
 
+        VBox card = buildSatelliteCard(body, name, color);
+
         satelliteEntries.get(body).put(name, new SatellitePreset(name, color));
-        satelliteActiveStates.put(name, startActive);
 
-        // Active state tracking
-        final boolean[] active = { startActive };
+        // Add card to list of cards (to keep track of adding/removing cards).
+        satelliteCards.get(body).put(name, card);
 
-        // -- Top row: circle + name + active indicator + focus indicator --
+        // Add card to VBox of card.
+        satelliteLists.get(body).getChildren().add(card);
+
+        // Update and move to satellite tab upon creation
+        contentArea.getChildren().set(1, satelliteLists.get(body));
+        satellitesTab.fire();
+
+        // Auto-focus if this card matches the name being restored
+        if (focusedNameToRestore != null && focusedNameToRestore.equals(name)) {
+            pool.getRenderer().setFocusObject(name);
+        }
+    }
+
+    /**
+     * Creates a new satellite card and sets up its buttons' event handlers.
+     * 
+     * @param body  name of the body.
+     * @param name  name of the satellite.
+     * @param color colour of the satellite.
+     * @return the new satellite's card.
+     */
+    private VBox buildSatelliteCard(String body, String name, Color color) {
+        // Top row: circle, name, focus indicator
         Circle circle = new Circle(18, color);
 
         Label nameLabel = new Label(name);
@@ -340,9 +433,9 @@ public class SidebarPane extends VBox {
         HBox topRow = new HBox(8, circle, nameLabel, spacer, focusIndicatorLabel);
         topRow.setAlignment(Pos.CENTER_LEFT);
 
-        // -- Bottom row: Remove/Add + Focus + View Data --
+        // Bottom row: Remove/Add, Focus, and View Data
         Button toggleButton = new Button("Remove");
-        toggleButton.getStyleClass().add(startActive ? "card-button-remove" : "card-button-add");
+        toggleButton.getStyleClass().add("card-button-remove");
 
         Button focusButton = new Button("Focus");
         focusButton.getStyleClass().add("card-button-focus");
@@ -350,19 +443,11 @@ public class SidebarPane extends VBox {
 
         Button viewDataButton = new Button("View Data");
         viewDataButton.getStyleClass().add("card-button-focus");
-        viewDataButton.setOnAction(e -> {
-            bottom.selectSatelliteForView(body, name);
-        });
+        viewDataButton.setOnAction(e -> bottom.selectSatelliteForView(body, name));
 
-        focusButton.setOnAction(e -> {
-            pool.getRenderer().setFocusObject(name);
-        });
+        focusButton.setOnAction(e -> pool.getRenderer().setFocusObject(name));
 
-        toggleButton.setOnAction(e -> {
-            if (active[0]) {
-                removeSatellite(name);
-            }
-        });
+        toggleButton.setOnAction(e -> removeSatellite(name));
 
         HBox buttonRow = new HBox(6, toggleButton, focusButton, viewDataButton);
         buttonRow.setAlignment(Pos.CENTER_LEFT);
@@ -372,35 +457,18 @@ public class SidebarPane extends VBox {
         card.setPadding(new Insets(10));
         card.getStyleClass().add("card");
 
-        satelliteCards.get(body).put(name, card);
-        satelliteLists.get(body).getChildren().add(card);
-
-        contentArea.getChildren().set(1, satelliteLists.get(body));
-
-        // Move to satellite tab upon creation
-        satellitesTab.fire();
-
-        satelliteCounters.put(body, satelliteCounters.get(body) + 1);
-
-        bottom.addSatelliteColumn(name);
-
-        // Apply initial inactive visual state
-        if (!startActive) {
-            focusButton.setDisable(true);
-            viewDataButton.setDisable(true);
-            circle.setOpacity(0.4);
-            nameLabel.setOpacity(0.5);
-        }
-
-        // Auto-focus if this card matches the name being restored
-        if (focusedNameToRestore != null && focusedNameToRestore.equals(name) && startActive) {
-            pool.getRenderer().setFocusObject(name);
-        }
+        return card;
     }
 
+    /**
+     * Removes a given satellite from the currently selected body.
+     * 
+     * @param name name of the satellite to remove.
+     */
     public void removeSatellite(String name) {
         satelliteEntries.get(selectedBody).remove(name);
 
+        // Remove the satellite card.
         VBox vbox = (VBox) contentArea.getChildren().get(1);
         vbox.getChildren().remove(satelliteCards.get(selectedBody).get(name));
 
@@ -410,15 +478,62 @@ public class SidebarPane extends VBox {
         pool.getCurrentWorld().removeSatellite(name);
     }
 
-    private void deselectBody(Circle activeIndicator, Button toggleButton,
-            Button focusButton, Circle circle, Label nameLabel, VBox card) {
+    /**
+     * Removes a given body from the sidebar.
+     * Currently, this is only called when loading a new body that overwrites the
+     * one we'd like to remove.
+     * 
+     * @param bodyName body to remove.
+     */
+    public void removeBody(String bodyName) {
+        // First stop the world if the body to remove is currently selected.
+        if (bodyName.equals(selectedBody)) {
+            selectedBody = "";
+
+            pool.stopWorld();
+        }
+
+        bodyEntries.remove(bodyName);
+        satelliteEntries.remove(bodyName);
+        satelliteLists.remove(bodyName);
+
+        VBox satelliteListBox = new VBox(4);
+        satelliteListBox.setPadding(new Insets(6));
+
+        ScrollPane satelliteScroll = new ScrollPane(satelliteListBox);
+        satelliteScroll.setFitToWidth(true);
+        satelliteScroll.getStyleClass().add("scroll");
+        VBox.setVgrow(satelliteScroll, Priority.ALWAYS);
+
+        VBox satelliteView = new VBox(satelliteScroll);
+        VBox.setVgrow(satelliteView, Priority.ALWAYS);
+
+        contentArea.getChildren().set(1, satelliteView);
+
+        bodyListVBox.getChildren().remove(bodyCards.get(bodyName));
+    }
+
+    /**
+     * Deselects a given body.
+     * 
+     * @param toggleButton button for toggling selection of the body.
+     * @param focusButton  button for focusing on the body.
+     * @param nameLabel    label containing the body's name.
+     * @param card         the body's card.
+     */
+    private void deselectBody(Button toggleButton,
+            Button focusButton, Label nameLabel, VBox card) {
         toggleButton.setText("Select");
         toggleButton.getStyleClass().set(0, "card-button-select");
         focusButton.setDisable(true);
-        circle.setOpacity(0.4);
         nameLabel.setOpacity(0.5);
     }
 
+    /**
+     * Packs selected body's data into a PresetConfiguration object for saving.
+     * 
+     * @return a new PresetConfiguration with the currently selected body's data.
+     */
     public PresetConfiguration toPresetConfiguration() {
         if (selectedBody.isEmpty()) {
             return null;
@@ -433,6 +548,12 @@ public class SidebarPane extends VBox {
                 bottom.toPresetState());
     }
 
+    /**
+     * Applies a PresetConfiguration to this sidebar; adding a new body card with
+     * the information found in the PresetConfiguration object.
+     * 
+     * @param configuration the PresetConfiguration to apply.
+     */
     public void applyPresetConfiguration(PresetConfiguration configuration) {
 
         bottom.applyPresetState(configuration.getBottomPanePreset());
@@ -445,9 +566,16 @@ public class SidebarPane extends VBox {
         }
     }
 
+    /**
+     * Applies a WorldConfiguration to this sidebar; adding a new body card and its
+     * corresponding satellite cards with the information found in the
+     * WorldConfiguration object.
+     * 
+     * @param config the WorldConfiguration to apply.
+     */
     public void applyWorldConfiguration(WorldConfiguration config) {
         // Set the focused name to restore before adding cards
-        focusedNameToRestore = config.getFocusedItemName();
+        focusedNameToRestore = config.getFocusedObjectName();
 
         if (config.getUi() != null) {
             bottom.applyPresetState(new PresetConfiguration.BottomPanePreset(
@@ -478,7 +606,7 @@ public class SidebarPane extends VBox {
                         }
                     }
                 }
-                addSatelliteCard(config.getBody().name, sat.name, satColor, sat.active);
+                addSatelliteCard(config.getBody().name, sat.name, satColor);
             }
         }
 
@@ -491,67 +619,66 @@ public class SidebarPane extends VBox {
         focusedNameToRestore = null;
     }
 
-    private Button tabButton(String text) {
-        Button b = new Button(text);
-        b.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(b, Priority.ALWAYS);
-        b.setPadding(new Insets(6));
-        return b;
+    /**
+     * Helper method for creating a new tab button.
+     * 
+     * @param text the name of the tab.
+     * @return a new tab Button.
+     */
+    private Button tabButton(String name) {
+        Button button = new Button(name);
+        button.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(button, Priority.ALWAYS);
+        button.setPadding(new Insets(6));
+        return button;
     }
 
-    private void setTabActive(Button b) {
-        b.getStyleClass().set(0, "tab-active");
+    /**
+     * Sets the given tab to active state.
+     * 
+     * @param button the tab button to set to active.
+     */
+    private void setTabActive(Button button) {
+        button.getStyleClass().set(0, "tab-active");
     }
 
-    private void setTabInactive(Button b) {
-        b.getStyleClass().set(0, "tab-inactive");
+    /**
+     * Sets the given tab to inactive state.
+     * 
+     * @param button the tab button to set to inactive.
+     */
+    private void setTabInactive(Button button) {
+        button.getStyleClass().set(0, "tab-inactive");
     }
 
+    /**
+     * @return the currently selected body.
+     */
     public String getSelectedBody() {
         return selectedBody;
     }
 
-    public HashMap<String, Boolean> getSatelliteActiveStates() {
-        return satelliteActiveStates;
+    /**
+     * @return the currently focused object's name.
+     */
+    public String getFocusedObjectName() {
+        return focusedObjectName;
     }
 
-    public String getFocusedItemName() {
-        return focusedItemName;
-    }
-
+    /**
+     * Returns all satellite entries for the corresponding body.
+     * 
+     * @param bodyName name of the body.
+     * @return satellite entries.
+     */
     public HashMap<String, SatellitePreset> getSatelliteEntries(String bodyName) {
         return satelliteEntries.get(bodyName);
     }
 
+    /**
+     * @return All body entries in this SidebarPane.
+     */
     public HashMap<String, BodyPreset> getBodyEntries() {
         return bodyEntries;
-    }
-
-    public void removeBody(String bodyName) {
-        if (bodyName.equals(selectedBody)) {
-            selectedBody = "";
-
-            pool.stopWorld();
-        }
-
-        bodyEntries.remove(bodyName);
-        satelliteEntries.remove(bodyName);
-        satelliteCounters.remove(bodyName);
-        satelliteLists.remove(bodyName);
-
-        VBox satelliteListBox = new VBox(4);
-        satelliteListBox.setPadding(new Insets(6));
-
-        ScrollPane satelliteScroll = new ScrollPane(satelliteListBox);
-        satelliteScroll.setFitToWidth(true);
-        satelliteScroll.getStyleClass().add("scroll");
-        VBox.setVgrow(satelliteScroll, Priority.ALWAYS);
-
-        VBox satelliteView = new VBox(satelliteScroll);
-        VBox.setVgrow(satelliteView, Priority.ALWAYS);
-
-        contentArea.getChildren().set(1, satelliteView);
-
-        bodyListBox.getChildren().remove(bodyCards.get(bodyName));
     }
 }

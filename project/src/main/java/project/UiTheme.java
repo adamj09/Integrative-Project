@@ -1,6 +1,8 @@
 package project;
 
 /**
+ * Enum containing colours for each UI theme.
+ * 
  * @author Ryan Lau
  */
 public enum UiTheme {
@@ -68,6 +70,8 @@ public enum UiTheme {
         "#5f899f",
         "#ff7b7b"
     );
+
+    // These are commented out as they're not being used.
     /*MERCURY(
         "Mercury",
         "#6E6E6E", // main
@@ -214,7 +218,14 @@ public enum UiTheme {
     );
     */
 
+    /**
+     * Name of the theme.
+     */
     private final String label;
+
+    /**
+     * Hexadecimal UI colours.
+     */
     private final String bgColor;
     private final String lightBgColor;
     private final String brightBgColor;
@@ -229,6 +240,23 @@ public enum UiTheme {
     private final String dataBoxBorderColor;
     private final String errorColor;
 
+    /**
+     * Builds a UI theme with 
+     * @param label colour of label text.
+     * @param bgColor mid-brightness background colour.
+     * @param lightBgColor lighter background colour.
+     * @param brightBgColor lightest background colour.
+     * @param darkAccentColor darker accent colour.
+     * @param lightAccentColor lighter accent colour.
+     * @param brightAccentColor lightest accent colour.
+     * @param textColor colour of all text (except labels)
+     * @param buttonColor background colour of buttons
+     * @param keyLabelColor colour used for live data pane labels.
+     * @param keyColor colour used for data in live data pane.
+     * @param dataBoxBgColor background colour of live data pane.
+     * @param dataBoxBorderColor border colour of live data pane.
+     * @param errorColor colour of text in error pop-ups/warnings
+     */
     UiTheme(
         String label,
         String bgColor,
@@ -261,6 +289,10 @@ public enum UiTheme {
         this.errorColor = errorColor;
     }
 
+    /**
+     * Converts the UiTheme to a JavaFX CSS formatted string.
+     * @return
+     */
     public String toStyleString() {
         return String.join(" ",
             "-bg-color: " + bgColor + ";",
@@ -279,18 +311,26 @@ public enum UiTheme {
         );
     }
 
-    public static UiTheme fromStoredValue(String value) {
-        if (value == null || value.isBlank()) {
+    /**
+     * Gets a specific theme.
+     * @param theme the name of the desired theme.
+     * @return the theme matching the name provided, or the default theme (MIDNIGHT) if the desired theme cannot be found.
+     */
+    public static UiTheme fromStoredValue(String theme) {
+        if (theme == null || theme.isBlank()) {
             return MIDNIGHT;
         }
 
         try {
-            return UiTheme.valueOf(value);
+            return UiTheme.valueOf(theme);
         } catch (IllegalArgumentException ex) {
             return MIDNIGHT;
         }
     }
 
+    /**
+     * @return name of the theme.
+     */
     @Override
     public String toString() {
         return label;

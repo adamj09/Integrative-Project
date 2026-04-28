@@ -24,7 +24,15 @@ import project.UI.SidebarPane;
  * @author Maxime Gauthier
  */
 public class App extends Application {
+    /**
+     * Key used to index into Preferences for the UI theme.
+     */
     private static final String THEME_PREFERENCE_KEY = "ui.theme";
+
+    /**
+     * The SimulationPool containing all the application's currently loaded worlds.
+     */
+    private SimulationPool pool;
 
     /**
      * Starts the JavaFX application, setting up the main window, UI components, and
@@ -37,69 +45,104 @@ public class App extends Application {
     public void start(Stage stage) {
         setSystemProperties();
 
-        Renderer mainRenderer = new Renderer();
+        // Create a new simulation pool.
+        pool = new SimulationPool(new Renderer());
 
-        SimulationPool pool = new SimulationPool(mainRenderer);
+        // Set up the main window's scene.
+        Scene scene = setUpScene(stage);
+        scene.getStylesheets().add(new StyleSheet().styleSheet);
 
+        // Set up the stage.
+        stage.setScene(scene);
+        stage.setTitle("Orbital Motion Simulator");
+        stage.setResizable(true);
+        stage.show();
+    }
+
+    /**
+     * Sets up the main scene.
+     * 
+     * @param stage the root stage of the JavaFX application.
+     * @return the scene that was set up.
+     */
+    private Scene setUpScene(Stage stage) {
+        // Create the main application's panes.
         BottomPane bottom = new BottomPane(pool);
         MainMenuBar menuBar = new MainMenuBar();
         SidebarPane sidebar = new SidebarPane(bottom, pool);
 
-        PresetManager presetManager = new PresetManager();
-
-        // Wire menu bar buttons to sidebar actions
-        menuBar.getNewBodyButton().setOnAction(_ -> openBodyBuilder(stage, menuBar, sidebar));
-        menuBar.getNewSatelliteButton().setOnAction(_ -> openSatelliteBuilder(stage, pool, menuBar, sidebar));
-        menuBar.getSaveAsMenuItem()
-                .setOnAction(_ -> presetManager.savePresetAs(stage, pool.getCurrentWorld(), sidebar));
-        menuBar.getSaveMenuItem().setOnAction(_ -> presetManager.savePreset(stage, pool.getCurrentWorld(), sidebar));
-        menuBar.getLoadMenuItem().setOnAction(_ -> loadWorld(stage, mainRenderer, pool, sidebar, presetManager));
-        menuBar.getInfoButton().setOnAction(_ -> showInfo(menuBar));
-
-        // Note: mainRenderer.getWorld() may be null here since the GL context
-        // hasn't initialized yet. PresetManager handles null World gracefully.
-        presetManager.markCurrentStateSaved(mainRenderer.getWorld(), sidebar);
-
+        // Get the currently selected theme.
         Preferences preferences = Preferences.userNodeForPackage(App.class);
         UiTheme selectedTheme = UiTheme.fromStoredValue(
                 preferences.get(THEME_PREFERENCE_KEY, UiTheme.MIDNIGHT.name()));
 
+        // Set up the root pane with all the main application's panes.
         BorderPane root = new BorderPane();
         root.setStyle(selectedTheme.toStyleString());
-        root.setCenter(mainRenderer.getViewport().getGLCanvas());
+        root.setCenter(pool.getRenderer().getViewport().getGLCanvas());
         root.setTop(menuBar);
         root.setLeft(sidebar);
         root.setBottom(bottom);
         root.getStyleClass().add("border-pane");
 
+        // Set the theme, and add handler for changing theme.
         menuBar.getThemeSelector().setValue(selectedTheme);
+        menuBar.getThemeSelector().setOnAction(_ -> setTheme(menuBar, preferences, root));
 
-        menuBar.getThemeSelector().setOnAction(e -> {
-            UiTheme theme = menuBar.getThemeSelector().getValue();
-            if (theme != null) {
-                root.setStyle(theme.toStyleString());
-                preferences.put(THEME_PREFERENCE_KEY, theme.name());
-            }
-        });
+        PresetManager presetManager = new PresetManager();
+
+        // Wire menu bar buttons to sidebar actions
+        setUpMenuBarEventHandlers(stage, menuBar, presetManager, sidebar);
+
+        // Note: mainRenderer.getWorld() may be null here since the GL context
+        // hasn't initialized yet. PresetManager handles null World gracefully.
+        presetManager.markCurrentStateSaved(pool.getRenderer().getWorld(), sidebar);
+
+        // Run the live data pane's update loop.
+        bottom.updateLoop();
 
         // The "true" value here indicates the creation of a depth buffer. This is
         // essential to ensure all nodes are placed on appopriate layers (contol nodes
         // above panes for example)
-        Scene scene = new Scene(root, 1280, 720, true);
+        return new Scene(root, 1280, 720, true);
+    }
 
-        scene.getStylesheets().add(new StyleSheet().styleSheet);
+    /**
+     * Updates the theme based on what is currently selected in the theme selection
+     * ComboBox.
+     * 
+     * @param menuBar     the MainMenuBar containing the theme selection ComboBox.
+     * @param preferences Preferences object to save the currently selected theme
+     *                    to.
+     * @param root        the BorderPane
+     *                    o which the updated theme should be applied.
+     */
+    private void setTheme(MainMenuBar menuBar, Preferences preferences, BorderPane root) {
+        UiTheme theme = menuBar.getThemeSelector().getValue();
+        if (theme != null) {
+            root.setStyle(theme.toStyleString());
+            preferences.put(THEME_PREFERENCE_KEY, theme.name());
+        }
+    }
 
-        stage.setScene(scene);
-        stage.setTitle("Orbital Motion Simulator");
-        stage.setResizable(true);
-        // stage.setOnCloseRequest(event -> {
-        // if (!presetManager.canClose(stage, mainRenderer.getWorld(), sidebar)) {
-        // event.consume();
-        // }
-        // });
-        stage.show();
-
-        bottom.updateLoop();
+    /**
+     * Sets up all the event handlers for the MenuBar.
+     * 
+     * @param stage         the root stage of the JavaFX application.
+     * @param menuBar       the MenuBar to set up event handlers for.
+     * @param presetManager the PresetManager used for saving/loading worlds.
+     * @param sidebar       the application's sidebar (used to retrieve currently
+     *                      loaded worlds and satellites).
+     */
+    private void setUpMenuBarEventHandlers(Stage stage, MainMenuBar menuBar, PresetManager presetManager,
+            SidebarPane sidebar) {
+        menuBar.getNewBodyButton().setOnAction(_ -> openBodyBuilder(stage, menuBar, sidebar));
+        menuBar.getNewSatelliteButton().setOnAction(_ -> openSatelliteBuilder(stage, pool, menuBar, sidebar));
+        menuBar.getSaveAsMenuItem()
+                .setOnAction(_ -> presetManager.savePresetAs(stage, pool.getCurrentWorld(), sidebar));
+        menuBar.getSaveMenuItem().setOnAction(_ -> presetManager.savePreset(stage, pool.getCurrentWorld(), sidebar));
+        menuBar.getLoadMenuItem().setOnAction(_ -> loadWorld(stage, pool.getRenderer(), pool, sidebar, presetManager));
+        menuBar.getInfoButton().setOnAction(_ -> showInfo(menuBar));
     }
 
     /**
@@ -165,13 +208,22 @@ public class App extends Application {
         }
 
         pool.addWorld(newWorld);
-        if(pool.getWorlds().size() == 1) {
+        if (pool.getWorlds().size() == 1) {
             pool.runWorld(newWorld.getName());
 
-        mainRenderer.setWorld(pool.getCurrentWorld());
+            mainRenderer.setWorld(pool.getCurrentWorld());
         }
     }
 
+    /**
+     * Opens the central celestial body builder.
+     * 
+     * @param stage   the root stage of the JavaFX application.
+     * @param menuBar the application's menu bar (used to determine theme to be used
+     *                by the Body builder).
+     * @param sidebar the side bar to which we'd like to add the Body upon
+     *                creation.
+     */
     private void openBodyBuilder(Stage stage, MainMenuBar menuBar, SidebarPane sidebar) {
         sidebar.openNewBodyPopup(stage,
                 menuBar.getThemeSelector().getValue() != null

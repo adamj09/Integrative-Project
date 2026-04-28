@@ -269,24 +269,6 @@ public class BottomPane extends VBox {
         return null;
     }
 
-    public void addSatelliteColumn(String title) {
-        VBox col = makeSatelliteColumn(title);
-        col.setVisible(false);
-        col.setManaged(false);
-        dataGrid.getChildren().add(col);
-        satelliteColumnNames.add(title);
-    }
-
-    public void clearSatelliteColumns() {
-        if (dataGrid.getChildren().size() > 2) {
-            dataGrid.getChildren().remove(2, dataGrid.getChildren().size());
-        }
-        satelliteColumnNames.clear();
-        selectedSatellite = "";
-        noDataLabel.setVisible(true);
-        noDataLabel.setManaged(true);
-    }
-
     public BottomPanePreset toPresetState() {
         String specificTime = specificTimeField.getText() == null ? "" : specificTimeField.getText();
         String timescale = timescaleDropdown.getValue() == null ? "1x" : timescaleDropdown.getValue();
@@ -319,26 +301,6 @@ public class BottomPane extends VBox {
 
         noDataLabel.setVisible(false);
         noDataLabel.setManaged(false);
-    }
-
-    public void removeSatelliteColumn(String title) {
-        dataGrid.getChildren().removeIf(node -> {
-            if (node instanceof VBox col) {
-                String colName = getColumnName(col);
-                if (title.equals(colName)) {
-                    if (title.equals(selectedSatellite))
-                        selectedSatellite = "";
-                    return true;
-                }
-            }
-            return false;
-        });
-        satelliteColumnNames.remove(title);
-
-        if (selectedSatellite.isEmpty()) {
-            noDataLabel.setVisible(true);
-            noDataLabel.setManaged(true);
-        }
     }
 
     public void updateLoop() {

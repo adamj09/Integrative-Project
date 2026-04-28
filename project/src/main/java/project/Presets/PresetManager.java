@@ -132,8 +132,6 @@ public class PresetManager {
             return;
         }
 
-        HashMap<String, Boolean> satelliteActiveStates = sidebar.getSatelliteActiveStates();
-
         BodyPreset body = presetConfig.getBody();
         WorldConfiguration.SidebarBody sidebarBody = new WorldConfiguration.SidebarBody(body.name(), colorToHex(body.color()), body.preset(), body.mass(), body.radius());
         
@@ -148,8 +146,7 @@ public class PresetManager {
         for (Map.Entry<String, SatellitePreset> entry : sats.entrySet()) {
             SatellitePreset sp = entry.getValue();
 
-            boolean active = satelliteActiveStates.get(entry.getKey());
-            sidebarSatellites.add(new WorldConfiguration.SidebarSatellite(sp.name(), colorToHex(sp.color()), active));
+            sidebarSatellites.add(new WorldConfiguration.SidebarSatellite(sp.name(), colorToHex(sp.color())));
 
             // Find matching satellite data from World simulation
             WorldConfiguration.SatelliteConfig matchingConfig = null;
@@ -163,7 +160,6 @@ public class PresetManager {
             }
 
             if (matchingConfig != null) {
-                matchingConfig.active = active;
                 allSatConfigs.add(matchingConfig);
             } 
         }
@@ -171,7 +167,7 @@ public class PresetManager {
 
         configuration.setSidebarBody(sidebarBody);
         configuration.setSidebarSatellites(sidebarSatellites);
-        configuration.setFocusedItemName(sidebar.getFocusedItemName());
+        configuration.setFocusedObjectName(sidebar.getFocusedObjectName());
 
         try {
             presetFileService.save(path, configuration);
@@ -215,8 +211,8 @@ public class PresetManager {
         if (!savedSats.equals(currentSats)) return false;
 
         // Compare focused item
-        String savedFocus = saved.getFocusedItemName();
-        String currentFocus = sidebar.getFocusedItemName();
+        String savedFocus = saved.getFocusedObjectName();
+        String currentFocus = sidebar.getFocusedObjectName();
         if (savedFocus == null ? currentFocus != null : !savedFocus.equals(currentFocus)) return false;
 
         // Compare UI config
@@ -247,7 +243,6 @@ public class PresetManager {
 
     private List<WorldConfiguration.SidebarSatellite> buildCurrentSidebarSatellites(SidebarPane sidebar) {
         PresetConfiguration presetConfig = sidebar.toPresetConfiguration();
-        HashMap<String, Boolean> satelliteActiveStates = sidebar.getSatelliteActiveStates();
         List<WorldConfiguration.SidebarSatellite> result = new ArrayList<>();
 
 
@@ -257,9 +252,7 @@ public class PresetManager {
         for (Map.Entry<String, SatellitePreset> entry : sats.entrySet()) {
             SatellitePreset preset = entry.getValue();
 
-            boolean active = satelliteActiveStates.get(entry.getKey());
-
-            result.add(new WorldConfiguration.SidebarSatellite(preset.name(), colorToHex(preset.color()), active));
+            result.add(new WorldConfiguration.SidebarSatellite(preset.name(), colorToHex(preset.color())));
         }
         return result;
     }
