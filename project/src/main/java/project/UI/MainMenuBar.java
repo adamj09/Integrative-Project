@@ -13,28 +13,43 @@ import javafx.scene.layout.Region;
 import project.UiTheme;
 
 /**
+ * Class that handles controls that modify the SidebarPane. This serves as a
+ * gateway to features such as saving/loading, adding bodies/satellites, etc.
+ * 
  * @author Ryan Lau
- * @author Adam Johnston
  */
 public class MainMenuBar extends HBox {
+    /**
+     * Buttons for launching the body and satellite builders, respectively.
+     */
+    private Button newBodyButton, newSatelliteButton;
 
-    private final Button newBodyButton;
-    private final Button newSatelliteButton;
+    /**
+     * Top level MenuBar.
+     */
     private final MenuBar menuBar;
-    private final Menu configLoaderMenu;
-    private final MenuItem saveAsMenuItem;
-    private final MenuItem saveMenuItem;
-    private final MenuItem loadMenuItem;
-    private final Menu presetsMenu;
-    private final MenuItem mercuryPreset;
-    private final MenuItem venusPreset;
-    private final MenuItem earthPreset;
-    private final MenuItem marsPreset;
-    private final MenuItem jupiterPreset;
-    private final MenuItem saturnPreset;
-    private final MenuItem uranusPreset;
-    private final MenuItem neptunePreset;
+
+    /**
+     * UI elements for saving/loading worlds.
+     */
+    private Menu configLoaderMenu;
+    private MenuItem saveAsMenuItem, saveMenuItem, loadMenuItem;
+
+    /**
+     * UI elements for loading presets.
+     */
+    private Menu presetsMenu;
+    private MenuItem mercuryPreset, venusPreset, earthPreset, marsPreset, jupiterPreset, saturnPreset, uranusPreset,
+            neptunePreset;
+
+    /**
+     * ComboBox for selecting themes.
+     */
     private final ComboBox<UiTheme> themeSelector;
+
+    /**
+     * Information button.
+     */
     private final Button infoButton;
 
     public MainMenuBar() {
@@ -43,36 +58,8 @@ public class MainMenuBar extends HBox {
         setAlignment(Pos.CENTER_LEFT);
         getStyleClass().add("main-menu-bar");
 
-        newBodyButton = new Button("New celestial body");
-        newBodyButton.getStyleClass().add("style-button");
-
-        newSatelliteButton = new Button("New satellite");
-        newSatelliteButton.getStyleClass().add("style-button");
-
-        saveAsMenuItem = new MenuItem("Save As");
-        saveMenuItem = new MenuItem("Save");
-        loadMenuItem = new MenuItem("Load");
-
-        // Presets submenu (as Menu)
-        mercuryPreset = new MenuItem("Mercury");
-        venusPreset = new MenuItem("Venus");
-        earthPreset = new MenuItem("Earth");
-        marsPreset = new MenuItem("Mars");
-        jupiterPreset = new MenuItem("Jupiter");
-        saturnPreset = new MenuItem("Saturn");
-        uranusPreset = new MenuItem("Uranus");
-        neptunePreset = new MenuItem("Neptune");
-        presetsMenu = new Menu("Presets");
-        presetsMenu.getItems().addAll(
-            mercuryPreset, venusPreset, earthPreset, marsPreset,
-            jupiterPreset, saturnPreset, uranusPreset, neptunePreset
-        );
-
-        // Configuration Loader menu (as Menu)
-        configLoaderMenu = new Menu("Configuration Loader");
-        configLoaderMenu.getItems().addAll(
-            presetsMenu, saveAsMenuItem, saveMenuItem, loadMenuItem
-        );
+        setUpBuilderButtons();
+        setUpConfigLoaderMenu();
 
         // Top-level MenuBar
         menuBar = new MenuBar();
@@ -90,54 +77,173 @@ public class MainMenuBar extends HBox {
 
         infoButton = new Button("INFO");
         infoButton.getStyleClass().add("style-button");
-        
+
         this.setOnMouseClicked(_ -> this.requestFocus());
 
         getChildren().addAll(newBodyButton, newSatelliteButton, menuBar, spacer, themeSelector, infoButton);
     }
 
+    /**
+     * Sets up the body and satellite builder buttons.
+     */
+    private void setUpBuilderButtons() {
+        newBodyButton = new Button("New celestial body");
+        newBodyButton.getStyleClass().add("style-button");
+
+        newSatelliteButton = new Button("New satellite");
+        newSatelliteButton.getStyleClass().add("style-button");
+    }
+
+    /**
+     * Sets up the menu for saving/loading worlds.
+     */
+    private void setUpConfigLoaderMenu() {
+        saveAsMenuItem = new MenuItem("Save As");
+        saveMenuItem = new MenuItem("Save");
+        loadMenuItem = new MenuItem("Load");
+
+        // Presets submenu (as Menu)
+        mercuryPreset = new MenuItem("Mercury");
+        venusPreset = new MenuItem("Venus");
+        earthPreset = new MenuItem("Earth");
+        marsPreset = new MenuItem("Mars");
+        jupiterPreset = new MenuItem("Jupiter");
+        saturnPreset = new MenuItem("Saturn");
+        uranusPreset = new MenuItem("Uranus");
+        neptunePreset = new MenuItem("Neptune");
+
+        presetsMenu = new Menu("Presets");
+        presetsMenu.getItems().addAll(
+                mercuryPreset, venusPreset, earthPreset, marsPreset,
+                jupiterPreset, saturnPreset, uranusPreset, neptunePreset);
+
+        // Configuration Loader menu (as Menu)
+        configLoaderMenu = new Menu("Configuration Loader");
+        configLoaderMenu.getItems().addAll(presetsMenu, saveAsMenuItem, saveMenuItem, loadMenuItem);
+    }
+
+    /**
+     * @return the newBodyButton.
+     */
     public Button getNewBodyButton() {
         return newBodyButton;
     }
 
+    /**
+     * @return the newSatelliteButton.
+     */
     public Button getNewSatelliteButton() {
         return newSatelliteButton;
     }
 
+    /**
+     * @return the saveAsMenuItem.
+     */
     public MenuItem getSaveAsMenuItem() {
         return saveAsMenuItem;
     }
 
+    /**
+     * @return the saveMenuItem.
+     */
     public MenuItem getSaveMenuItem() {
         return saveMenuItem;
     }
 
+    /**
+     * @return the loadMenuItem.
+     */
     public MenuItem getLoadMenuItem() {
         return loadMenuItem;
     }
 
+    /**
+     * @return the top-level menuBar.
+     */
     public MenuBar getMenuBar() {
         return menuBar;
     }
+
+    /**
+     * @return the configLoaderMenu.
+     */
     public Menu getConfigLoaderMenu() {
         return configLoaderMenu;
     }
+
+    /**
+     * @return the presetsMenu.
+     */
     public Menu getPresetsMenu() {
         return presetsMenu;
     }
 
-    public MenuItem getMercuryPreset() { return mercuryPreset; }
-    public MenuItem getVenusPreset() { return venusPreset; }
-    public MenuItem getEarthPreset() { return earthPreset; }
-    public MenuItem getMarsPreset() { return marsPreset; }
-    public MenuItem getJupiterPreset() { return jupiterPreset; }
-    public MenuItem getSaturnPreset() { return saturnPreset; }
-    public MenuItem getUranusPreset() { return uranusPreset; }
-    public MenuItem getNeptunePreset() { return neptunePreset; }
+    /**
+     * @return the mercuryPreset.
+     */
+    public MenuItem getMercuryPreset() {
+        return mercuryPreset;
+    }
+
+    /**
+     * @return the venusPreset.
+     */
+    public MenuItem getVenusPreset() {
+        return venusPreset;
+    }
+
+    /**
+     * @return the earthPreset.
+     */
+    public MenuItem getEarthPreset() {
+        return earthPreset;
+    }
+
+    /**
+     * @return the marsPreset.
+     */
+    public MenuItem getMarsPreset() {
+        return marsPreset;
+    }
+
+    /**
+     * @return the jupiterPreset.
+     */
+    public MenuItem getJupiterPreset() {
+        return jupiterPreset;
+    }
+
+    /**
+     * @return the saturnPreset.
+     */
+    public MenuItem getSaturnPreset() {
+        return saturnPreset;
+    }
+
+    /**
+     * @return the uranusPreset.
+     */
+    public MenuItem getUranusPreset() {
+        return uranusPreset;
+    }
+
+    /**
+     * @return the neptunePreset.
+     */
+    public MenuItem getNeptunePreset() {
+        return neptunePreset;
+    }
+
+    /**
+     * @return the themeSelector ComboBox.
+     */
     public ComboBox<UiTheme> getThemeSelector() {
         return themeSelector;
     }
 
+    /**
+     * @return the infoButton.
+     */
     public Button getInfoButton() {
         return infoButton;
     }

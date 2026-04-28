@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -30,6 +28,8 @@ import project.UI.Popups.BodyCreatorPopup;
 import project.UI.Popups.SatelliteCreatorPopup;
 
 /**
+ * Class that handles lists of loaded celestial bodies and satellites within the user interface.
+ * 
  * @author Ryan Lau
  * @author Adam Johnston
  */
