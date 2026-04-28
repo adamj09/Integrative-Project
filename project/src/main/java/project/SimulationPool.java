@@ -46,7 +46,7 @@ public class SimulationPool {
         World world = worlds.get(worldName);
         world.runWorld();
 
-        renderer.setWorld(world); //TODO this is pissing me off
+        renderer.setWorld(world); 
 
         currentWorld = worldName;
     }
@@ -54,7 +54,7 @@ public class SimulationPool {
     public void startWorld() {
         // If a world is currently running, stop it.
         if (!currentWorld.isEmpty()) {
-            worlds.get(currentWorld).runWorld();
+            worlds.get(currentWorld).startWorld();
         }
     }
 

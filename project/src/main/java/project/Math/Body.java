@@ -205,6 +205,10 @@ public class Body extends OrbitsTime {
         return this.hillRadius;
     }
 
+    public int getNumberOfSatellites() {
+        return this.satellites.size();
+    }
+
     /**
      * Update the hill radius for this object using current values for
      * semi-major axis, eccentricity, mass of sun, and mass of this object
@@ -278,6 +282,14 @@ public class Body extends OrbitsTime {
         if (previous == null || !previous.isAlive()) {
             thread.start();
         }
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------
+    //
+    public void sateliteUpdateInfo(){
+        for (Satellite sat : satellites.values()) {
+            sat.relativeInfoUpdate();
+        }  
     }
 
     // ---------------------------------------------------------------------------------------------------------------------------

@@ -21,8 +21,8 @@ public class SatelliteData {
     public double eccentricity;
     public double p; //semi-latus rectum
     public double a; //semi-major axis
-    public double radiusOfPeriapsis; //TODO find a way to calculate the point in 3d
-    public double radiusOfApoapsis; //TODO find a way to calculate the point in 3d
+    public double radiusOfPeriapsis; 
+    public double radiusOfApoapsis; 
     public double excessSpeed; 
     public double meanMotion;
     public Vector3d initialVelocity;

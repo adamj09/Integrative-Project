@@ -263,6 +263,8 @@ public class SatelliteCreatorPopup extends Stage {
                     return;
                 }
 
+                boolean wasWorldRunning = currentWorld.isWorldRunning();
+
                 currentWorld.stopWorld();
 
                 Satellite newSatellite = new Satellite();
@@ -278,6 +280,9 @@ public class SatelliteCreatorPopup extends Stage {
                         new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
 
                 currentWorld.runWorld();
+                if(wasWorldRunning){
+                    currentWorld.startWorld();
+                }
             }
             confirmed = true;
 

@@ -62,6 +62,8 @@ public class World {
 
     public static final float SATELLITE_RADIUS = 100.0f;
 
+    public boolean worldRunning = false;
+
     /**
      * Buffers for storing transformation matrices and colours of the bodies and
      * orbits.
@@ -412,18 +414,38 @@ public class World {
     }
 
     public void runWorld() {
+        if(body.getNumberOfSatellites() == 1) {
+            body.startTimeThread();
+            body.startSatellites();
+            this.worldRunning = true;
+            body.start();
+            System.out.println("World started runworld: " + name);
+            body.resetTime();
+        }else{
+            body.sateliteUpdateInfo();
+        }
+        //body.start();
+    
+    }
+
+    public void startWorld() {
         body.startTimeThread();
         body.startSatellites();
-
+        this.worldRunning = true;
         body.start();
-
+        System.out.println("World started: " + name);
         //body.resetTime();
     }
 
     public void stopWorld() {
         body.stop();
-        //body.stopSatellites();
+        body.stopSatellites();
         body.stopTimeThread();
+        this.worldRunning = false;
+    }
+
+    public boolean isWorldRunning() {
+        return this.worldRunning;
     }
 
     public void dispose() {
