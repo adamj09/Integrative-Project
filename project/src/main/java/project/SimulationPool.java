@@ -78,6 +78,13 @@ public class SimulationPool {
         getCurrentWorld().getBody().setTimeScale(timeScale);
     }
 
+    public void setTimeSec(double timeSeconds) {
+        if(getCurrentWorld() == null) {
+            return;
+        }
+        getCurrentWorld().getBody().setTime(timeSeconds);
+    }
+
     public World getWorld(String name) {
         if (!worlds.containsKey(name)) {
             return null;

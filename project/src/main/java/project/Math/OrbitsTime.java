@@ -42,6 +42,7 @@ public class OrbitsTime implements Runnable {
         this.startTimeReal = System.nanoTime();
         this.totalPausedTime = 0;
         this.pauseStartTime = 0;
+        this.tempTime = 0;
     }
 
     /**
@@ -50,11 +51,18 @@ public class OrbitsTime implements Runnable {
      * @param timeSeconds the time value in seconds
      */
     public void setTime(double timeSeconds) {
+        
+        this.resetTime();
+        this.tempTime = timeSeconds * 1000; // convert to milliseconds
+        System.out.println("Time set to: " + timeSeconds + " seconds"+" | tempTime: " + this.tempTime + " ms");
+        calculateTime();
+        /*
         long currentRealTime = System.nanoTime();
         this.finalTime = timeSeconds * 1000; // convert to milliseconds
         // Adjust startTimeReal so that next calculateTime() produces the desired time
         this.startTimeReal = currentRealTime - this.totalPausedTime
                 - (long) (this.finalTime / this.timeScale * NANOS_PER_MS);
+        */
     }
 
     public void start() {
@@ -142,9 +150,10 @@ public class OrbitsTime implements Runnable {
         if (startTimeReal > 0) {
             
             if(this.lastTimeScale != this.timeScale){
-                this.tempTime = this.finalTime;
+                double temp = this.finalTime;
                 this.lastTimeScale = this.timeScale;
                 this.resetTime();
+                this.tempTime = temp;
             }
             
             // Calculate elapsed real time since simulation started, minus paused periods

@@ -69,18 +69,18 @@ public class BottomPane extends VBox {
         specificTimeField.getStyleClass().add("field");
 
         specificTimeField.setOnAction(_ -> {
-            double timeScale;
+            double newTime;
             try {
-                timeScale = Double.parseDouble(specificTimeField.getText());
+                newTime = Double.parseDouble(specificTimeField.getText());
             } catch(NumberFormatException ex) {
                 return;
             }
             
-            if(timeScale <= 0) {
+            if(newTime < 0) {
                 return;
             }
 
-            pool.setTimeScale(timeScale);
+            pool.setTimeSec(newTime);
         });
 
         Label timescaleLabel = new Label("Time scale:");
