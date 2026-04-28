@@ -54,7 +54,6 @@ public class OrbitsTime implements Runnable {
         
         this.resetTime();
         this.tempTime = timeSeconds * 1000; // convert to milliseconds
-        System.out.println("Time set to: " + timeSeconds + " seconds"+" | tempTime: " + this.tempTime + " ms");
         calculateTime();
         /*
         long currentRealTime = System.nanoTime();

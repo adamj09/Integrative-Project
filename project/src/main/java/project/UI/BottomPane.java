@@ -34,6 +34,7 @@ public class BottomPane extends VBox {
     private final HBox dataGrid;
 
     private final TextField timeValueField;
+    private final Label timeValueLabelNum;
 
     // Live data view state
     private String selectedSatellite = "";
@@ -60,7 +61,7 @@ public class BottomPane extends VBox {
         Label infoLabel = new Label("Info :");
         infoLabel.getStyleClass().add("subheading");
 
-        Label timeLabel = new Label("Set specific time (s):");
+        Label timeLabel = new Label("Set specific time (min):");
         timeLabel.getStyleClass().add("body");
 
         specificTimeField = new TextField();
@@ -80,7 +81,7 @@ public class BottomPane extends VBox {
                 return;
             }
 
-            pool.setTimeSec(newTime);
+            pool.setTimeSec(newTime * 60); // Convert minutes to seconds
         });
 
         Label timescaleLabel = new Label("Time scale:");
@@ -171,11 +172,15 @@ public class BottomPane extends VBox {
         Label timeValueLabel = new Label("Simulation time (minutes):");
         timeValueLabel.getStyleClass().add("body");
         timeValueField = new TextField();
+        timeValueField.setEditable(false);
         timeValueField.getStyleClass().add("field");
         timeValueField.setText("0.0");
         timeValueField.setPrefWidth(100);
+        timeValueLabelNum = new Label();
+        timeValueLabelNum.setText(getWorldTimeFormated(0));
+        timeValueLabelNum.getStyleClass().add("body");    
 
-        HBox timeValueBox = new HBox(4, timeValueLabel, timeValueField);
+        HBox timeValueBox = new HBox(4, timeValueLabel, timeValueField,timeValueLabelNum);
         timeValueBox.setPadding(new Insets(6, 10, 6, 10));
         timeValueBox.setAlignment(Pos.CENTER_LEFT);
 
@@ -339,8 +344,10 @@ public class BottomPane extends VBox {
     public void updateSatelliteData() {
         //set time simulation
         Body body = pool.getCurrentWorld().getBody();
-        double timeMinutes = (body.getTimeSeconds()/60.0);
+        double timeSeconds = body.getTimeSeconds();
+        double timeMinutes = (timeSeconds/60.0);
         timeValueField.setText(String.format("%.4f", timeMinutes));
+        timeValueLabelNum.setText(getWorldTimeFormated(timeSeconds));
 
         if (selectedSatellite.isEmpty()) {
             return;
@@ -395,5 +402,18 @@ public class BottomPane extends VBox {
 
     public void setWorldName(String worldName) {
         this.worldName = worldName;
+    }
+
+    private String getWorldTimeFormated(double timeSeconds) {
+        int secondsPerDay = 24 * 3600;
+        int secondsPerYear = 365 * secondsPerDay;
+
+        int years = (int) (timeSeconds / secondsPerYear);
+        int days = (int) ((timeSeconds % secondsPerYear) / secondsPerDay);
+        int hours = (int) ((timeSeconds % secondsPerDay) / 3600);
+        int minutes = (int) ((timeSeconds % 3600) / 60);
+        int seconds = (int) (timeSeconds % 60);
+
+        return String.format("(%dy %dd %02dh %02dm %02ds)", years, days, hours, minutes, seconds);
     }
 }
