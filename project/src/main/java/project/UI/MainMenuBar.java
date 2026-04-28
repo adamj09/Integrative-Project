@@ -52,6 +52,9 @@ public class MainMenuBar extends HBox {
      */
     private final Button infoButton;
 
+    /**
+     * Creates a new MainMenuBar.
+     */
     public MainMenuBar() {
         setPadding(new Insets(6, 10, 6, 10));
         setSpacing(8);

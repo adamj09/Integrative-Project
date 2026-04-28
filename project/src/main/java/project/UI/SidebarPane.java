@@ -109,6 +109,12 @@ public class SidebarPane extends VBox {
     private Button selectedBodyFocus = null;
     private VBox selectedBodyCard = null;
 
+    /**
+     * Creates a new SidebarPane.
+     * 
+     * @param bottom the BottomPane this SidebarPane will modify.
+     * @param pool the SimulationPool this SidebarPane will command.
+     */
     public SidebarPane(BottomPane bottom, SimulationPool pool) {
         this.pool = pool;
         this.bottom = bottom;
