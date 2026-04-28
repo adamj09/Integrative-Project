@@ -96,7 +96,7 @@ public class Renderer {
         viewport.getGLCanvas().addOnInitEvent(_ -> init());
         viewport.getGLCanvas().addOnRenderEvent(event -> loop(event.delta));
         viewport.getGLCanvas().addOnReshapeEvent(_ -> setCameraProjection());
-        viewport.getGLCanvas().addOnDisposeEvent(_-> dispose());
+        viewport.getGLCanvas().addOnDisposeEvent(_ -> dispose());
     }
 
     /**
@@ -218,7 +218,8 @@ public class Renderer {
             orbitShaderProgram = new ShaderProgram(orbitVertShader.getShader(), orbitFragShader.getShader());
         }
 
-        // No need to check here -- there's a check for existing uniform block bindings in this method.
+        // No need to check here -- there's a check for existing uniform block bindings
+        // in this method.
         bodyShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
         lightShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
         orbitShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
@@ -237,16 +238,18 @@ public class Renderer {
     }
 
     public void refreshRenderSystems() {
-        // This is called when existing world is updated (after applying loaded configuration)
-        // All render systems need to be refreshed because world internals have been completely reset
+        // This is called when existing world is updated (after applying loaded
+        // configuration)
+        // All render systems need to be refreshed because world internals have been
+        // completely reset
         world.getBodyMesh().setUpBuffers();
         world.getOrbitMesh().setUpBuffers();
         world.getLightSourceMesh().setUpBuffers();
-        
+
         bodyRenderSystem = new BodyRenderSystem(world, bodyShaderProgram);
         lightRenderSystem = new LightRenderSystem(world, lightShaderProgram);
         orbitRenderSystem = new OrbitRenderSystem(world, orbitShaderProgram);
-        
+
         cameraMatrixLoader = new CameraMatrixLoader(world.getCamera());
         setCameraProjection();
     }
@@ -254,7 +257,7 @@ public class Renderer {
     public void setWorld(World world) {
         this.world = world;
         fixedCameraController = new FixedCameraController(this.world, controlManager);
-        if(currentFocusedObject.isEmpty() || !world.getBodyObjects().containsKey(currentFocusedObject)) {
+        if (currentFocusedObject.isEmpty() || !world.getBodyObjects().containsKey(currentFocusedObject)) {
             setFocusObject(world.getName());
         } else {
             setFocusObject(currentFocusedObject);
