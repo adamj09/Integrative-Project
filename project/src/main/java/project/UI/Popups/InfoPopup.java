@@ -10,8 +10,18 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import project.StyleSheet;
 
+/**
+ * UI element used to display general information
+ * 
+ * @author Ryan Lau
+ */
 public class InfoPopup extends Stage {
-
+    /**
+     * Creates a new pop-up.
+     * 
+     * @param infoText the text to display within the pop-up.
+     * @param themeStyle the theme that the UI should use to render this pop-up.
+     */
     public InfoPopup(String infoText, String themeStyle) {
         initModality(Modality.APPLICATION_MODAL);
         setTitle("Information");
@@ -42,6 +52,12 @@ public class InfoPopup extends Stage {
         setScene(scene);
     }
 
+    /**
+     * Creates a new pop-up and shows it.
+     * 
+     * @param text the text to display within the pop-up.
+     * @param themeStyle the theme that the UI should use to render this pop-up.
+     */
     public static void show(String text, String themeStyle) {
         new InfoPopup(text, themeStyle).showAndWait();
     }

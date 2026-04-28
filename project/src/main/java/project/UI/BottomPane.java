@@ -1,8 +1,5 @@
 package project.UI;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
@@ -24,31 +21,75 @@ import project.Math.SatelliteData;
 import project.Presets.PresetConfiguration.BottomPanePreset;
 
 /**
+ * Class that handles simulation-specific controls and the live satellite data
+ * feed.
+ * 
  * @author Ryan Lau
  * @author Adam Johnston
  */
 public class BottomPane extends VBox {
+    /**
+     * Simulation pool that this BottomPane controls.
+     */
     private SimulationPool pool;
 
-    private final TextField specificTimeField;
-    private final ComboBox<String> timescaleDropdown;
-    private final Button startButton;
-    private final Button stopButton;
-    private final Button resetButton;
+    /**
+     * Text field used to set the simulation to a specific time in the future.
+     */
+    private TextField specificTimeField;
+
+    /**
+     * ComboBox used to set the simulation's time scale.
+     */
+    private ComboBox<String> timescaleDropdown;
+
+    /**
+     * Buttons for controlling simulation's run state.
+     */
+    private Button startButton, stopButton, resetButton;
+
+    /**
+     * Tracks whether the simulation is running for UI purposes.
+     */
     private boolean running = true;
 
-    private final HBox dataGrid;
+    /**
+     * Labels for UI
+     */
+    private Label timescaleLabel = new Label("Time scale:"), infoLabel = new Label("Info: "),
+            timeLabel = new Label("Set specific time (s):");
 
-    private final TextField timeValueField;
+    /**
+     * HBox containing the simulation's controls and live data feed.
+     */
+    private HBox dataRoot;
 
-    // Live data view state
+    /**
+     * Text field used to display the simulation's current time.
+     */
+    private TextField timeValueField;
+
+    /**
+     * Pane that contains
+     */
+    private BorderPane controlsPane;
+
+    /**
+     * HBox containing the live data feed only.
+     */
+    private HBox liveDataBox;
+
+    /**
+     * Live data view state.
+     */
     private String selectedSatellite = "";
     private String worldName = "";
-    private final List<String> satelliteColumnNames = new ArrayList<>();
-    private final Label noDataLabel;
-    private final HBox liveDataControls;
-    private GridPane grid;
+    private Label noDataLabel;
+    private GridPane grid = new GridPane();;
 
+    /**
+     * 2D array containing data to be displayed and their respective names.
+     */
     private static final String[][] FULL_NAMES = {
             { "Distance:", "0.0 km", "Speed:", "0.0 km/s" },
             { "Altitude:", "0.0 km", "Period:", "0.0 days" },
@@ -58,44 +99,70 @@ public class BottomPane extends VBox {
             { "Potential Energy:", "0.0 J", "Angular Momentum:", "0.0 (kg * m^2) / s" },
     };
 
+    /**
+     * Creates a new BottomPane that controls and obtains data from the given
+     * SimulationPool.
+     *
+     * @param pool the SimulationPool to control and obtain data from.
+     */
     public BottomPane(SimulationPool pool) {
         this.pool = pool;
 
         getStyleClass().add("bottom-pane");
 
-        Label infoLabel = new Label("Info :");
         infoLabel.getStyleClass().add("subheading");
-
-        Label timeLabel = new Label("Set specific time (s):");
         timeLabel.getStyleClass().add("body");
 
+        setUpTimeControls();
+        setUpToggleControls();
+
+        updateButtonStates();
+
+        setUpLiveDataControls();
+
+        noDataLabel = new Label("Click 'View Data' on a satellite to see its data");
+        noDataLabel.getStyleClass().add("body");
+        noDataLabel.setPadding(new Insets(10));
+
+        dataRoot.getChildren().addAll(liveDataBox, noDataLabel);
+
+        this.setOnMouseClicked(_ -> this.requestFocus());
+
+        getChildren().addAll(controlsPane, dataRoot);
+    }
+
+    /**
+     * Sets up all the time-related controls.
+     */
+    private void setUpTimeControls() {
         specificTimeField = new TextField();
         specificTimeField.setPromptText("Entry");
         specificTimeField.setPrefWidth(70);
         specificTimeField.getStyleClass().add("field");
 
         specificTimeField.setOnAction(_ -> {
+            // TODO: this should perhaps be used to set the simulation to a certain time in
+            // the
+            // future, not for setting the time scale as is implemented.
+
             double timeScale;
             try {
                 timeScale = Double.parseDouble(specificTimeField.getText());
-            } catch(NumberFormatException ex) {
+            } catch (NumberFormatException ex) {
                 return;
             }
-            
-            if(timeScale <= 0) {
+
+            if (timeScale <= 0) {
                 return;
             }
 
             pool.setTimeScale(timeScale);
         });
 
-        Label timescaleLabel = new Label("Time scale:");
         timescaleLabel.getStyleClass().add("body");
 
         timescaleDropdown = new ComboBox<>();
-        timescaleDropdown.getItems().addAll(
-                "1x", "2x", "5x", "10x",
-                "100x", "1,000x", "10,000x", "100,000x");
+        timescaleDropdown.getItems().addAll("1x", "2x", "5x", "10x", "100x", "1,000x", "10,000x", "100,000x");
         timescaleDropdown.setValue("1x");
         timescaleDropdown.getStyleClass().add("combo-box");
         timescaleDropdown.setPrefWidth(90);
@@ -104,10 +171,11 @@ public class BottomPane extends VBox {
             double timeScale;
             try {
                 timeScale = Double.parseDouble(specificTimeField.getText());
-                if(timeScale > 0) {
+                if (timeScale > 0) {
                     return;
                 }
-            } catch(NumberFormatException ex) {}
+            } catch (NumberFormatException ex) {
+            }
 
             switch (timescaleDropdown.getValue()) {
                 case "1x":
@@ -139,14 +207,19 @@ public class BottomPane extends VBox {
                     break;
             }
         });
+    }
 
+    /**
+     * Sets up the controls for starting, stopping, and resetting the simulation.
+     */
+    private void setUpToggleControls() {
         startButton = new Button("START");
         startButton.getStyleClass().add("start-button");
         startButton.setOnAction(e -> {
             running = true;
             updateButtonStates();
 
-            if(pool.getCurrentWorld() != null) {
+            if (pool.getCurrentWorld() != null) {
                 pool.runWorld(pool.getCurrentWorld().getName());
             }
         });
@@ -166,13 +239,17 @@ public class BottomPane extends VBox {
             applyPresetState(new BottomPanePreset("", "1x", false));
             pool.stopWorld();
             pool.resetWorld();
-            // removed because should not automatically start after reset, user should click start
-            //pool.runWorld(pool.getCurrentWorld().getName()); 
+            // removed because should not automatically start after reset, user should click
+            // start
+            // pool.runWorld(pool.getCurrentWorld().getName());
             updateButtonStates();
         });
+    }
 
-        updateButtonStates();
-
+    /**
+     * Sets up the controls related to live data display
+     */
+    private void setUpLiveDataControls() {
         Label timeValueLabel = new Label("Simulation time (minutes):");
         timeValueLabel.getStyleClass().add("body");
         timeValueField = new TextField();
@@ -187,46 +264,42 @@ public class BottomPane extends VBox {
         HBox controlsRow = new HBox(10,
                 infoLabel, timeLabel, specificTimeField,
                 timescaleLabel, timescaleDropdown,
-                startButton, stopButton, resetButton); 
+                startButton, stopButton, resetButton);
         controlsRow.setPadding(new Insets(6, 10, 6, 10));
         controlsRow.setAlignment(Pos.CENTER_LEFT);
 
-        BorderPane borderPane = new BorderPane();
-        borderPane.setLeft(controlsRow);
-        borderPane.setRight(timeValueBox);
+        controlsPane = new BorderPane();
+        controlsPane.setLeft(controlsRow);
+        controlsPane.setRight(timeValueBox);
 
-        dataGrid = new HBox(6);
-        dataGrid.setPadding(new Insets(6));
-        dataGrid.getStyleClass().add("data-grid");
-        dataGrid.setAlignment(Pos.TOP_LEFT);
+        dataRoot = new HBox(6);
+        dataRoot.setPadding(new Insets(6));
+        dataRoot.getStyleClass().add("data-grid");
+        dataRoot.setAlignment(Pos.TOP_LEFT);
 
         // Live data header
         Label liveLabel = new Label("Live data");
         liveLabel.getStyleClass().add("subheading");
 
-        liveDataControls = new HBox(8, liveLabel);
-        liveDataControls.setAlignment(Pos.CENTER_LEFT);
-        liveDataControls.setPadding(new Insets(0, 0, 4, 0));
-
-        noDataLabel = new Label("Click 'View Data' on a satellite to see its data");
-        noDataLabel.getStyleClass().add("body");
-        noDataLabel.setPadding(new Insets(10));
-
-        dataGrid.getChildren().addAll(liveDataControls, noDataLabel);
-
-        this.setOnMouseClicked(_ -> this.requestFocus());
-
-        getChildren().addAll(borderPane, dataGrid);
+        liveDataBox = new HBox(8, liveLabel);
+        liveDataBox.setAlignment(Pos.CENTER_LEFT);
+        liveDataBox.setPadding(new Insets(0, 0, 4, 0));
     }
 
-    private VBox makeSatelliteColumn(String title) {
+    /**
+     * Builds a new data grid with the given name.
+     * 
+     * @param title name of the data grid.
+     * @return a new data grid in the form of a VBox.
+     */
+    private VBox buildDataGrid(String title) {
         Label header = new Label(title);
         header.getStyleClass().add("subheading");
 
         HBox headerRow = new HBox(header);
         headerRow.setAlignment(Pos.CENTER_LEFT);
 
-        grid = new GridPane();
+        grid.getChildren().clear();
         grid.setHgap(12);
         grid.setVgap(4);
         grid.setPadding(new Insets(6));
@@ -260,15 +333,10 @@ public class BottomPane extends VBox {
         return col;
     }
 
-    private String getColumnName(VBox col) {
-        if (!col.getChildren().isEmpty() && col.getChildren().get(0) instanceof HBox headerRow
-                && !headerRow.getChildren().isEmpty()
-                && headerRow.getChildren().get(0) instanceof Label label) {
-            return label.getText();
-        }
-        return null;
-    }
-
+    /**
+     * @return BottomPanePreset object used to save specific time and time scale
+     *         settings.
+     */
     public BottomPanePreset toPresetState() {
         String specificTime = specificTimeField.getText() == null ? "" : specificTimeField.getText();
         String timescale = timescaleDropdown.getValue() == null ? "1x" : timescaleDropdown.getValue();
@@ -288,13 +356,19 @@ public class BottomPane extends VBox {
         updateButtonStates();
     }
 
+    /**
+     * Selects a satellite for viewing of its data.
+     * 
+     * @param worldName world to which the satellite belongs.
+     * @param name      name of the satellite.
+     */
     public void selectSatelliteForView(String worldName, String name) {
         if (name.isEmpty()) {
             noDataLabel.setVisible(true);
             noDataLabel.setManaged(true);
 
-            dataGrid.getChildren().clear();
-            dataGrid.getChildren().addAll(liveDataControls, noDataLabel);
+            dataRoot.getChildren().clear();
+            dataRoot.getChildren().addAll(noDataLabel);
             return;
         }
         selectedSatellite = name;
@@ -303,13 +377,18 @@ public class BottomPane extends VBox {
         noDataLabel.setManaged(false);
     }
 
+    /**
+     * Runs a JavaFx animation that updates the data of the selected satellite every
+     * 0.5 seconds.
+     */
     public void updateLoop() {
-        // Update live data
         Timeline updateLoop = new Timeline();
         updateLoop.setCycleCount(Timeline.INDEFINITE);
 
         KeyFrame frame = new KeyFrame(Duration.seconds(0.5), // Enter the target frame time here.
                 _ -> {
+                    // If a world is running or has run in the past, update the satellite's data
+                    // view.
                     if (pool.getCurrentWorld() != null) {
                         updateSatelliteData();
                     }
@@ -319,10 +398,14 @@ public class BottomPane extends VBox {
         updateLoop.play();
     }
 
+    /**
+     * Updates the grid of satellite data to contain the latest information,
+     * straight from the SatelliteData class of the currently selected satellite.
+     */
     public void updateSatelliteData() {
-        //set time simulation
+        // Update display of simulation time.
         Body body = pool.getCurrentWorld().getBody();
-        double timeMinutes = (body.getTimeSeconds()/60.0);
+        double timeMinutes = (body.getTimeSeconds() / 60.0);
         timeValueField.setText(String.format("%.4f", timeMinutes));
 
         if (selectedSatellite.isEmpty()) {
@@ -330,25 +413,27 @@ public class BottomPane extends VBox {
         }
 
         Satellite satellite = pool.getCurrentWorld().getBody().getSatellite(selectedSatellite);
+
+        // If the satellite we are trying to update does not exist, do nothing.
         if (satellite == null) {
             return;
         }
 
         SatelliteData data = satellite.getData();
 
+        // Obtain all data and convert to appropriate units if necessary.
         double distance = data.distance / 1000.d; // In km
         double speed = data.speed / 1000.d; // In km/s
         double altitude = distance - body.getRadius();
         double period = data.period / 60 / 60 / 24; // In days
-
         double eccentricity = data.eccentricity;
         double inclination = Math.toDegrees(data.inclination);
         double longitudeOfAscendingNode = Math.toDegrees(data.longitudeOfAscendingNode);
         double argumentOfPeriapsis = Math.toDegrees(data.argumentOfPeriapsis);
-        double totalEnergy = data.totalEnergy;
+        double totalEnergy = data.totalEnergy; // In Joules
         double kineticEnergy = data.kineticEnergy;
         double potentialEnergy = data.gravitationalPotentialEnergy;
-        double angularMomentum = data.angularMomentum;
+        double angularMomentum = data.angularMomentum; // In (kg * m^2) / s
 
         grid.getChildren().clear();
 
@@ -365,17 +450,25 @@ public class BottomPane extends VBox {
         FULL_NAMES[5][1] = String.format("%.4f J", potentialEnergy);
         FULL_NAMES[5][3] = String.format("%.4f (kg * m^2) / s", angularMomentum);
 
-        VBox col = makeSatelliteColumn(selectedSatellite);
+        VBox col = buildDataGrid(selectedSatellite);
         col.setVisible(true);
         col.setManaged(true);
-        dataGrid.getChildren().set(1, col);
+        dataRoot.getChildren().set(1, col);
     }
 
+    /**
+     * Updates the start/stop buttons' states.
+     */
     private void updateButtonStates() {
         startButton.setDisable(running);
         stopButton.setDisable(!running);
     }
 
+    /**
+     * Sets the world to track data from.
+     * 
+     * @param worldName desired world to track.
+     */
     public void setWorldName(String worldName) {
         this.worldName = worldName;
     }

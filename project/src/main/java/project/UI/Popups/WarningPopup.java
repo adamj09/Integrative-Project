@@ -10,8 +10,18 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import project.StyleSheet;
 
+/**
+ * UI element used to display warnings an errors as a pop-up window.
+ * 
+ * @author Ryan Lau
+ */
 public class WarningPopup extends Stage {
 
+    /**
+     * Creates a new pop-up.
+     * 
+     * @param warningText the text to be display within the pop-up.
+     */
     public WarningPopup(String warningText) {
         initModality(Modality.APPLICATION_MODAL);
         setTitle("Warning");
@@ -40,7 +50,12 @@ public class WarningPopup extends Stage {
         setScene(scene);
     }
 
-    public static void show(String text) {
-        new WarningPopup(text).showAndWait();
+    /**
+     * Creates a new pop-up and shows it.
+     * 
+     * @param warningText the text to be display within the pop-up.
+     */
+    public static void show(String warningText) {
+        new WarningPopup(warningText).showAndWait();
     }
 }

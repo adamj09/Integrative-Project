@@ -11,10 +11,23 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import project.StyleSheet;
 
+/**
+ * UI element used to display a warning when an unsaved change is made.
+ * 
+ * @author Ryan Lau
+ */
 public class UnsavedChangesPopup extends Stage {
 
+    /**
+     * Boolean that determines whether to close the pop-up, and if the action it suggests is confirmed.
+     */
     private boolean confirmed;
 
+    /**
+     * Creates a new pop-up.
+     * 
+     * @param message the message to be displayed within the pop-up.
+     */
     public UnsavedChangesPopup(String message) {
         initModality(Modality.APPLICATION_MODAL);
         setTitle("Unsaved changes");
@@ -53,10 +66,19 @@ public class UnsavedChangesPopup extends Stage {
         setScene(scene);
     }
 
+    /**
+     * @return confirmed boolean.
+     */
     public boolean wasConfirmed() {
         return confirmed;
     }
 
+    /**
+     *  
+     * Creates a new pop-up and shows it until it is confirmed.
+     * 
+     * @param message the text to be display within the pop-up.
+     */
     public static boolean confirm(String message) {
         UnsavedChangesPopup popup = new UnsavedChangesPopup(message);
         popup.showAndWait();
