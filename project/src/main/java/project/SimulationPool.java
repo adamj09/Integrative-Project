@@ -11,6 +11,8 @@ import project.Renderer.World.World;
 /**
  * Class used to store and perform operations on all currently loaded worlds.
  * 
+ * Class used to store and perform operations on all currently loaded worlds.
+ * 
  * @author Adam Johnston
  */
 public class SimulationPool {
