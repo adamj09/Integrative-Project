@@ -5,7 +5,9 @@ public class OrbitsTime implements Runnable {
     // private static final long NANOS_PER_SECOND = 1_000_000_000L;
 
     private double timeScale = 1;
+    private double lastTimeScale = 1;
     private double finalTime; // in milliseconds (simulation time)
+    private double tempTime = 0;
     private long startTimeReal; // when simulation started in nanoseconds
     private long totalPausedTime; // total time spent paused (in nanoseconds)
     private long pauseStartTime; // when we paused in nanoseconds
@@ -25,7 +27,10 @@ public class OrbitsTime implements Runnable {
      * @param timeScale
      */
     public void setTimeScale(double timeScale) {
-        this.timeScale = timeScale;
+        if(timeScale != this.timeScale){
+            this.lastTimeScale = this.timeScale;
+            this.timeScale = timeScale;
+        }
     }
 
     public double getTimeScale() {
@@ -135,6 +140,13 @@ public class OrbitsTime implements Runnable {
      */
     private void calculateTime() {
         if (startTimeReal > 0) {
+            
+            if(this.lastTimeScale != this.timeScale){
+                this.tempTime = this.finalTime;
+                this.lastTimeScale = this.timeScale;
+                this.resetTime();
+            }
+            
             // Calculate elapsed real time since simulation started, minus paused periods
             // (in nanoseconds)
             long currentRealTime = System.nanoTime();
@@ -142,7 +154,7 @@ public class OrbitsTime implements Runnable {
 
             // Convert to milliseconds and apply time scale
             double elapsedRealTimeMs = elapsedRealTimeNanos / (double) NANOS_PER_MS;
-            this.finalTime = elapsedRealTimeMs * this.timeScale;
+            this.finalTime = this.tempTime + (elapsedRealTimeMs * this.timeScale);
         }
     }
 }
