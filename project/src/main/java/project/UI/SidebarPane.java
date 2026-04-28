@@ -72,11 +72,6 @@ public class SidebarPane extends VBox {
     private ScrollPane bodyScroll;
 
     /**
-     * Scroll pane for the satellites tab.
-     */
-    private ScrollPane satelliteScroll = new ScrollPane();
-
-    /**
      * Holds each tab's content.
      * 
      */

@@ -83,7 +83,6 @@ public class BottomPane extends VBox {
      * Live data view state.
      */
     private String selectedSatellite = "";
-    private String worldName = "";
     private Label noDataLabel;
     private GridPane grid = new GridPane();;
 
@@ -462,14 +461,5 @@ public class BottomPane extends VBox {
     private void updateButtonStates() {
         startButton.setDisable(running);
         stopButton.setDisable(!running);
-    }
-
-    /**
-     * Sets the world to track data from.
-     * 
-     * @param worldName desired world to track.
-     */
-    public void setWorldName(String worldName) {
-        this.worldName = worldName;
     }
 }

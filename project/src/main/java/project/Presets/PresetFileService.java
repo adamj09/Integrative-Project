@@ -35,7 +35,7 @@ public class PresetFileService {
     /**
      * Load data from JSON file.
      * 
-     * @param filePathpath to load file from.
+     * @param filePath path to load file from.
      * @return loaded data.
      * @throws IOException if the JSON file cannot be read.
      */

@@ -248,6 +248,9 @@ public class ControlManager {
         this.scrollDeltaY = scrollDeltaY;
     }
 
+    /**
+     * @return forwardKey value.
+     */
     public String getForwardKey() {
         return this.forwardKey;
     }
@@ -261,6 +264,9 @@ public class ControlManager {
         this.forwardKey = forwardKey;
     }
 
+    /**
+     * @return leftKey value.
+     */
     public String getLeftKey() {
         return this.leftKey;
     }
@@ -274,6 +280,9 @@ public class ControlManager {
         this.leftKey = leftKey;
     }
 
+    /**
+     * @return backwardKey value.
+     */
     public String getBackwardKey() {
         return this.backwardKey;
     }
@@ -287,6 +296,9 @@ public class ControlManager {
         this.backwardKey = backwardKey;
     }
 
+    /**
+     * @return rightKey value.
+     */
     public String getRightKey() {
         return this.rightKey;
     }
@@ -300,6 +312,9 @@ public class ControlManager {
         this.rightKey = rightKey;
     }
 
+    /**
+     * @return downKey value.
+     */
     public String getDownKey() {
         return this.downKey;
     }
@@ -313,6 +328,9 @@ public class ControlManager {
         this.downKey = downKey;
     }
 
+    /**
+     * @return upKey value.
+     */
     public String getUpKey() {
         return this.upKey;
     }

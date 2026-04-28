@@ -30,11 +30,6 @@ public class SimulationPool {
     private String currentWorld;
 
     /**
-     * Object within the currently running world that is focused on by the camera.
-     */
-    private String currentFocusObject;
-
-    /**
      * Creates a simulation pool with a given Renderer.
      * 
      * @param renderer the renderer used to display the simulation pool's worlds.

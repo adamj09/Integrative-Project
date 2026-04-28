@@ -38,7 +38,6 @@ public class BodyCreatorPopup extends Stage {
     private ComboBox<String> colorDropdown;
     private boolean confirmed = false;
     private StackPane preview = new StackPane();
-    private SidebarPane sideBar;
 
     // Realistic planet/body randomiser ranges
     private static final double MASS_MIN = 1e23; // kg — small moon
@@ -52,7 +51,6 @@ public class BodyCreatorPopup extends Stage {
     private boolean radiusLocked = false;
 
     public BodyCreatorPopup(Stage owner, SidebarPane sideBar, String themeStyle, SimulationPool pool) {
-        this.sideBar = sideBar;
 
         initOwner(owner);
         initModality(Modality.APPLICATION_MODAL);

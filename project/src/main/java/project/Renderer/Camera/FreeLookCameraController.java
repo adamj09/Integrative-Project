@@ -63,7 +63,7 @@ public class FreeLookCameraController {
     /**
      * Initializes the camera controller with a camera and control manager.
      * 
-     * @param camera   Camera to control.
+     * @param World    world whose camera will be controled.
      * @param controls Control manager to get user input from.
      */
     public FreeLookCameraController(World world, ControlManager controls) {
@@ -170,7 +170,8 @@ public class FreeLookCameraController {
      * @return The resulting quaternion.
      */
     private Quaterniond yaw(double radians) {
-        // Yaw is always around the world's up axis (0, 1, 0), since we don't want the camera to roll.
+        // Yaw is always around the world's up axis (0, 1, 0), since we don't want the
+        // camera to roll.
         Vector3d yawAxis = new Vector3d(0, 1, 0);
 
         Quaterniond yawQuaternion = new Quaterniond();
