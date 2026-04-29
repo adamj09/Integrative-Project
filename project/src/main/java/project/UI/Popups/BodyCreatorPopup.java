@@ -145,6 +145,7 @@ public class BodyCreatorPopup extends Stage {
 
         Label errorLabel = new Label("");
         errorLabel.getStyleClass().add("error-label");
+        errorLabel.setPadding(new Insets(0, 14, 4, 14));
 
         HBox buttons = new HBox(8, cancelBtn, createBtn);
         buttons.setAlignment(Pos.CENTER_RIGHT);

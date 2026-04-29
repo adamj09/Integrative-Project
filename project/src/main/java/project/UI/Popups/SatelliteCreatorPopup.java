@@ -226,7 +226,13 @@ public class SatelliteCreatorPopup extends Stage {
         randAllRow.setAlignment(Pos.CENTER_RIGHT);
         randAllRow.setPadding(new Insets(12, 14, 0, 14));
         randAllPane.setRight(randAllRow);
-        
+
+        Button resetButton = new Button("Reset time");
+        resetButton.getStyleClass().add("style-button");
+        resetButton.setOnAction(e -> {
+            previewWorld.getBody().resetTime();
+        });
+
         Label timescaleLabel = formLabel("Time scale of the preview:");
         timescaleLabel.getStyleClass().add("body");
 
@@ -285,7 +291,7 @@ public class SatelliteCreatorPopup extends Stage {
         };
         timeUpdater.start();
 
-        HBox timescaleBox = new HBox(10, timescaleLabel, timescaleDropdown,timeValueLabelNum);
+        HBox timescaleBox = new HBox(10,resetButton, timescaleLabel, timescaleDropdown,timeValueLabelNum);
         timescaleBox.setPadding(new Insets(12, 14, 0, 14));
         timescaleBox.setAlignment(Pos.CENTER_LEFT);
         randAllPane.setLeft(timescaleBox);
@@ -293,6 +299,7 @@ public class SatelliteCreatorPopup extends Stage {
 
 
         errorLabel.getStyleClass().add("error-label");
+        errorLabel.setPadding(new Insets(12, 14, 0, 14));
 
         Button cancelBtn = new Button("CANCEL");
         Button createBtn = new Button("CREATE");
