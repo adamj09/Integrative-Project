@@ -10,6 +10,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 import project.Math.Body;
+import project.Presets.PlanetPresets;
 import project.Presets.PresetManager;
 import project.Renderer.Renderer;
 import project.Renderer.World.World;
@@ -57,6 +58,14 @@ public class App extends Application {
         menuBar.getSaveMenuItem().setOnAction(_ -> presetManager.savePreset(stage, pool.getCurrentWorld(), sidebar));
         menuBar.getLoadMenuItem().setOnAction(_ -> loadWorld(stage, mainRenderer, pool, sidebar, presetManager));
         menuBar.getInfoButton().setOnAction(_ -> showInfo(menuBar));
+        menuBar.getMercuryPreset().setOnAction(e -> PlanetPresets.loadMercury(pool, sidebar));
+        menuBar.getVenusPreset().setOnAction(e -> PlanetPresets.loadVenus(pool, sidebar));
+        menuBar.getEarthPreset().setOnAction(e -> PlanetPresets.loadEarth(pool, sidebar));
+        menuBar.getMarsPreset().setOnAction(e -> PlanetPresets.loadMars(pool, sidebar));
+        menuBar.getJupiterPreset().setOnAction(e -> PlanetPresets.loadJupiter(pool, sidebar));
+        menuBar.getSaturnPreset().setOnAction(e -> PlanetPresets.loadSaturn(pool, sidebar));
+        menuBar.getUranusPreset().setOnAction(e -> PlanetPresets.loadUranus(pool, sidebar));
+        menuBar.getNeptunePreset().setOnAction(e -> PlanetPresets.loadNeptune(pool, sidebar));
 
         // Note: mainRenderer.getWorld() may be null here since the GL context
         // hasn't initialized yet. PresetManager handles null World gracefully.
