@@ -419,7 +419,7 @@ public class World {
             body.startSatellites();
             this.worldRunning = true;
             body.start();
-            System.out.println("World started runworld: " + name);
+            //System.out.println("World started runworld: " + name);
             body.resetTime();
         }else{
             body.sateliteUpdateInfo();
@@ -433,7 +433,7 @@ public class World {
         body.startSatellites();
         this.worldRunning = true;
         body.start();
-        System.out.println("World started: " + name);
+        //System.out.println("World started: " + name);
         //body.resetTime();
     }
 
