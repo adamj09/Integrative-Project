@@ -17,6 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import project.SimulationPool;
 import project.Math.Body;
+import project.Math.Utils;
 import project.Math.Satellite;
 import project.Math.SatelliteData;
 import project.Presets.PresetConfiguration.BottomPanePreset;
@@ -177,7 +178,7 @@ public class BottomPane extends VBox {
         timeValueField.setText("0.0");
         timeValueField.setPrefWidth(100);
         timeValueLabelNum = new Label();
-        timeValueLabelNum.setText(getWorldTimeFormated(0));
+        timeValueLabelNum.setText(Utils.getWorldTimeFormated(0));
         timeValueLabelNum.getStyleClass().add("body");    
 
         HBox timeValueBox = new HBox(4, timeValueLabel, timeValueField,timeValueLabelNum);
@@ -347,7 +348,7 @@ public class BottomPane extends VBox {
         double timeSeconds = body.getTimeSeconds();
         double timeMinutes = (timeSeconds/60.0);
         timeValueField.setText(String.format("%.4f", timeMinutes));
-        timeValueLabelNum.setText(getWorldTimeFormated(timeSeconds));
+        timeValueLabelNum.setText(Utils.getWorldTimeFormated(timeSeconds));
 
         if (selectedSatellite.isEmpty()) {
             return;
@@ -404,16 +405,5 @@ public class BottomPane extends VBox {
         this.worldName = worldName;
     }
 
-    private String getWorldTimeFormated(double timeSeconds) {
-        int secondsPerDay = 24 * 3600;
-        int secondsPerYear = 365 * secondsPerDay;
-
-        int years = (int) (timeSeconds / secondsPerYear);
-        int days = (int) ((timeSeconds % secondsPerYear) / secondsPerDay);
-        int hours = (int) ((timeSeconds % secondsPerDay) / 3600);
-        int minutes = (int) ((timeSeconds % 3600) / 60);
-        int seconds = (int) (timeSeconds % 60);
-
-        return String.format("(%dy %dd %02dh %02dm %02ds)", years, days, hours, minutes, seconds);
-    }
+    
 }

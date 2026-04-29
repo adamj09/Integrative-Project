@@ -93,7 +93,7 @@ public class OrbitsTime implements Runnable {
         return this.runningStatus;
     }
 
-    public double getTimeSeconds() {
+    public synchronized double getTimeSeconds() {
         return this.finalTime / 1000;
     }
 
@@ -145,7 +145,7 @@ public class OrbitsTime implements Runnable {
      * errors.
      * Properly accounts for paused periods. Uses nanosecond precision.
      */
-    private void calculateTime() {
+    private synchronized void calculateTime() {
         if (startTimeReal > 0) {
             
             if(this.lastTimeScale != this.timeScale){
