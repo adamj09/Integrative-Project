@@ -404,10 +404,6 @@ public class BottomPane extends VBox {
      * straight from the SatelliteData class of the currently selected satellite.
      */
     public void updateSatelliteData() {
-        if(selectedSatellite.isEmpty()) {
-            return;
-        }
-
         // Update display of simulation time.
         Body body = pool.getCurrentWorld().getBody();
         double timeSeconds = body.getTimeSeconds();
