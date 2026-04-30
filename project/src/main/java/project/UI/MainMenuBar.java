@@ -11,6 +11,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import project.UiTheme;
+import project.Presets.PlanetPresets;
 
 /**
  * Class that handles controls that modify the SidebarPane. This serves as a
@@ -107,6 +108,7 @@ public class MainMenuBar extends HBox {
 
         // Presets submenu (as Menu)
         mercuryPreset = new MenuItem("Mercury");
+
         venusPreset = new MenuItem("Venus");
         earthPreset = new MenuItem("Earth");
         marsPreset = new MenuItem("Mars");
