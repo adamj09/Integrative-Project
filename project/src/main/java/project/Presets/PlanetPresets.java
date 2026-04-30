@@ -39,22 +39,23 @@ public class PlanetPresets {
                     "A preset with this name is already loaded! Continue and overwrite that preset's data with this one?")) {
                 return;
             }
-
             sidebar.removeBody(body.getName());
         }
 
-        sidebar.applyPresetConfiguration(
-                new PresetConfiguration(
-                        new PresetConfiguration.BodyPreset(name, uiColor, true, mass, diameter / 2.0),
-                        new HashMap<>(),
-                        new PresetConfiguration.BottomPanePreset("", "1x", false)));
-        sidebar.selectBody(name);
-
         pool.createWorld(name, body, renderColor);
 
-        if(sidebar.getBodyEntries().size() == 1) {
-            pool.runWorld(name);
-        }
+        sidebar.addBodyCard(name, uiColor, true, mass, diameter / 2.0);
+
+        // sidebar.applyPresetConfiguration(
+        //         new PresetConfiguration(
+        //                 new PresetConfiguration.BodyPreset(name, uiColor, true, mass, diameter / 2.0),
+        //                 new HashMap<>(),
+        //                 new PresetConfiguration.BottomPanePreset("", "1x", false)));
+        // sidebar.selectBody(name);
+
+        // if(sidebar.getBodyEntries().size() == 1) {
+        //     pool.runWorld(name);
+        // }
     }
 
     public static void loadMercury(SimulationPool pool, SidebarPane sidebar) {

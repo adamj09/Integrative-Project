@@ -58,6 +58,8 @@ public class SidebarPane extends VBox {
      */
     private HashMap<String, VBox> satelliteLists = new HashMap<>();
 
+    private HashMap<String, VBox> satelliteListVBoxes = new HashMap<>();
+
     /**
      * 2D HashMap with all satellite cards. The first key corresponds to the Body,
      * the second to the particular Satellite belonging to that Body. The value of
@@ -226,7 +228,7 @@ public class SidebarPane extends VBox {
      * @param mass     mass of the body.
      * @param radius   radius of the body.
      */
-    private void addBodyCard(String name, Color color, boolean isPreset, double mass, double radius) {
+    public void addBodyCard(String name, Color color, boolean isPreset, double mass, double radius) {
         bodyEntries.put(name, new BodyPreset(name, color, isPreset, mass, radius));
 
         VBox card = buildBodyCard(name, color);
@@ -378,6 +380,7 @@ public class SidebarPane extends VBox {
         VBox satelliteView = new VBox(satelliteScroll);
         VBox.setVgrow(satelliteView, Priority.ALWAYS);
 
+        satelliteListVBoxes.put(body, satelliteListBox);
         satelliteLists.put(body, satelliteView);
         satelliteCards.put(body, new HashMap<>());
     }
@@ -403,7 +406,7 @@ public class SidebarPane extends VBox {
         satelliteCards.get(body).put(name, card);
 
         // Add card to VBox of card.
-        satelliteLists.get(body).getChildren().add(card);
+        satelliteListVBoxes.get(body).getChildren().add(card);
 
         // Update and move to satellite tab upon creation
         contentArea.getChildren().set(1, satelliteLists.get(body));
@@ -478,7 +481,9 @@ public class SidebarPane extends VBox {
 
         // Remove the satellite card.
         VBox vbox = (VBox) contentArea.getChildren().get(1);
-        vbox.getChildren().remove(satelliteCards.get(selectedBody).get(name));
+        ScrollPane scrollPane = (ScrollPane) vbox.getChildren().get(0);
+        VBox cards = (VBox) scrollPane.getContent();
+        cards.getChildren().remove(satelliteCards.get(selectedBody).get(name));
 
         bottom.selectSatelliteForView(selectedBody, "");
 
@@ -504,6 +509,7 @@ public class SidebarPane extends VBox {
         bodyEntries.remove(bodyName);
         satelliteEntries.remove(bodyName);
         satelliteLists.remove(bodyName);
+        satelliteListVBoxes.remove(bodyName);
 
         VBox satelliteListBox = new VBox(4);
         satelliteListBox.setPadding(new Insets(6));

@@ -371,17 +371,11 @@ public class BottomPane extends VBox {
      */
     public void selectSatelliteForView(String worldName, String name) {
         if (name.isEmpty()) {
-            noDataLabel.setVisible(true);
-            noDataLabel.setManaged(true);
+            dataRoot.getChildren().set(1, noDataLabel);
 
-            dataRoot.getChildren().clear();
-            dataRoot.getChildren().addAll(noDataLabel);
             return;
         }
         selectedSatellite = name;
-
-        noDataLabel.setVisible(false);
-        noDataLabel.setManaged(false);
     }
 
     /**
@@ -410,6 +404,10 @@ public class BottomPane extends VBox {
      * straight from the SatelliteData class of the currently selected satellite.
      */
     public void updateSatelliteData() {
+        if(selectedSatellite.isEmpty()) {
+            return;
+        }
+
         // Update display of simulation time.
         Body body = pool.getCurrentWorld().getBody();
         double timeSeconds = body.getTimeSeconds();
