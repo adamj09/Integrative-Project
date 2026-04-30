@@ -100,6 +100,16 @@ public class SimulationPool {
     }
 
     /**
+     * Starts a world back up from pause (no time resetting to 0).
+     */
+    public void startWorld() {
+        // If a world is currently running, stop it.
+        if (!currentWorld.isEmpty()) {
+            worlds.get(currentWorld).startWorld();
+        }
+    }
+
+    /**
      * Resets the simulation time of the currently running world to zero, if there
      * is a currently running world.
      */

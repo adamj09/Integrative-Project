@@ -223,7 +223,7 @@ public class BottomPane extends VBox {
             updateButtonStates();
 
             if (pool.getCurrentWorld() != null) {
-                pool.runWorld(pool.getCurrentWorld().getName());
+                pool.startWorld();
             }
         });
 
