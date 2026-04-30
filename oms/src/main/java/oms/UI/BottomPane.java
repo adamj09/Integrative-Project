@@ -385,7 +385,6 @@ public class BottomPane extends VBox {
             viewData = true;
             selectedSatellite = name;
         }
-        System.out.println("Selected satellite: " + name+" view: "+viewData); //TODO REMOVE
         
     }
 
