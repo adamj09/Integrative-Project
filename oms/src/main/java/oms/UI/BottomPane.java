@@ -93,7 +93,8 @@ public class BottomPane extends VBox {
      */
     private String selectedSatellite = "";
     private Label noDataLabel;
-    private GridPane grid = new GridPane();;
+    private GridPane grid = new GridPane();
+    private Boolean viewData = false;
 
     /**
      * 2D array containing data to be displayed and their respective names.
@@ -373,10 +374,27 @@ public class BottomPane extends VBox {
     public void selectSatelliteForView(String worldName, String name) {
         if (name.isEmpty()) {
             dataRoot.getChildren().set(1, noDataLabel);
-
+            viewData = false;
+            //selectedSatellite = "";
             return;
         }
-        selectedSatellite = name;
+        if(selectedSatellite.equals(name)) {
+            viewData = !viewData;
+            
+        }else{
+            viewData = true;
+            selectedSatellite = name;
+        }
+        System.out.println("Selected satellite: " + name+" view: "+viewData); //TODO REMOVE
+        
+    }
+
+    /**
+     * Sets the state of the live data view.
+     * @param viewData
+     */
+    public void setViewData(boolean viewData) {
+        this.viewData = viewData;
     }
 
     /**
@@ -417,8 +435,12 @@ public class BottomPane extends VBox {
             running = currentWorld.isWorldRunning();
             updateButtonStates();
         }
+
+        if(!viewData){
+            dataRoot.getChildren().set(1, noDataLabel);
+        }
              
-        if (selectedSatellite.isEmpty()) {
+        if (selectedSatellite.isEmpty() || !viewData) {
             return;
         }
 

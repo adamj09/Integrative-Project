@@ -368,6 +368,7 @@ public class SidebarPane extends VBox {
         // Run the newly selected celestial body.
         pool.runWorld(nameLabel.getText());
         bottom.getTimescaleDropdown().setValue((int) pool.getCurrentWorld().getBody().getTimeScale() + "x");
+        bottom.setViewData(false);
     }
 
     /**
