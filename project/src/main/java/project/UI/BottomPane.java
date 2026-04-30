@@ -386,7 +386,7 @@ public class BottomPane extends VBox {
         Timeline updateLoop = new Timeline();
         updateLoop.setCycleCount(Timeline.INDEFINITE);
 
-        KeyFrame frame = new KeyFrame(Duration.seconds(0.5), // Enter the target frame time here.
+        KeyFrame frame = new KeyFrame(Duration.seconds(0.1), // Enter the target frame time here.
                 _ -> {
                     // If a world is running or has run in the past, update the satellite's data
                     // view.

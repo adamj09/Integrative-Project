@@ -44,7 +44,7 @@ public class PresetManager {
     /**
      * Marks a given World as saved.
      * 
-     * @param world World to be marked as saved.
+     * @param world   World to be marked as saved.
      * @param sidebar SidebarPane to which this world belongs.
      */
     public void markCurrentStateSaved(World world, SidebarPane sidebar) {
@@ -55,6 +55,13 @@ public class PresetManager {
         lastSavedSnapshot = world.toWorldConfiguration(getUIConfig(sidebar));
     }
 
+    /**
+     * Saves a world as a file.
+     * 
+     * @param stage   the root stage of the JavaFX application.
+     * @param world   the World to be saved.
+     * @param sidebar the SidebarPane containing the saved world.
+     */
     public void savePresetAs(Stage stage, World world, SidebarPane sidebar) {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Save preset");
@@ -74,6 +81,14 @@ public class PresetManager {
         saveToPath(selectedPath, world, sidebar);
     }
 
+    /**
+     * Saves a world to an existing file (or creates a new file if the existing
+     * file does not exist).
+     * 
+     * @param stage   the root stage of the JavaFX application.
+     * @param world   the World to be saved.
+     * @param sidebar the SidebarPane containing the saved world.
+     */
     public void savePreset(Stage stage, World world, SidebarPane sidebar) {
         if (currentPresetPath == null) {
             savePresetAs(stage, world, sidebar);
@@ -83,6 +98,14 @@ public class PresetManager {
         saveToPath(currentPresetPath, world, sidebar);
     }
 
+    /**
+     * Loads a world from a file.
+     * 
+     * @param stage   the root stage of the JavaFX application.
+     * @param sidebar the SidebarPane to which we want to add this world upon
+     *                loading.
+     * @return the newly-loaded world.
+     */
     public World loadPreset(Stage stage, SidebarPane sidebar) {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Load preset");
@@ -100,22 +123,24 @@ public class PresetManager {
             WorldConfiguration configuration = presetFileService.load(path);
 
             BodyConfig bodyConfig = configuration.getBody();
-            Body body = new Body(bodyConfig.name, bodyConfig.mass, bodyConfig.radius, bodyConfig.distanceToSun, bodyConfig.eccentricity, bodyConfig.massOfSun);
+            Body body = new Body(bodyConfig.name, bodyConfig.mass, bodyConfig.radius, bodyConfig.distanceToSun,
+                    bodyConfig.eccentricity, bodyConfig.massOfSun);
 
             World world = new World(body, bodyConfig.color);
 
-            if(sidebar.getBodyEntries().containsKey(body.getName())) {
-                if(!UnsavedChangesPopup.confirm("A preset with this name is already loaded! Continue and overwrite that preset's data with this one?")) {
+            if (sidebar.getBodyEntries().containsKey(body.getName())) {
+                if (!UnsavedChangesPopup.confirm(
+                        "A preset with this name is already loaded! Continue and overwrite that preset's data with this one?")) {
                     return null;
                 }
 
                 sidebar.removeBody(body.getName());
             }
-        
+
             world.setPendingWorldConfiguration(configuration);
             // This loads bodies, initializes renderer buffers and starts the simulation
             world.applyPendingConfiguration();
-                
+
             // Restore sidebar UI selection states AFTER world is initialized
             // This restores add/remove button states exactly as they were saved
             sidebar.applyWorldConfiguration(configuration);
@@ -130,13 +155,22 @@ public class PresetManager {
         }
     }
 
+    /**
+     * Checks if the main window can close based on whether there are unsaved
+     * changes. If there are unsaved changes, retur
+     * 
+     * @param stage   the root stage of the JavaFX application.
+     * @param world   the world to check saved changes for.
+     * @param sidebar the SidebarPane containing the world.
+     * @return If there are unsaved changes, return false, otherwise return true.
+     */
     public boolean canClose(Stage stage, World world, SidebarPane sidebar) {
         if (!hasUnsavedChanges(world, sidebar)) {
             return true;
         }
 
         return UnsavedChangesPopup.confirm(
-            "Current changes are not saved. Closing will discard them. Continue?");
+                "Current changes are not saved. Closing will discard them. Continue?");
     }
 
     private void saveToPath(Path path, World world, SidebarPane sidebar) {
@@ -145,18 +179,20 @@ public class PresetManager {
         // Capture sidebar state so UI customizations are preserved
         PresetConfiguration presetConfig = sidebar.toPresetConfiguration();
 
-        if(presetConfig == null) {
+        if (presetConfig == null) {
             // World does not exist, cancel.
             return;
         }
 
         BodyPreset body = presetConfig.getBody();
-        WorldConfiguration.SidebarBody sidebarBody = new WorldConfiguration.SidebarBody(body.name(), colorToHex(body.color()), body.preset(), body.mass(), body.radius());
-        
+        WorldConfiguration.SidebarBody sidebarBody = new WorldConfiguration.SidebarBody(body.name(),
+                colorToHex(body.color()), body.preset(), body.mass(), body.radius());
+
         List<WorldConfiguration.SidebarSatellite> sidebarSatellites = new ArrayList<>();
         HashMap<String, SatellitePreset> sats = presetConfig.getSatellites();
 
-        // Build complete satellite config list from sidebar (source of truth for what exists)
+        // Build complete satellite config list from sidebar (source of truth for what
+        // exists)
         // matching with World simulation data for orbital info
         List<WorldConfiguration.SatelliteConfig> worldSatConfigs = configuration.getSatellites();
         List<WorldConfiguration.SatelliteConfig> allSatConfigs = new ArrayList<>();
@@ -179,7 +215,7 @@ public class PresetManager {
 
             if (matchingConfig != null) {
                 allSatConfigs.add(matchingConfig);
-            } 
+            }
         }
         configuration.setSatellites(allSatConfigs);
 
@@ -196,6 +232,12 @@ public class PresetManager {
         }
     }
 
+    /**
+     * Converts JavaFX Color object to hexadecimal format.
+     * 
+     * @param color the JavaFX Color object to convert.
+     * @return a String of the colour in hexadecimal format.
+     */
     private static String colorToHex(Color color) {
         return String.format("#%02X%02X%02X",
                 (int) (color.getRed() * 255),
@@ -203,6 +245,13 @@ public class PresetManager {
                 (int) (color.getBlue() * 255));
     }
 
+    /**
+     * Checks if a given world has unsaved changes.
+     * 
+     * @param world   the world to check for unsaved changes.
+     * @param sidebar the SidebarPane to which the world belongs.
+     * @return true if there are unsaved changes, false otherwise.
+     */
     private boolean hasUnsavedChanges(World world, SidebarPane sidebar) {
         if (lastSavedSnapshot == null) {
             return false;
@@ -215,46 +264,67 @@ public class PresetManager {
         return !setupEqual(lastSavedSnapshot, world, sidebar);
     }
 
+    /**
+     * Checks whether a WorldConfiguration's data is equal to the data saved from it
+     * in a JSON file.
+     * 
+     * @param saved   the WorldConfiguration to save.
+     * @param world   the world from which data is obtained.
+     * @param sidebar the SidebarPane to which the world belongs.
+     * @return true if the WorldConfiguration's data is equal to the data saved from
+     *         it in a JSON file, otherwise false.
+     */
     private boolean setupEqual(WorldConfiguration saved, World world, SidebarPane sidebar) {
         com.google.gson.Gson gson = GsonFactory.create();
 
         // Compare sidebar bodies (names, colors, selected states, mass, radius)
         String savedSideBarBody = gson.toJson(saved.getSidebarBody());
         String currentSideBarBody = gson.toJson(buildCurrentSidebarBodies(sidebar));
-        if (!savedSideBarBody.equals(currentSideBarBody)) return false;
+        if (!savedSideBarBody.equals(currentSideBarBody))
+            return false;
 
         // Compare sidebar satellites (names, colors, active states)
         String savedSats = gson.toJson(saved.getSidebarSatellites());
         String currentSats = gson.toJson(buildCurrentSidebarSatellites(sidebar));
-        if (!savedSats.equals(currentSats)) return false;
+        if (!savedSats.equals(currentSats))
+            return false;
 
         // Compare focused item
         String savedFocus = saved.getFocusedObjectName();
         String currentFocus = sidebar.getFocusedObjectName();
-        if (savedFocus == null ? currentFocus != null : !savedFocus.equals(currentFocus)) return false;
+        if (savedFocus == null ? currentFocus != null : !savedFocus.equals(currentFocus))
+            return false;
 
         // Compare UI config
         WorldConfiguration.UIConfig currentUI = getUIConfig(sidebar);
         String savedUIJson = gson.toJson(saved.getUi());
         String currentUIJson = gson.toJson(currentUI);
-        if (!savedUIJson.equals(currentUIJson)) return false;
+        if (!savedUIJson.equals(currentUIJson))
+            return false;
 
         // Compare body physics setup
         String savedBody = gson.toJson(saved.getBody());
         WorldConfiguration currentConfig = world.toWorldConfiguration(currentUI);
         String currentBody = gson.toJson(currentConfig.getBody());
-        if (!savedBody.equals(currentBody)) return false;
+        if (!savedBody.equals(currentBody))
+            return false;
 
         return true;
     }
 
+    /**
+     * 
+     * @param sidebar
+     * @return
+     */
     private List<WorldConfiguration.SidebarBody> buildCurrentSidebarBodies(SidebarPane sidebar) {
         PresetConfiguration presetConfig = sidebar.toPresetConfiguration();
 
         List<WorldConfiguration.SidebarBody> result = new ArrayList<>();
         BodyPreset body = presetConfig.getBody();
 
-        result.add(new WorldConfiguration.SidebarBody(body.name(), colorToHex(body.color()), body.preset(), body.mass(), body.radius()));
+        result.add(new WorldConfiguration.SidebarBody(body.name(), colorToHex(body.color()), body.preset(), body.mass(),
+                body.radius()));
 
         return result;
     }
@@ -263,9 +333,7 @@ public class PresetManager {
         PresetConfiguration presetConfig = sidebar.toPresetConfiguration();
         List<WorldConfiguration.SidebarSatellite> result = new ArrayList<>();
 
-
         HashMap<String, SatellitePreset> sats = presetConfig.getSatellites();
-
 
         for (Map.Entry<String, SatellitePreset> entry : sats.entrySet()) {
             SatellitePreset preset = entry.getValue();
