@@ -76,7 +76,7 @@ public class Renderer {
      */
     private String currentFocusedObject = "";
 
-    private static final String SHADER_DIR = "oms/shaders/";
+    private static final String SHADER_DIR = "oms/src/main/java/oms/shaders/";
 
     /**
      * Constructor for the Renderer class, initializes OpenGL and sets up render
