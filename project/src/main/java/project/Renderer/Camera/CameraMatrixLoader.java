@@ -78,6 +78,9 @@ public class CameraMatrixLoader {
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 
+    /**
+     * Disposes of all OpenGL objects associated with this loader.
+     */
     public void dispose() {
         glDeleteBuffers(uboCameraMatrices);
     }

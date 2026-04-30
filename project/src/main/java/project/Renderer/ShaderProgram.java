@@ -93,6 +93,9 @@ public class ShaderProgram {
         }
     }
 
+    /**
+     * Disposes of the OpenGL shader program object.
+     */
     public void dispose() {
         glDeleteProgram(ID);
     }

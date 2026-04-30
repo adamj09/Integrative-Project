@@ -75,7 +75,8 @@ public class LightRenderSystem extends RenderSystem {
         // Model Matrix
         vboModelMatrix = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboModelMatrix);
-        glBufferData(GL_ARRAY_BUFFER, super.getWorld().getLightSource().getTransformMatrix().get(matrixBuffer), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, super.getWorld().getLightSource().getTransformMatrix().get(matrixBuffer),
+                GL_STATIC_DRAW);
 
         glBindVertexArray(super.getWorld().getLightSource().getMesh().getVAO());
 
@@ -110,10 +111,14 @@ public class LightRenderSystem extends RenderSystem {
         super.getShaderProgram().use();
 
         glBindVertexArray(super.getWorld().getLightSource().getMesh().getVAO());
-        glDrawElementsInstanced(GL_TRIANGLES, super.getWorld().getLightSourceMesh().getIndices().size() * 3, GL_UNSIGNED_INT,
+        glDrawElementsInstanced(GL_TRIANGLES, super.getWorld().getLightSourceMesh().getIndices().size() * 3,
+                GL_UNSIGNED_INT,
                 0, 1);
     }
 
+    /**
+     * Disposes of all OpenGL objects associated with this RenderSystem.
+     */
     @Override
     public void dispose() {
         glDeleteBuffers(vboColor);

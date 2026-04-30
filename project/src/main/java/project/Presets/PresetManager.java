@@ -21,14 +21,32 @@ import project.Math.Body;
 import project.UI.SidebarPane;
 
 /**
+ * Manages saving and loading of bodies and presets.
+ * 
  * @author Ryan Lau
  */
 public class PresetManager {
-
+    /**
+     * The PresetFileService used to save and load files.
+     */
     private final PresetFileService presetFileService = new PresetFileService();
+
+    /**
+     * The current preset's filepath.
+     */
     private Path currentPresetPath;
+
+    /**
+     * The last saved WorldConfiguration.
+     */
     private WorldConfiguration lastSavedSnapshot;
 
+    /**
+     * Marks a given World as saved.
+     * 
+     * @param world World to be marked as saved.
+     * @param sidebar SidebarPane to which this world belongs.
+     */
     public void markCurrentStateSaved(World world, SidebarPane sidebar) {
         if (world == null) {
             lastSavedSnapshot = null;

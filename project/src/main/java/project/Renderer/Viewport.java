@@ -75,6 +75,9 @@ public class Viewport {
         return this.canvas;
     }
 
+    /**
+     * Disposes of the GLCanvas object.
+     */
     public void dispose() {
         canvas.dispose();
     }

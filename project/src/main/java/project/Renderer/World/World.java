@@ -57,11 +57,24 @@ public class World {
      */
     private Camera camera = new Camera();
 
+    /**
+     * The name of this world.
+     */
     private String name;
+
+    /**
+     * A WorldConfiguration yet to be applied to this world.
+     */
     private WorldConfiguration pendingConfig;
 
+    /**
+     * Radius of satellites (in kilometers)
+     */
     public static final float SATELLITE_RADIUS = 100.0f;
 
+    /**
+     * True if the world is currently being simulated, false otherwise.
+     */
     public boolean worldRunning = false;
 
     /**
@@ -413,30 +426,36 @@ public class World {
         colorsBuffer = updateColorBuffer(bodyObjects);
     }
 
+    /**
+     * Runs this world's orbital simulation.
+     */
     public void runWorld() {
-        if(body.getNumberOfSatellites() == 1) {
+        if (body.getNumberOfSatellites() == 1) {
             body.startTimeThread();
             body.startSatellites();
             this.worldRunning = true;
             body.start();
-            //System.out.println("World started runworld: " + name);
             body.resetTime();
-        }else{
+        } else {
             body.sateliteUpdateInfo();
         }
-        //body.start();
-    
+
     }
 
+    /**
+     * Starts this world's orbital simulation without resetting simulation time to
+     * 0.
+     */
     public void startWorld() {
         body.startTimeThread();
         body.startSatellites();
         this.worldRunning = true;
         body.start();
-        //System.out.println("World started: " + name);
-        //body.resetTime();
     }
 
+    /**
+     * Stops this world's orbital simulation.
+     */
     public void stopWorld() {
         body.stop();
         body.stopSatellites();
@@ -444,10 +463,16 @@ public class World {
         this.worldRunning = false;
     }
 
+    /**
+     * @return true if this world's orbital simulation is running, false otherwise.
+     */
     public boolean isWorldRunning() {
         return this.worldRunning;
     }
 
+    /**
+     * Disposes of all OpenGL objects associated with this world.
+     */
     public void dispose() {
         bodyMesh.dispose();
         orbitMesh.dispose();
@@ -540,10 +565,19 @@ public class World {
         return this.colour;
     }
 
+    /**
+     * @return the world's name.
+     */
     public String getName() {
         return this.name;
     }
 
+    /**
+     * Packs world data in a new WorldConfiguration object for saving.
+     * 
+     * @param uiConfig the UI configuration to use in the new WorldConfiguration.
+     * @return a new WorldConfiguration containing this world's data.
+     */
     public WorldConfiguration toWorldConfiguration(WorldConfiguration.UIConfig uiConfig) {
         Vector3f bodyColor = new Vector3f(1.f, 1.f, 1.f);
         WorldObject bodyObj = bodyObjects.get(body.getName());
@@ -576,10 +610,18 @@ public class World {
         return new WorldConfiguration(name, bodyConfig, cameraConfig, satConfigs, uiConfig);
     }
 
+    /**
+     * Sets the pending WorldConfiguration.
+     * 
+     * @param config pending configuration to be set.
+     */
     public void setPendingWorldConfiguration(WorldConfiguration config) {
         this.pendingConfig = config;
     }
 
+    /**
+     * Applies the pending world configuration to this world.
+     */
     public void applyPendingConfiguration() {
         WorldConfiguration config = this.pendingConfig;
         if (config == null) {
@@ -606,13 +648,13 @@ public class World {
                 // active flag only controls UI visibility later
                 Satellite sat = new Satellite();
 
-
-                if(!sat.initialiseSatelliteValuesAngles(body, satConfig.name,
+                if (!sat.initialiseSatelliteValuesAngles(body, satConfig.name,
                         satConfig.mass,
                         satConfig.altitude, satConfig.eccentricity, satConfig.trueAnomaly,
-                        Math.toDegrees(satConfig.longitudeOfAscendingNode), Math.toDegrees(satConfig.inclination), Math.toDegrees(satConfig.argumentOfPeriapsis))) {
-                            System.err.println(sat.getLatestError());
-                        }
+                        Math.toDegrees(satConfig.longitudeOfAscendingNode), Math.toDegrees(satConfig.inclination),
+                        Math.toDegrees(satConfig.argumentOfPeriapsis))) {
+                    System.err.println(sat.getLatestError());
+                }
 
                 // Use the EXACT same working logic that normally adds satellites
                 Vector3f satColor = satConfig.color != null ? satConfig.color : new Vector3f(1.f, 0.f, 0.f);

@@ -1,10 +1,7 @@
 package project.Presets;
 
-import java.util.HashMap;
-
 import org.joml.Vector3f;
 
-import javafx.application.Platform;
 import javafx.scene.paint.Color;
 import project.Math.Body;
 import project.SimulationPool;
@@ -23,6 +20,21 @@ import project.UI.Popups.UnsavedChangesPopup;
  */
 public class PlanetPresets {
 
+    /**
+     * Loads a preset into the SimulationPool.
+     * 
+     * @param pool            SimulationPool to load this preset into.
+     * @param sidebar         the sidebar altered by this loading.
+     * @param name            the name of the preset.
+     * @param mass            the mass of the preset's body.
+     * @param diameter        the diameter of the preset's body.
+     * @param semiMajorAxisKm the semi-major axis (kilometers) of the preset's
+     *                        body's orbit.
+     * @param eccentricity    the eccentricity of the preset's body's orbit.
+     * @param renderColor     the colour of the preset's 3D body.
+     * @param uiColor         the colour used in the UI to represent the preset's
+     *                        body.
+     */
     private static void load(SimulationPool pool, SidebarPane sidebar,
             String name, double mass, double diameter,
             double semiMajorAxisKm, double eccentricity,
@@ -45,19 +57,14 @@ public class PlanetPresets {
         pool.createWorld(name, body, renderColor);
 
         sidebar.addBodyCard(name, uiColor, true, mass, diameter / 2.0);
-
-        // sidebar.applyPresetConfiguration(
-        //         new PresetConfiguration(
-        //                 new PresetConfiguration.BodyPreset(name, uiColor, true, mass, diameter / 2.0),
-        //                 new HashMap<>(),
-        //                 new PresetConfiguration.BottomPanePreset("", "1x", false)));
-        // sidebar.selectBody(name);
-
-        // if(sidebar.getBodyEntries().size() == 1) {
-        //     pool.runWorld(name);
-        // }
     }
 
+    /**
+     * Loads the Mercury preset.
+     * 
+     * @param pool    the SimulationPool to add this preset to.
+     * @param sidebar the SidebarPane bar to add this preset to.
+     */
     public static void loadMercury(SimulationPool pool, SidebarPane sidebar) {
         load(pool, sidebar,
                 "Mercury", 0.330e24, 4879,
@@ -65,6 +72,12 @@ public class PlanetPresets {
                 new Vector3f(0.7f, 0.5f, 0.3f), Color.rgb(179, 128, 77));
     }
 
+    /**
+     * Loads the Venus preset.
+     * 
+     * @param pool    the SimulationPool to add this preset to.
+     * @param sidebar the SidebarPane bar to add this preset to.
+     */
     public static void loadVenus(SimulationPool pool, SidebarPane sidebar) {
         load(pool, sidebar,
                 "Venus", 4.87e24, 12104,
@@ -72,6 +85,12 @@ public class PlanetPresets {
                 new Vector3f(0.9f, 0.8f, 0.5f), Color.rgb(230, 204, 128));
     }
 
+    /**
+     * Loads the Earth preset.
+     * 
+     * @param pool    the SimulationPool to add this preset to.
+     * @param sidebar the SidebarPane bar to add this preset to.
+     */
     public static void loadEarth(SimulationPool pool, SidebarPane sidebar) {
         load(pool, sidebar,
                 "Earth", 5.97e24, 12756,
@@ -79,6 +98,12 @@ public class PlanetPresets {
                 new Vector3f(0.2f, 0.5f, 0.8f), Color.rgb(51, 128, 204));
     }
 
+    /**
+     * Loads the Mars preset.
+     * 
+     * @param pool    the SimulationPool to add this preset to.
+     * @param sidebar the SidebarPane bar to add this preset to.
+     */
     public static void loadMars(SimulationPool pool, SidebarPane sidebar) {
         load(pool, sidebar,
                 "Mars", 0.642e24, 6792,
@@ -86,6 +111,12 @@ public class PlanetPresets {
                 new Vector3f(0.8f, 0.3f, 0.2f), Color.rgb(204, 77, 51));
     }
 
+    /**
+     * Loads the Jupiter preset.
+     * 
+     * @param pool    the SimulationPool to add this preset to.
+     * @param sidebar the SidebarPane bar to add this preset to.
+     */
     public static void loadJupiter(SimulationPool pool, SidebarPane sidebar) {
         load(pool, sidebar,
                 "Jupiter", 1898e24, 142984,
@@ -93,6 +124,12 @@ public class PlanetPresets {
                 new Vector3f(0.9f, 0.7f, 0.5f), Color.rgb(230, 179, 128));
     }
 
+    /**
+     * Loads the Saturn preset.
+     * 
+     * @param pool    the SimulationPool to add this preset to.
+     * @param sidebar the SidebarPane bar to add this preset to.
+     */
     public static void loadSaturn(SimulationPool pool, SidebarPane sidebar) {
         load(pool, sidebar,
                 "Saturn", 568e24, 120536,
@@ -100,6 +137,12 @@ public class PlanetPresets {
                 new Vector3f(0.95f, 0.85f, 0.6f), Color.rgb(242, 217, 153));
     }
 
+    /**
+     * Loads the Uranus preset.
+     * 
+     * @param pool    the SimulationPool to add this preset to.
+     * @param sidebar the SidebarPane bar to add this preset to.
+     */
     public static void loadUranus(SimulationPool pool, SidebarPane sidebar) {
         load(pool, sidebar,
                 "Uranus", 86.8e24, 51118,
@@ -107,6 +150,12 @@ public class PlanetPresets {
                 new Vector3f(0.6f, 0.9f, 0.9f), Color.rgb(153, 230, 230));
     }
 
+    /**
+     * Loads the Neptune preset.
+     * 
+     * @param pool    the SimulationPool to add this preset to.
+     * @param sidebar the SidebarPane bar to add this preset to.
+     */
     public static void loadNeptune(SimulationPool pool, SidebarPane sidebar) {
         load(pool, sidebar,
                 "Neptune", 102e24, 49528,

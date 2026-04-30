@@ -259,6 +259,9 @@ public class Mesh {
         return this.EBO;
     }
 
+    /**
+     * Disposes of all OpenGL objects associated with this Mesh.
+     */
     public void dispose() {
         glDeleteVertexArrays(VAO);
         glDeleteBuffers(VBO);

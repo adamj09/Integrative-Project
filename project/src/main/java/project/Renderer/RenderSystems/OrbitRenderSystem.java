@@ -20,7 +20,8 @@ public class OrbitRenderSystem extends RenderSystem {
 
     /**
      * Constructor for the OrbitRenderSystem class.
-     * @param world The world containing the orbits to be rendered.
+     * 
+     * @param world         The world containing the orbits to be rendered.
      * @param shaderProgram The shader program for rendering the orbits.
      */
     public OrbitRenderSystem(World world, ShaderProgram shaderProgram) {
@@ -69,7 +70,8 @@ public class OrbitRenderSystem extends RenderSystem {
     }
 
     /**
-     * Render loop for the orbits of celestial bodies. Draws the orbits using instanced rendering.
+     * Render loop for the orbits of celestial bodies. Draws the orbits using
+     * instanced rendering.
      */
     @Override
     public void loop() {
@@ -84,6 +86,9 @@ public class OrbitRenderSystem extends RenderSystem {
                 super.getWorld().getOrbitObjects().size());
     }
 
+    /**
+     * Disposes of all OpenGL objects associated with this RenderSystem.
+     */
     @Override
     public void dispose() {
         glDeleteBuffers(vboModelMatrices);

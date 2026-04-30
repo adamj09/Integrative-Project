@@ -24,8 +24,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.animation.AnimationTimer;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import project.Math.Body;
 import project.Math.Utils;
 import project.Math.Satellite;
@@ -36,7 +34,14 @@ import project.UI.SidebarPane;
 import project.SimulationPool;
 import project.StyleSheet;
 
+/**
+ * A pop-up window for creating new satellites.
+ * 
+ * @author Ryan Lau
+ * @author Adam Johnston
+ */
 public class SatelliteCreatorPopup extends Stage {
+    // Variables used to preview the satellite.
     private Renderer previewRenderer = new Renderer();
     private StackPane preview = new StackPane();
     private Satellite previewSatellite;
@@ -63,13 +68,12 @@ public class SatelliteCreatorPopup extends Stage {
     private Label timeValueLabelNum;
     private AnimationTimer timeUpdater;
 
-    // --- Randomizer state ---
+    // Randomizer state
     private final double bodyMass; // kg
     private final double bodyRadius; // km
-    private static final double G = 6.674e-11;
     private final Random rand = new Random();
 
-    // Lock index constants — Orbital Elements mode
+    // Lock index constants
     private static final int OL_MASS = 0, OL_DIST = 1, OL_ECC = 2, OL_NU = 3,
             OL_OMEGA = 4, OL_INC = 5, OL_ARG = 6;
     private final boolean[] orbLocks = new boolean[7];
@@ -78,12 +82,13 @@ public class SatelliteCreatorPopup extends Stage {
     private boolean confirmed = false;
 
     /**
+     * Creates a new satellite creator pop-up window.
      * 
-     * 
-     * @param owner
-     * @param sidebar
-     * @param themeStyle
-     * @param pool
+     * @param owner      the root stage of the JavaFX application.
+     * @param sidebar    the sidebar this pop-up window will modify.
+     * @param themeStyle the theme to be used when rendering this pop-up window.
+     * @param pool       the simulation pool that will be modified by this pop-up
+     *                   window.
      */
     public SatelliteCreatorPopup(Stage owner, SidebarPane sidebar, String themeStyle, SimulationPool pool) {
         this.sideBar = sidebar;
@@ -166,6 +171,11 @@ public class SatelliteCreatorPopup extends Stage {
         setScene(scene);
     }
 
+    /**
+     * Creates a new satellite.
+     * 
+     * @param sidebar the sidebar to add the satellite to.
+     */
     private void createSatellite(SidebarPane sidebar) {
         if (!validate())
             return;
@@ -227,6 +237,9 @@ public class SatelliteCreatorPopup extends Stage {
         close();
     }
 
+    /**
+     * Cancels satellite creation and closes the pop-up.
+     */
     private void cancelCreation() {
         previewWorld.stopWorld();
         previewRenderer.getViewport().dispose();
@@ -235,6 +248,9 @@ public class SatelliteCreatorPopup extends Stage {
         close();
     }
 
+    /**
+     * @return a new HBox with all orbital element fields.
+     */
     private HBox setUpOrbitalElementsForm() {
         // --- Left: name, mass, color ---
         nameField = entryField("Satellite Name");
@@ -289,7 +305,7 @@ public class SatelliteCreatorPopup extends Stage {
         orbMidForm.getColumnConstraints().addAll(orbMidLblCol, new ColumnConstraints());
         orbMidForm.add(formLabel("Orbital Parameters:"), 0, 0, 2, 1);
         orbMidForm.add(orbAltLbl, 0, 1);
-        orbMidForm.add(fieldRow(altitudeField, orbLocks, OL_DIST, this::randomizeDist), 1, 1);
+        orbMidForm.add(fieldRow(altitudeField, orbLocks, OL_DIST, this::randomizeAltitude), 1, 1);
         orbMidForm.add(orbEccLbl, 0, 2);
         orbMidForm.add(fieldRow(eccentricityField, orbLocks, OL_ECC, this::randomizeEcc), 1, 2);
         orbMidForm.add(orbNuLbl, 0, 3);
@@ -332,6 +348,10 @@ public class SatelliteCreatorPopup extends Stage {
         return orbitalFormRow;
     }
 
+    /**
+     * @return a new HBox containing all necessary time controls for the preview
+     *         window.
+     */
     private HBox setUpTimeControls() {
         Button resetButton = new Button("Reset time");
         resetButton.getStyleClass().add("style-button");
@@ -404,6 +424,10 @@ public class SatelliteCreatorPopup extends Stage {
         return timescaleBox;
     }
 
+    /**
+     * @return true if all values obtained from the text fields are valid, false
+     *         otherwise.
+     */
     private boolean validate() {
         try {
             Double.parseDouble(massField.getText());
@@ -471,9 +495,11 @@ public class SatelliteCreatorPopup extends Stage {
         }
 
         return true;
-
     }
 
+    /**
+     * Sets up the preview window.
+     */
     private void setUpPreview() {
         // Set time scale to be same as current simulation.
         previewBody.setTimeScale(1);
@@ -521,6 +547,9 @@ public class SatelliteCreatorPopup extends Stage {
         colorDropdown.setOnAction(e -> updatePreviewColor());
     }
 
+    /**
+     * Updates the preview window (if any physical variables are changed).
+     */
     private void updatePreview() {
         SatelliteData data = previewSatellite.getData();
 
@@ -539,6 +568,9 @@ public class SatelliteCreatorPopup extends Stage {
                 getLongitudeAscendingNode(), getInclination(), getArgumentOfPeriapsis());
     }
 
+    /**
+     * Updates the preview satellite's colour.
+     */
     private void updatePreviewColor() {
         Color color = getSatelliteColor();
 
@@ -547,14 +579,24 @@ public class SatelliteCreatorPopup extends Stage {
                 new Vector3f((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()));
     }
 
+    /**
+     * @return true if creation was confirmed, false otherwise.
+     */
     public boolean wasConfirmed() {
         return confirmed;
     }
 
+    /**
+     * @return the satellite's name.
+     */
     public String getSatelliteName() {
         return satelliteName;
     }
 
+    /**
+     * @return the satellite's mass (kilograms) from the corresponding text field,
+     *         or 0 if mass is invalid.
+     */
     public double getSatelliteMass() {
         try {
             String text = massField.getText().trim();
@@ -564,6 +606,9 @@ public class SatelliteCreatorPopup extends Stage {
         }
     }
 
+    /**
+     * @return the satellite's colour selected in the colour dropdown menu.
+     */
     public Color getSatelliteColor() {
         String val = colorDropdown.getValue();
         return switch (val) {
@@ -576,6 +621,10 @@ public class SatelliteCreatorPopup extends Stage {
         };
     }
 
+    /**
+     * @return the current altitude of the satellite (kilometers), or that last
+     *         valid one if the current on is invalid.
+     */
     public double getAltitude() {
         double altitude = p(altitudeField);
 
@@ -592,22 +641,39 @@ public class SatelliteCreatorPopup extends Stage {
         return p(altitudeField);
     }
 
+    /**
+     * @return the satellite's eccentricity parsed from that text field.
+     */
     public double getEccentricity() {
         return p(eccentricityField);
     }
 
+    /**
+     * @return the satellite's true anomaly (degrees) parsed from that text field.
+     */
     public double getTrueAnomaly() {
         return p(trueAnomalyField);
     }
 
+    /**
+     * @return the satellite's longitude of ascending node (degrees) parsed from
+     *         that text field.
+     */
     public double getLongitudeAscendingNode() {
         return p(lonAscNodeField);
     }
 
+    /**
+     * @return the satellite's inclination (degrees) parsed from that text field.
+     */
     public double getInclination() {
         return p(inclinationField);
     }
 
+    /**
+     * @return the satellite's argument of periapsis (degrees) parsed from that text
+     *         field.
+     */
     public double getArgumentOfPeriapsis() {
         return p(argPeriapsisField);
     }
@@ -616,12 +682,14 @@ public class SatelliteCreatorPopup extends Stage {
         return p(massOfBodyField);
     }
 
-    /** Randomizes all unlocked fields for the currently active mode. */
+    /**
+     * Randomizes all unlocked fields for the currently active mode.
+     */
     private void randomizeAll() {
         if (!orbLocks[OL_MASS])
             randomizeSatMass();
         if (!orbLocks[OL_DIST])
-            randomizeDist();
+            randomizeAltitude();
         if (!orbLocks[OL_ECC])
             randomizeEcc();
         if (!orbLocks[OL_NU])
@@ -633,7 +701,7 @@ public class SatelliteCreatorPopup extends Stage {
         if (!orbLocks[OL_ARG])
             randomizeAngle360(argPeriapsisField);
         if (!orbColorLock[0])
-            randomizeColor(colorDropdown);
+            randomizeDropdowm(colorDropdown);
 
         Satellite testSatellite = new Satellite();
         if (!testSatellite.initialiseSatelliteValuesAngles(previewBody, "testSatellite", getSatelliteMass(),
@@ -644,29 +712,51 @@ public class SatelliteCreatorPopup extends Stage {
         }
     }
 
+    /**
+     * Randomize the satellite's mass text field.
+     */
     private void randomizeSatMass() {
         massField.setText(String.format("%.3e", randomLog(1, 1e6)));
     }
 
-    private void randomizeDist() {
+    /**
+     * Randomize the satellite's altitude text field.
+     */
+    private void randomizeAltitude() {
         // Log-uniform between 1.5× and 100× the body's radius (km)
         altitudeField.setText(String.format("%.1f",
                 randomLog(bodyRadius * 1.5, bodyRadius * 100)));
     }
 
+    /**
+     * Randomize the satellite's eccentricity text field.
+     */
     private void randomizeEcc() {
         eccentricityField.setText(String.format("%.3f", 0.01 + rand.nextDouble() * 0.69));
     }
 
+    /**
+     * Randomize the satellite's inclination text field.
+     */
     private void randomizeInc() {
         // Physical inclinations are 0–180° (retrograde = > 90°)
         inclinationField.setText(String.format("%.1f", rand.nextDouble() * 180.0));
     }
 
+    /**
+     * Fill the text field with a random number between 0 and 360.
+     */
     private void randomizeAngle360(TextField f) {
         f.setText(String.format("%.1f", rand.nextDouble() * 360.0));
     }
 
+    /**
+     * Fill the text field with a logarithmically pseudo-randomly generated value.
+     * 
+     * @param min minimum value.
+     * @param max maximum value.
+     * @return pseudo-randomly generated value
+     */
     private double randomLog(double min, double max) {
         if (min <= 0)
             min = 1e-10;
@@ -675,17 +765,29 @@ public class SatelliteCreatorPopup extends Stage {
         return Math.pow(10, logMin + rand.nextDouble() * (logMax - logMin));
     }
 
-    private void randomizeColor(ComboBox<String> dropdown) {
+    /**
+     * Set a dropdown to a random value.
+     * 
+     * @param dropdown the dropdowm of which the value with be set.
+     */
+    private void randomizeDropdowm(ComboBox<String> dropdown) {
         var items = dropdown.getItems();
         dropdown.setValue(items.get(rand.nextInt(items.size())));
     }
 
+    /**
+     * Creates a new UI row for modifying satellite colour.
+     * 
+     * @param dropdown the ComboBox used to select colours.
+     * @param lock     the lock for the value (prevents randomization if true).
+     * @return a new HBox with nodes for modifying satellite colour.
+     */
     private HBox colorRow(ComboBox<String> dropdown, boolean[] lock) {
         Button randBtn = randButton();
         ToggleButton lockBtn = lockButton();
         randBtn.setOnAction(e -> {
             if (!lock[0]) {
-                randomizeColor(dropdown);
+                randomizeDropdowm(dropdown);
 
                 updatePreviewColor();
             }
@@ -699,6 +801,16 @@ public class SatelliteCreatorPopup extends Stage {
         return row;
     }
 
+    /**
+     * Creates a new UI row for a given text field.
+     * 
+     * @param field      the textfield associated with this row.
+     * @param locks      the locks used to prevent randomization of values (prevents
+     *                   randomization if true).
+     * @param idx        the index of the row (used to create grids).
+     * @param randomizer the randomizer used to generate values.
+     * @return a new HBox with the nodes necessary for modifying a given field.
+     */
     private HBox fieldRow(TextField field, boolean[] locks, int idx, Runnable randomizer) {
         Button randBtn = randButton();
         ToggleButton lockBtn = lockButton();
@@ -723,6 +835,9 @@ public class SatelliteCreatorPopup extends Stage {
         return row;
     }
 
+    /**
+     * @return a new randomizer button.
+     */
     private Button randButton() {
         Button btn = new Button("\u27F3");
         btn.getStyleClass().add("icon-button");
@@ -731,6 +846,9 @@ public class SatelliteCreatorPopup extends Stage {
         return btn;
     }
 
+    /**
+     * @return a new lock button.
+     */
     private ToggleButton lockButton() {
         ToggleButton btn = new ToggleButton("\uD83D\uDD13"); // \uD83D\uDD13
         btn.getStyleClass().add("lock-button");
@@ -739,7 +857,9 @@ public class SatelliteCreatorPopup extends Stage {
         return btn;
     }
 
-    /** Attach the same tooltip text to a label and its associated control. */
+    /**
+     * Attaches the same tooltip text to a label and its associated control.
+     */
     private void tip(javafx.scene.Node label, javafx.scene.Node control, String text) {
         Tooltip tt = new Tooltip(text);
         tt.setShowDelay(Duration.millis(300));
@@ -749,6 +869,12 @@ public class SatelliteCreatorPopup extends Stage {
         Tooltip.install(control, tt);
     }
 
+    /**
+     * Parses a double
+     * 
+     * @param tf TextField object to parse from.
+     * @return the parsed double value, or 0 if parsing unsuccessful.
+     */
     private double p(TextField tf) {
         try {
             return Double.parseDouble(tf.getText());
@@ -757,6 +883,12 @@ public class SatelliteCreatorPopup extends Stage {
         }
     }
 
+    /**
+     * Creates a new text field.
+     * 
+     * @param prompt the prompt to fill the text field with.
+     * @return a new TextField object.
+     */
     private TextField entryField(String prompt) {
         TextField tf = new TextField();
         tf.setPromptText(prompt);
@@ -766,6 +898,12 @@ public class SatelliteCreatorPopup extends Stage {
         return tf;
     }
 
+    /**
+     * Creates a new label for the form.
+     * 
+     * @param text label's text.
+     * @return a new Label object.
+     */
     private Label formLabel(String text) {
         Label l = new Label(text);
         l.getStyleClass().add("key");

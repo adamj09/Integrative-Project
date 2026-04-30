@@ -62,10 +62,19 @@ public class Renderer {
      */
     private FixedCameraController fixedCameraController;
 
+    /**
+     * Shader objects used by this Renderer.
+     */
     private Shader mainVertShader, orbitVertShader, bodyFragShader, lightFragShader, orbitFragShader;
 
+    /**
+     * This Renderer's OpenGL shader programs.
+     */
     private ShaderProgram bodyShaderProgram, lightShaderProgram, orbitShaderProgram;
 
+    /**
+     * The object that the camera is currently locked onto.
+     */
     private String currentFocusedObject = "";
 
     /**
@@ -83,6 +92,9 @@ public class Renderer {
         initOpenGLRenderEventHandlers();
     }
 
+    /**
+     * Creates a Renderer without a world, skipping OpenGl initialization.
+     */
     public Renderer() {
         controlManager = new ControlManager(this.viewport.getGLCanvas());
 
@@ -152,6 +164,9 @@ public class Renderer {
         orbitRenderSystem.loop();
     }
 
+    /**
+     * Disposes this Renderer of all OpenGL objects.
+     */
     private void dispose() {
         bodyRenderSystem.dispose();
         lightRenderSystem.dispose();
@@ -181,6 +196,9 @@ public class Renderer {
                 DEFAULT_FAR);
     }
 
+    /**
+     * Compiles and creates handles for a shaders used by this Renderer.
+     */
     private void setUpShaders() {
         // Create shaders if necessary.
         // We check if each and every one of these needs to be created because these are
@@ -225,6 +243,11 @@ public class Renderer {
         orbitShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
     }
 
+    /**
+     * Locks the world's camera onto a given object in the world.
+     * 
+     * @param name the object to focus on.
+     */
     public void setFocusObject(String name) {
         currentFocusedObject = name;
         fixedCameraController.setFocusObject(name);
@@ -237,23 +260,11 @@ public class Renderer {
         return this.viewport;
     }
 
-    public void refreshRenderSystems() {
-        // This is called when existing world is updated (after applying loaded
-        // configuration)
-        // All render systems need to be refreshed because world internals have been
-        // completely reset
-        world.getBodyMesh().setUpBuffers();
-        world.getOrbitMesh().setUpBuffers();
-        world.getLightSourceMesh().setUpBuffers();
-
-        bodyRenderSystem = new BodyRenderSystem(world, bodyShaderProgram);
-        lightRenderSystem = new LightRenderSystem(world, lightShaderProgram);
-        orbitRenderSystem = new OrbitRenderSystem(world, orbitShaderProgram);
-
-        cameraMatrixLoader = new CameraMatrixLoader(world.getCamera());
-        setCameraProjection();
-    }
-
+    /**
+     * Sets the world to render using this Renderer.
+     * 
+     * @param world world to render.
+     */
     public void setWorld(World world) {
         this.world = world;
         fixedCameraController = new FixedCameraController(this.world, controlManager);
@@ -269,7 +280,7 @@ public class Renderer {
     }
 
     /**
-     * @return The world being rendered.
+     * @return The world currently being rendered.
      */
     public World getWorld() {
         return this.world;

@@ -21,13 +21,15 @@ public abstract class RenderSystem {
 
     /**
      * Constructor for the RenderSystem class.
-     * @param world The world containing the data to be rendered by this render system.
+     * 
+     * @param world         The world containing the data to be rendered by this
+     *                      render system.
      * @param shaderProgram The shader program to be used by this render system.
      */
     public RenderSystem(World world, ShaderProgram shaderProgram) {
         this.world = world;
         this.shaderProgram = shaderProgram;
-        
+
         init();
     }
 
@@ -41,6 +43,9 @@ public abstract class RenderSystem {
      */
     public abstract void loop();
 
+    /**
+     * Disposes of all OpenGL objects associated with this RenderSystem.
+     */
     public abstract void dispose();
 
     /**
@@ -51,7 +56,9 @@ public abstract class RenderSystem {
     }
 
     /**
-     * Sets the world to be rendered by this render system. Note that this method also calls init() to reinitialize the render system with the new world.
+     * Sets the world to be rendered by this render system. Note that this method
+     * also calls init() to reinitialize the render system with the new world.
+     * 
      * @param world The world to be rendered by this render system.
      */
     public void setWorld(World world) {

@@ -52,12 +52,17 @@ public class SidebarPane extends VBox {
     private HashMap<String, VBox> bodyCards = new HashMap<>();
 
     /**
+     * The lists of satellites, keyed by body name.
+     * Contains VBoxes as JavaFX children:
+     * @see satelliteListVBoxes
+     */
+    private HashMap<String, VBox> satelliteLists = new HashMap<>();
+
+        /**
      * The VBoxes each containing a list of satellites for each Body.
      * The key is the Body's name, the VBox is the list itself (analogous to the
      * single bodyListVBox variable).
      */
-    private HashMap<String, VBox> satelliteLists = new HashMap<>();
-
     private HashMap<String, VBox> satelliteListVBoxes = new HashMap<>();
 
     /**

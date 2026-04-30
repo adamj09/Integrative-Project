@@ -9,6 +9,7 @@ import project.Renderer.World.World;
 
 /**
  * Class that controls a camera in a first person style (without rolling).
+ * Useful for debugging rendering.
  * 
  * @author Adam Johnston
  */

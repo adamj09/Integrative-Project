@@ -111,6 +111,9 @@ public class BodyRenderSystem extends RenderSystem {
                 super.getWorld().getBodyObjects().size());
     }
 
+    /**
+     * Disposes of all OpenGL objects associated with this RenderSystem.
+     */
     @Override
     public void dispose() {
         glDeleteBuffers(vboColors);
