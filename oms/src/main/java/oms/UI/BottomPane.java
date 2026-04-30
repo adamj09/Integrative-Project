@@ -19,6 +19,7 @@ import oms.Math.Body;
 import oms.Math.Satellite;
 import oms.Math.SatelliteData;
 import oms.Presets.PresetConfiguration.BottomPanePreset;
+import oms.Renderer.World.World;
 
 /**
  * Class that handles simulation-specific controls and the live satellite data
@@ -405,12 +406,18 @@ public class BottomPane extends VBox {
      */
     public void updateSatelliteData() {
         // Update display of simulation time.
-        Body body = pool.getCurrentWorld().getBody();
+        World currentWorld = pool.getCurrentWorld();
+        Body body = currentWorld.getBody();
         double timeSeconds = body.getTimeSeconds();
         double timeMinutes = (body.getTimeSeconds() / 60.0);
         timeValueField.setText(String.format("%.4f", timeMinutes));
         timeValueLabelNum.setText(getWorldTimeFormated(timeSeconds));
-
+        
+        if(running != currentWorld.isWorldRunning()) {
+            running = currentWorld.isWorldRunning();
+            updateButtonStates();
+        }
+             
         if (selectedSatellite.isEmpty()) {
             return;
         }

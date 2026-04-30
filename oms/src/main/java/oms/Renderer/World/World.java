@@ -430,7 +430,7 @@ public class World {
      * Runs this world's orbital simulation.
      */
     public void runWorld() {
-        if (body.getNumberOfSatellites() == 1) {
+        if (body.getNumberOfSatellites() == 1 && body.getTimeSeconds() == 0) {
             body.startTimeThread();
             body.startSatellites();
             this.worldRunning = true;
@@ -439,7 +439,6 @@ public class World {
         } else {
             body.sateliteUpdateInfo();
         }
-
     }
 
     /**

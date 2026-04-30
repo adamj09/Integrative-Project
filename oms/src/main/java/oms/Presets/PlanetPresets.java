@@ -4,6 +4,7 @@ import org.joml.Vector3f;
 
 import javafx.scene.paint.Color;
 import oms.Math.Body;
+import oms.Renderer.World.World;
 import oms.SimulationPool;
 import oms.UI.SidebarPane;
 import oms.UI.Popups.UnsavedChangesPopup;
@@ -41,6 +42,12 @@ public class PlanetPresets {
             Vector3f renderColor, Color uiColor) {
 
         Body body = new Body(name, mass, diameter / 2.0, semiMajorAxisKm, eccentricity);
+        
+        World currentWorld = pool.getCurrentWorld();
+        boolean wasWorldRunning = false;
+        if (currentWorld != null) {
+            wasWorldRunning = currentWorld.isWorldRunning();
+        }
 
         // Stop the current world before adding preset
         pool.stopWorld();
@@ -57,6 +64,10 @@ public class PlanetPresets {
         pool.createWorld(name, body, renderColor);
 
         sidebar.addBodyCard(name, uiColor, true, mass, diameter / 2.0);
+
+        if(wasWorldRunning) {
+            pool.startWorld();
+        }
     }
 
     /**
