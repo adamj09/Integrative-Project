@@ -1,0 +1,289 @@
+package oms.Renderer;
+
+import static org.lwjgl.opengl.GL41.*;
+
+import oms.ControlManager;
+import oms.Renderer.Camera.CameraMatrixLoader;
+import oms.Renderer.Camera.FixedCameraController;
+import oms.Renderer.RenderSystems.BodyRenderSystem;
+import oms.Renderer.RenderSystems.LightRenderSystem;
+import oms.Renderer.RenderSystems.OrbitRenderSystem;
+import oms.Renderer.World.World;
+
+/**
+ * Class responsible for managing the rendering of an entire world, including
+ * the
+ * camera and render systems.
+ * 
+ * @author Adam Johnston
+ */
+public class Renderer {
+    /**
+     * Default values for the camera projection parameters for convenience.
+     */
+    public static final float DEFAULT_FOV = 45.f, DEFAULT_NEAR = 0.001f, DEFAULT_FAR = 1_000_000.0f;
+
+    /**
+     * Sizes of varius data types in bytes for convenience when calculating buffer
+     * sizes and offsets.
+     */
+    public static final int MAT4F_SIZE = 16 * Float.BYTES, VEC4F_SIZE = 4 * Float.BYTES, VEC3F_SIZE = 3 * Float.BYTES;
+
+    /**
+     * The viewport to render to.
+     */
+    public Viewport viewport = new Viewport();
+
+    /**
+     * The world to render.
+     */
+    private World world;
+
+    /**
+     * The camera matrix loader.
+     */
+    private CameraMatrixLoader cameraMatrixLoader;
+
+    /**
+     * The render systems for rendering different types of objects.
+     */
+    private BodyRenderSystem bodyRenderSystem;
+    private LightRenderSystem lightRenderSystem;
+    private OrbitRenderSystem orbitRenderSystem;
+
+    /**
+     * The control manager for handling user input.
+     */
+    private ControlManager controlManager;
+
+    /**
+     * The camera controller.
+     */
+    private FixedCameraController fixedCameraController;
+
+    /**
+     * Shader objects used by this Renderer.
+     */
+    private Shader mainVertShader, orbitVertShader, bodyFragShader, lightFragShader, orbitFragShader;
+
+    /**
+     * This Renderer's OpenGL shader programs.
+     */
+    private ShaderProgram bodyShaderProgram, lightShaderProgram, orbitShaderProgram;
+
+    /**
+     * The object that the camera is currently locked onto.
+     */
+    private String currentFocusedObject = "";
+
+    private static final String SHADER_DIR = "oms/shaders/";
+
+    /**
+     * Constructor for the Renderer class, initializes OpenGL and sets up render
+     * event handlers.
+     */
+    public Renderer(World world) {
+        this.world = world;
+
+        controlManager = new ControlManager(this.viewport.getGLCanvas());
+        // freeLookCameraController = new FreeLookCameraController(world,
+        // controlManager);
+        fixedCameraController = new FixedCameraController(this.world, controlManager);
+
+        initOpenGLRenderEventHandlers();
+    }
+
+    /**
+     * Creates a Renderer without a world, skipping OpenGl initialization.
+     */
+    public Renderer() {
+        controlManager = new ControlManager(this.viewport.getGLCanvas());
+
+        viewport.getGLCanvas().setVisible(false);
+    }
+
+    /**
+     * Initializes the OpenGL render event handlers.
+     */
+    private void initOpenGLRenderEventHandlers() {
+        viewport.getGLCanvas().addOnInitEvent(_ -> init());
+        viewport.getGLCanvas().addOnRenderEvent(event -> loop(event.delta));
+        viewport.getGLCanvas().addOnReshapeEvent(_ -> setCameraProjection());
+        viewport.getGLCanvas().addOnDisposeEvent(_ -> dispose());
+    }
+
+    /**
+     * Initializes the renderer, setting up the viewport resize handler, enabling
+     * depth testing, loading the world, creating camera controllers, creating
+     * shader programs, and creating render systems.
+     */
+    private void init() {
+        world.getBodyMesh().setUpBuffers();
+        world.getOrbitMesh().setUpBuffers();
+        world.getLightSourceMesh().setUpBuffers();
+
+        // Enable depth testing
+        glEnable(GL_DEPTH_TEST);
+
+        glFrontFace(GL_CCW);
+        glEnable(GL_CULL_FACE);
+
+        setUpShaders();
+
+        // Create render systems.
+        bodyRenderSystem = new BodyRenderSystem(world, bodyShaderProgram);
+        lightRenderSystem = new LightRenderSystem(world, lightShaderProgram);
+        orbitRenderSystem = new OrbitRenderSystem(world, orbitShaderProgram);
+
+        // Create camera matrix loader.
+        cameraMatrixLoader = new CameraMatrixLoader(world.getCamera());
+        setCameraProjection(); // Set the camera's projection matrix.
+    }
+
+    /**
+     * The main render loop, called every frame to update the world and render the
+     * scene.
+     * 
+     * @param deltaTime The time elapsed since the last frame.
+     */
+    private void loop(double deltaTime) {
+        glClearColor(0.f, 0.f, 0.f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        controlManager.updateMouse();
+        controlManager.handleUnfocus();
+
+        // Note: always update world before camera.
+        world.updateSatellitePositions();
+
+        fixedCameraController.updateCameraTransform(deltaTime);
+
+        cameraMatrixLoader.update();
+
+        bodyRenderSystem.loop();
+        lightRenderSystem.loop();
+        orbitRenderSystem.loop();
+    }
+
+    /**
+     * Disposes this Renderer of all OpenGL objects.
+     */
+    private void dispose() {
+        bodyRenderSystem.dispose();
+        lightRenderSystem.dispose();
+        orbitRenderSystem.dispose();
+
+        bodyShaderProgram.dispose();
+        lightShaderProgram.dispose();
+        orbitShaderProgram.dispose();
+
+        mainVertShader.dispose();
+        orbitVertShader.dispose();
+        bodyFragShader.dispose();
+        lightFragShader.dispose();
+        orbitFragShader.dispose();
+
+        cameraMatrixLoader.dispose();
+
+        world.dispose();
+    }
+
+    /**
+     * Sets the camera's projection matrix based on the current viewport dimensions.
+     */
+    private void setCameraProjection() {
+        world.getCamera().setPerspectiveProjection((float) Math.toRadians(DEFAULT_FOV),
+                (float) viewport.getGLCanvas().getWidth() / (float) viewport.getGLCanvas().getHeight(), DEFAULT_NEAR,
+                DEFAULT_FAR);
+    }
+
+    /**
+     * Compiles and creates handles for a shaders used by this Renderer.
+     */
+    private void setUpShaders() {
+        // Create shaders if necessary.
+        // We check if each and every one of these needs to be created because these are
+        // fairly expensive operations.
+        if (mainVertShader == null) {
+            mainVertShader = new Shader(SHADER_DIR + "main.vert", GL_VERTEX_SHADER);
+        }
+
+        if (orbitVertShader == null) {
+            orbitVertShader = new Shader(SHADER_DIR + "orbit.vert", GL_VERTEX_SHADER);
+        }
+
+        if (bodyFragShader == null) {
+            bodyFragShader = new Shader(SHADER_DIR + "body.frag", GL_FRAGMENT_SHADER);
+        }
+
+        if (lightFragShader == null) {
+            lightFragShader = new Shader(SHADER_DIR + "light_source.frag", GL_FRAGMENT_SHADER);
+        }
+
+        if (orbitFragShader == null) {
+            orbitFragShader = new Shader(SHADER_DIR + "orbit.frag", GL_FRAGMENT_SHADER);
+        }
+
+        // Create shader programs if necessary.
+        if (bodyShaderProgram == null) {
+            bodyShaderProgram = new ShaderProgram(mainVertShader.getShader(), bodyFragShader.getShader());
+        }
+
+        if (lightShaderProgram == null) {
+            lightShaderProgram = new ShaderProgram(mainVertShader.getShader(), lightFragShader.getShader());
+        }
+
+        if (orbitShaderProgram == null) {
+            orbitShaderProgram = new ShaderProgram(orbitVertShader.getShader(), orbitFragShader.getShader());
+        }
+
+        // No need to check here -- there's a check for existing uniform block bindings
+        // in this method.
+        bodyShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
+        lightShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
+        orbitShaderProgram.addUniformBlockBinding("CameraMatrices", 0);
+    }
+
+    /**
+     * Locks the world's camera onto a given object in the world.
+     * 
+     * @param name the object to focus on.
+     */
+    public void setFocusObject(String name) {
+        currentFocusedObject = name;
+        fixedCameraController.setFocusObject(name);
+    }
+
+    /**
+     * @return The viewport being rendered to.
+     */
+    public Viewport getViewport() {
+        return this.viewport;
+    }
+
+    /**
+     * Sets the world to render using this Renderer.
+     * 
+     * @param world world to render.
+     */
+    public void setWorld(World world) {
+        this.world = world;
+        fixedCameraController = new FixedCameraController(this.world, controlManager);
+        if (currentFocusedObject.isEmpty() || !world.getBodyObjects().containsKey(currentFocusedObject)) {
+            setFocusObject(world.getName());
+        } else {
+            setFocusObject(currentFocusedObject);
+        }
+
+        viewport.getGLCanvas().setVisible(true);
+
+        initOpenGLRenderEventHandlers();
+    }
+
+    /**
+     * @return The world currently being rendered.
+     */
+    public World getWorld() {
+        return this.world;
+    }
+}
