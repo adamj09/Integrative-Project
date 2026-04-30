@@ -1,6 +1,8 @@
 package project.Math;
 
 /**
+ * A list of physical constants used for physics calculations.
+ * 
  * @author Maxime Gauthier
  */
 public class Constant {

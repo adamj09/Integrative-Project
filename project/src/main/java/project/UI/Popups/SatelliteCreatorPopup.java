@@ -378,7 +378,6 @@ public class SatelliteCreatorPopup extends Stage {
                     break;
                 case "2x":
                     previewWorld.getBody().setTimeScale(2);
-                    System.out.println("Setting time scale to 2x");
                     break;
                 case "5x":
                     previewWorld.getBody().setTimeScale(5);

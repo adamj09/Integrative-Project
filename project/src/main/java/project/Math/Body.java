@@ -10,13 +10,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Maxime Gauthier
  */
 public class Body extends OrbitsTime {
+    /**
+     * Body data.
+     */
     private String name = "earth";
     private double mass = Constant.EARTH_DEFAULT_MASS; // in kg
     private double radius = Constant.EARTH_DEFAULT_RADIUS; // in km
     private double semiMajorAxis = Constant.EARTH_ORBIT_SEMIMAJOR_AXIS; // in km (distance to the sun, used for the
                                                                         // calculation of the solar radiation
                                                                         // pressure)
-
     private double hillRadius = 1.4714e7; // in km
     private double eccentricity = Constant.EARTH_ORBIT_ECCENTRICITY;
     private double massOfSun = Constant.SUN_DEFAULT_MASS; // in kg (mass of the sun, used for the calculation of )
@@ -142,14 +144,14 @@ public class Body extends OrbitsTime {
     }
 
     /**
-     * @return all 
+     * @return all satellites belonging to this celestial body.
      */
     public HashMap<String, Satellite> getSatellites() {
         return new HashMap<>(this.satellites);
     }
 
     /**
-     * remove a satellite of the body
+     * Remove a satellite from the body
      * 
      * @param name name of the satellite
      * @return true if the satellite is found in the list and revoved. false if the
@@ -166,59 +168,113 @@ public class Body extends OrbitsTime {
         return satellites.remove(name) != null;
     }
 
-    // getters and setters for name, mass, and radius
+    /**
+     * @return name of the body.
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name of the body.
+     * 
+     * @param name name to set.
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * @return mass of the body in kilograms.
+     */
     public double getMass() {
         return mass;
     }
 
+    /**
+     * Sets the mass of the body.
+     * 
+     * @param mass mass of the body in kilograms.
+     */
     public void setMass(double mass) {
         this.mass = mass;
     }
 
+    /**
+     * @return radius of the body in kilometers.
+     */
     public double getRadius() {
         return radius;
     }
 
+    /**
+     * Sets the radius of the body.
+     * 
+     * @param radius radius of the body in kilometers.
+     */
     public void setRadius(double radius) {
         this.radius = radius;
     }
 
+    /**
+     * @return the semi-major axis of the body's orbit in kilometers.
+     */
     public double getSemiMajorAxis() {
         return semiMajorAxis;
     }
 
+    /**
+     * Sets the semi-major axis of the body's orbit.
+     * 
+     * @param semiMajorAxis the semi-major axis of the body's orbit in kilometers.
+     */
     public void setSemiMajorAxis(double semiMajorAxis) {
         this.semiMajorAxis = semiMajorAxis;
     }
 
+    /**
+     * @return the eccentricity of the body's orbit.
+     */
     public double getEccentricity() {
         return eccentricity;
     }
 
+    /**
+     * Sets the eccentricity of the body's orbit.
+     * 
+     * @param eccentricity the eccentricity of the body's orbit.
+     */
     public void setEccentricity(double eccentricity) {
         this.eccentricity = eccentricity;
     }
 
+    /**
+     * @return the mass of the star around which the body orbits in kilograms.
+     */
     public double getMassOfSun() {
         return massOfSun;
     }
 
+    /**
+     * Sets the mass of the star around which the body orbits.
+     * 
+     * @param massOfSun the mass of the star around which the body orbits in
+     *                  kilograms.
+     */
     public void setMassOfSun(double massOfSun) {
         this.massOfSun = massOfSun;
     }
 
+    /**
+     * @return the hill radius of the body in kilometers.
+     */
     public double getHillRadius() {
         return this.hillRadius;
     }
 
+    /**
+     * @return the number of satellites orbiting this body.
+     */
     public int getNumberOfSatellites() {
         return this.satellites.size();
     }
@@ -299,17 +355,19 @@ public class Body extends OrbitsTime {
         }
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Updates all satellites' data.
+     */
     public void sateliteUpdateInfo() {
         for (Satellite sat : satellites.values()) {
             sat.relativeInfoUpdate();
         }
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
-    public boolean isAllSatelliteSimulationRunnig() {
+    /**
+     * @return true if all satellites are running, false otherwise.
+     */
+    public boolean isAllSatelliteSimulationRunning() {
         for (Satellite sat : satellites.values()) {
             if (!sat.getSimulationRunning()) {
                 this.setLatestError("Maximum number of satelite reached!");
@@ -319,8 +377,12 @@ public class Body extends OrbitsTime {
         return true;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Checks whether a given satellite is running.
+     * 
+     * @param name name of the satellite to check.
+     * @return true if it is running, false otherwise.
+     */
     public boolean getSatelliteSimulationRunning(String name) {
         Satellite sat = satellites.get(name);
         if (sat != null) {
@@ -330,8 +392,12 @@ public class Body extends OrbitsTime {
         return false;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Gets the latest error with the satellite's math.
+     * 
+     * @param name name of the satellite to get error from.
+     * @return the latest error with the satellite's math.
+     */
     public String getSatelliteLatestError(String name) {
         Satellite sat = satellites.get(name);
         if (sat != null) {
@@ -340,32 +406,41 @@ public class Body extends OrbitsTime {
         return "Satellite not found! Name: " + name;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * @return whether this body's simulation thread is running.
+     */
     public synchronized boolean getThreadState() {
         return this.simulationRunning;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Sets whether this body's simulation is running.
+     * 
+     * @param state set this to true if we'd like the body's simulation to run,
+     *              false otherwise.
+     */
     public synchronized void setThreadState(boolean state) {
         this.simulationRunning = state;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Sets the latest error message for this body.
+     * 
+     * @param error error text.
+     */
     private synchronized void setLatestError(String error) {
         this.latestError = error;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * @return the latest error message associated with this body.
+     */
     public synchronized String getLatestError() {
         return this.latestError;
     }
 
     /**
-     * Override to update all satellites with the current simulation time
+     * Override to update all satellites with the current simulation time.
      */
     @Override
     protected void updateSatellitesTime() {

@@ -5,6 +5,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
+ * Physical representation of a satellite with negligeable mass compared to the
+ * celestial object it is orbiting.
+ * 
  * @author Maxime Gauthier
  */
 public class Satellite implements Runnable {
@@ -25,8 +28,8 @@ public class Satellite implements Runnable {
     // initialisation of the satellite
 
     /**
-     * initialise the satellite using a 3d initial position vector and a 3d initial
-     * velocity vector
+     * Initialises the satellite using a 3d initial position vector and a 3d initial
+     * velocity vector.
      * 
      * @param body            the central body that the satellite is orbiting
      * @param satName         name (and id) of the satellite
@@ -73,12 +76,13 @@ public class Satellite implements Runnable {
     }
 
     /**
-     * initialise the satellite using classical orbital elements
+     * Initialise the satellite using classical orbital elements.
      * 
      * @param body                   the central body that the satellite is orbiting
      * @param satName                name (and id) of the satellite
      * @param massOfSatellite        mass of the the satellite in kg
-     * @param altitude               distance of the satellite to the body's surface in km
+     * @param altitude               distance of the satellite to the body's surface
+     *                               in km
      * @param ecentricity            of the orbit (between 0 and 1 for elliptical
      *                               orbits) 0 >= ecentricity || ecentricity >= 1
      * @param trueAnomaly            true anomaly at the initial position in degrees
@@ -123,8 +127,14 @@ public class Satellite implements Runnable {
         return MathOrbits.getStaticInfo(body, this);
     }
 
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Sets the satellite's name while accounting for duplicate naming.
+     * 
+     * @param satName  the satellite's name.
+     * @param bodyName the central celestial body's name.
+     * @return true if the name is not taken by the central celestial body, false
+     *         otherwise.
+     */
     private boolean initName(String satName, String bodyName) {
         if (satName.equals(bodyName)) {
             this.setLatestError("Satellite name is the same has the body's name. Not allowed");
@@ -135,13 +145,18 @@ public class Satellite implements Runnable {
         }
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Sets the mass of the central celestial body.
+     * 
+     * @param mass mass in kilograms.
+     */
     public synchronized void setMassOfBody(double mass) {
         this.massOfBody = mass;
     }
 
     /**
+     * Sets the time at which to start simulating this satellite's orbit.
+     * 
      * @param time in secondes
      */
     public void setInitialTime(double time) {
@@ -149,127 +164,52 @@ public class Satellite implements Runnable {
     }
 
     /**
+     * Sets the time at which to simulate this satellite's orbit.
+     * 
      * @param time in seconds
      */
     public void setCurrentTime(double time) {
         this.updateData(data -> data.currentTime = time);
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Sets the latest error this satellite encountered while calculating values.
+     * 
+     * @param error the error text.
+     */
     public synchronized void setLatestError(String error) {
         this.latestError = error;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * @return the latest error this satellite encountered while calculating values.
+     */
     public synchronized String getLatestError() {
         return this.latestError;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Initialises satellite data that is not time-dependent.
+     * 
+     * @param body the celestial body around which this satellite orbits.
+     * @return true if initialisation is successful, false otherwise.
+     */
     public boolean initialiseSatelliteInfo(Body body) {
         return MathOrbits.getStaticInfo(body, this);
 
     }
 
     /**
-     * NOT USED?????
-     * Initialise the satellite using Keplerian orbital elements.
-     * @param satName name (and id) of the satellite
-     * @param massOfSatellite mass of the satellite in kg
-     * @param bodyName name (and id) of the body that the satellite is orbiting
-     * @param massOfBody mass of the body in kg
-     * @param distance distance of the satellite to the body in km
-     * @param eccentricity eccentricity of the orbit (0 &lt; eccentricity &lt; 1 for elliptical orbits)
-     * @param trueAnomaly true anomaly at the initial position in degrees (0 to 360)
-     * @param longitudeAscendingNode longitude of the ascending node in degrees (0 to 360)
-     * @param inclination inclination of the orbit in degrees (0 to 360)
-     * @param argumentOfPeriapsis argument of periapsis in degrees (0 to 360)
-     * @return true if an error occurred, false otherwise
-     */
-    public boolean initialiseSatelliteValuesAngles(
-            String satName, double massOfSatellite, String bodyName, double massOfBody,
-            double distance, double eccentricity, double trueAnomaly,
-            double longitudeAscendingNode, double inclination, double argumentOfPeriapsis) {
-
-        this.massOfBody = massOfBody;
-        this.updateData(data -> {
-            data.name = satName;
-            data.mass = massOfSatellite;
-        });
-
-        if (eccentricity <= 0 || eccentricity >= 1) {
-            this.setLatestError("Eccentricity must be between 0 and 1 (exclusive). Got: " + eccentricity);
-            return true;
-        }
-
-        // Convert angles from degrees to radians
-        double nu       = Math.toRadians(trueAnomaly);
-        double bigOmega = Math.toRadians(longitudeAscendingNode);
-        double inc      = Math.toRadians(inclination);
-        double omega    = Math.toRadians(argumentOfPeriapsis);
-
-        // Convert distance from km to m
-        double r = distance * 1000.0;
-
-        // Gravitational parameter of the central body
-        double mu = Constant.GRAVITATIONAL_CONSTANT * massOfBody;
-
-        // Semi-latus rectum: p = r * (1 + e * cos(nu))
-        double p = r * (1.0 + eccentricity * Math.cos(nu));
-
-        // Angular momentum: h = sqrt(mu * p)
-        double h = Math.sqrt(mu * p);
-
-        // Position in PQW (perifocal) frame (meters)
-        double rx_PQW = r * Math.cos(nu);
-        double ry_PQW = r * Math.sin(nu);
-
-        // Velocity in PQW frame (m/s): v = (mu/h) * [-sin(nu), e + cos(nu), 0]
-        double vx_PQW = -(mu / h) * Math.sin(nu);
-        double vy_PQW =  (mu / h) * (eccentricity + Math.cos(nu));
-
-        // Standard PQW-to-ECI rotation: R = Rz(Omega) x Rx(inc) x Rz(omega)
-        double cosO = Math.cos(bigOmega), sinO = Math.sin(bigOmega);
-        double cosi = Math.cos(inc),      sini = Math.sin(inc);
-        double coso = Math.cos(omega),    sino = Math.sin(omega);
-
-        double r11 =  cosO * coso - sinO * cosi * sino;
-        double r12 = -cosO * sino - sinO * cosi * coso;
-        double r21 =  sinO * coso + cosO * cosi * sino;
-        double r22 = -sinO * sino + cosO * cosi * coso;
-        double r31 =  sini * sino;
-        double r32 =  sini * coso;
-
-        double px_ECI = r11 * rx_PQW + r12 * ry_PQW;
-        double py_ECI = r21 * rx_PQW + r22 * ry_PQW;
-        double pz_ECI = r31 * rx_PQW + r32 * ry_PQW;
-
-        double vx_ECI = r11 * vx_PQW + r12 * vy_PQW;
-        double vy_ECI = r21 * vx_PQW + r22 * vy_PQW;
-        double vz_ECI = r31 * vx_PQW + r32 * vy_PQW;
-
-        this.updateData(data -> {
-            data.initialPosition = new Vector3d(px_ECI, py_ECI, pz_ECI);
-            data.initialVelocity = new Vector3d(vx_ECI, vy_ECI, vz_ECI);
-        });
-
-        return false;
-    }
-
-    // ---------------------------------------------------------------------------------------------------------------------------
-    /**
-     * Use only if need a lot of data feilds. Otherwise, use readData()!!!!!!.
+     * Use only if a lot of data feilds are needed. Otherwise, use readData() to
+     * prevent making deep copies!
      * Returns a thread-safe copy of all satellite data fields.
      * All Vector3d objects are deep-copied to prevent external modifications.
      * 
-     * @return a complete copy of the satellite data.
+     * @return a complete, deep copy of the satellite data.
      */
     public synchronized SatelliteData getData() {
         SatelliteData copy = new SatelliteData();
-        
+
         // Copy primitive types and strings
         copy.name = this.data.name;
         copy.mass = this.data.mass;
@@ -304,9 +244,10 @@ public class Satellite implements Runnable {
         copy.time0 = this.data.time0;
         copy.currentTime = this.data.currentTime;
         copy.lastTime = this.data.lastTime;
-        
+
         // Deep copy Vector3d objects to prevent external modifications
-        copy.angularMomentumVect = this.data.angularMomentumVect != null ? new Vector3d(this.data.angularMomentumVect) : null;
+        copy.angularMomentumVect = this.data.angularMomentumVect != null ? new Vector3d(this.data.angularMomentumVect)
+                : null;
         copy.eccentricityVect = this.data.eccentricityVect != null ? new Vector3d(this.data.eccentricityVect) : null;
         copy.initialVelocity = this.data.initialVelocity != null ? new Vector3d(this.data.initialVelocity) : null;
         copy.currentVelocity = this.data.currentVelocity != null ? new Vector3d(this.data.currentVelocity) : null;
@@ -338,22 +279,32 @@ public class Satellite implements Runnable {
         return reader.apply(this.data);
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * @return true if this satellite's simulation is currently running, false
+     *         otherwise.
+     */
     public synchronized boolean getSimulationRunning() {
         return this.simulationRunning;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Set the simulation's run state.
+     * 
+     * @param state the simulation's run state.
+     */
     public synchronized void setSimulationRunning(boolean state) {
         this.simulationRunning = state;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    // update one time the realative info of the satellite (position, velocity, energy, etc) using the current time and the initial conditions
+    /**
+     * Updates (only do this once for proper simulation behaviour) the relative info
+     * of the satellite (position, velocity, energy, etc) using the current time and
+     * the initial conditions.
+     * 
+     * @return true if calculations were successful, false otherwise.
+     */
     public boolean relativeInfoUpdate() {
-        boolean res = MathOrbits.getRelativeInfo(this,true);
+        boolean res = MathOrbits.getRelativeInfo(this, true);
 
         if (!res) {
             this.setLatestError(this.getLatestError());
@@ -362,17 +313,18 @@ public class Satellite implements Runnable {
         return res;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Runs this satellite's simulation thread.
+     */
     @Override
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
-            
+
             if (!this.getSimulationRunning()) {
                 this.setSimulationRunning(true);
             }
-        
-            boolean res = MathOrbits.getRelativeInfo(this,false);
+
+            boolean res = MathOrbits.getRelativeInfo(this, false);
 
             if (!res) {
                 this.setLatestError(this.getLatestError() + " Simulation stopped for this satellite.");

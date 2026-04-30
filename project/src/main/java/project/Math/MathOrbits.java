@@ -8,28 +8,50 @@ import org.joml.Vector3d;
  */
 public class MathOrbits {
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the kinetic energy of the satellite from its velocity.
+     * 
+     * @param velocity velocity vector (m/s).
+     * @return kinetic energy in Joules.
+     */
     private static double kineticEnergy(Vector3d velocity) {
         return 0.5 * velocity.lengthSquared();
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the gravitational potential energy of the satellite from the
+     * standard gravitational parameter and position of the satellite.
+     * 
+     * @param mu       the standard gravitational parameter (m^3*s^−2).
+     * @param position the satellite's position vector (m).
+     * @return the gravitational potential energy in Joules.
+     */
     private static double gravitationalPotentialEnergy(double mu, Vector3d position) {
         return -mu / position.length();
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the angular momentum from position and velocity.
+     * 
+     * @param position the position vector (m).
+     * @param velocity the velocity vector (m/s).
+     * @return the angular momentum in (kg*m^2)/s)
+     */
     private static Vector3d angularMomentum(Vector3d position, Vector3d velocity) {
         Vector3d angularMomentumVect = new Vector3d();
         position.cross(velocity, angularMomentumVect);
         return angularMomentumVect;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the orbit's eccentricity vector.
+     * 
+     * @param angularMomentum the satellite's angular momentum vector ((kg*m^2)/s).
+     * @param velocity        the satellite's velocity vector (m/s).
+     * @param position        the satellite's position vector (m).
+     * @param mu              the standard gravitational parameter (m^3*s^−2).
+     * @return the eccentricity vector (unitless)
+     */
     private static Vector3d eccentricityVect(Vector3d angularMomentum, Vector3d velocity, Vector3d position,
             double mu) {
         Vector3d vct1 = new Vector3d();
@@ -44,8 +66,12 @@ public class MathOrbits {
         return eccentricityVect;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the orbital eccentricity from the eccentricity vector.
+     * 
+     * @param eccentricityVect the eccentricity vector.
+     * @return the orbital eccentricity.
+     */
     private static double eccentricity(Vector3d eccentricityVect) {
         double ece = eccentricityVect.length();
         if (ece >= 1 || ece <= 0) {
@@ -54,10 +80,8 @@ public class MathOrbits {
         return ece;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
     /**
-     * Calculate the hill radius of the celestial body around which the satellites
+     * Calculates the hill radius of the celestial body around which the satellites
      * are orbiting.
      * 
      * @param semiMajorAxis of the celestial body's orbit around the larger body in
@@ -78,14 +102,27 @@ public class MathOrbits {
         return semiMajorAxis * (1 - eccentricity) * Math.cbrt(lesserMass / (3 * largerMass));
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the semi latus rectum of the orbit from angular momentum and the
+     * standard gravitational parameter.
+     * 
+     * @param angularMomentum the angular momentum vector ((kg*m^2)/s).
+     * @param mu              the standard gravitational parameter (m^3*s^−2).
+     * @return the semi latus rectum of the orbit (m).
+     */
     private static double semiLatusRectum(double angularMomentum, double mu) {
         return Math.pow(angularMomentum, 2) / mu;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the apoapsis of the orbit from the semi latus rectum, and
+     * eccentricity.
+     * 
+     * @param semiLatusRectum the semi latus rectum of the orbit (m).
+     * @param eccentricity    the eccentricity of the orbit.
+     * @param hillRadius      the hill radius of the central celestial body (m).
+     * @return the apoapsis in m if it is within the hill radius, NAN otherwise.
+     */
     private static double apoapsis(double semiLatusRectum, double eccentricity, double hillRadius) {
         double res = semiLatusRectum / (1 - eccentricity);
 
@@ -95,8 +132,16 @@ public class MathOrbits {
         return res;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    // radius of body in km
+    /**
+     * Calculates the apoapsis of the orbit from the semi latus rectum, and
+     * eccentricity.
+     * 
+     * @param semiLatusRectum the semi latus rectum of the orbit (m).
+     * @param eccentricity    the eccentricity of the orbit.
+     * @param radiusOfBody    the radius of the central celestial body (km).
+     * @return the periapsis in m if it is greater than the body's radius, NAN
+     *         otherwise.
+     */
     private static double periapsis(double semiLatusRectum, double eccentricity, double radiusOfBody) {
         double res = semiLatusRectum / (1 + eccentricity);
 
@@ -106,34 +151,62 @@ public class MathOrbits {
         return res;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the semi-major axis from the semi latus rectum and eccentricity of
+     * the orbit.
+     * 
+     * @param semiLatusRectum the semi latus rectum (m).
+     * @param eccentricity    the eccentricity.
+     * @return the semi-major axis in m.
+     */
     private static double semiMajorAxis(double semiLatusRectum, double eccentricity) {
         return semiLatusRectum / (1 - Math.pow(eccentricity, 2));
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the period of the orbit from the standard gravitational parameter
+     * and semi-major axis.
+     * 
+     * @param semiMajorAxis the semi-major axis (m).
+     * @param mu            the standard gravitational parameter (m^3*s^−2).
+     * @return the period of the orbit in s.
+     */
     private static double period(double semiMajorAxis, double mu) {
         return 2 * Math.PI * Math.sqrt(Math.pow(semiMajorAxis, 3) / mu);
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the mean motion of the orbit from the standard gravitational
+     * parameter
+     * and semi-major axis.
+     * 
+     * @param semiMajorAxis the semi-major axis (m).
+     * @param mu            the standard gravitational parameter (m^3*s^−2).
+     * @return the mean motion of the orbit in s^-1.
+     */
     private static double meanMotion(double semiMajorAxis, double mu) {
         return 2 * Math.PI / period(semiMajorAxis, mu);
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the line of nodes vector from the angular momentum vector.
+     * 
+     * @param angularMomentum the angular momentum vector ((kg*m^2)/s).
+     * @return the line of nodes vector (m).
+     */
     private static Vector3d lineOfNodes(Vector3d angularMomentum) {
         Vector3d lineOfNodesVect = new Vector3d();
         new Vector3d(0, 0, 1).cross(angularMomentum, lineOfNodesVect);
         return lineOfNodesVect;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the longitude of the ascending node using the lines of nodes
+     * vector.
+     * 
+     * @param lineOfNodes the line of nodes vector (m).
+     * @return the longitude of the ascending node in radians.
+     */
     private static double longitudeOfAscendingNode(Vector3d lineOfNodes) {
         if (lineOfNodes.length() < 1e-10) {
             // Equatorial orbit, longitude of ascending node is undefined, set to 0
@@ -151,14 +224,24 @@ public class MathOrbits {
         return longitudeOfAscendingNode;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the inclination using the angular momentum vector.
+     * 
+     * @param angularMomentum the angularm momentum vector ((kg*m^2)/s).
+     * @return the inclination in radians.
+     */
     private static double inclination(Vector3d angularMomentum) {
         return Math.acos(Math.max(-1.0, Math.min(1.0, angularMomentum.z / angularMomentum.length())));
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the argument of periapsis using the line of nodes vector and
+     * eccentricity.
+     * 
+     * @param lineOfNodes  the line of nodes vector (m).
+     * @param eccentricity the eccentricity.
+     * @return the argument of periapsis in radians.
+     */
     private static double argumentOfPeriapsis(Vector3d lineOfNodes, Vector3d eccentricity) {
         // argument of periapsis (ω)
         double argumentOfPeriapsis;
@@ -182,8 +265,15 @@ public class MathOrbits {
         return argumentOfPeriapsis;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the true anomaly at time = 0.
+     * 
+     * @param position        the position of the satellite (m).
+     * @param velocity        the velocity vector of the satellite (m/s).
+     * @param eccentricity    the eccentricity of the satellite.
+     * @param semiLatusRectum the semi latus rectum of the orbit (m).
+     * @return the initial true anomaly in radians.
+     */
     private static double initialTrueAnomaly(Vector3d position, Vector3d velocity, double eccentricity,
             double semiLatusRectum) {
         double arg = (semiLatusRectum - position.length()) / (eccentricity * position.length());
@@ -196,66 +286,141 @@ public class MathOrbits {
         return trueAnomaly;
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the true anomaly.
+     * 
+     * @param eccentricity     the eccentricity of the satellite.
+     * @param eccentricAnomaly the eccentric anomaly of the satellite in radians.
+     * @return the true anomaly of the satellite in radians.
+     */
     private static double trueAnomaly(double eccentricity, double eccentricAnomaly) {
         return 2 * Math.atan(Math.sqrt((1 + eccentricity) / (1 - eccentricity)) * Math.tan(eccentricAnomaly / 2));
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the eccentric anomaly at time = 0.
+     * 
+     * @param eccentricity the eccentricity of the satellite.
+     * @param trueAnomaly  the true anomaly of the satellite (radians).
+     * @return the initial eccentric anomaly in radians.
+     */
     private static double initialEccentricAnomaly(double eccentricity, double trueAnomaly) {
         return 2 * Math.atan(Math.sqrt((1 - eccentricity) / (1 + eccentricity)) * Math.tan(trueAnomaly / 2));
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the eccentric anomaly of the orbit using the Newton-Raphson
+     * method.
+     * 
+     * @param meanAnomaly  the mean anomaly (in radians).
+     * @param eccentricity the eccentricity of the orbit.
+     * @return the eccentric anomaly.
+     */
+    private static double eccentricAnomaly(double meanAnomaly, double eccentricity) {
+        double finalEccentricAnomaly = 0.0;
+        double eccentricAnomaly = meanAnomaly;
+        double res = 1.0;
+        int maxIterations = 1000;
+        int iteration = 0;
+
+        do {
+            finalEccentricAnomaly = eccentricAnomaly
+                    - ((meanAnomaly - eccentricAnomaly + (eccentricity * Math.sin(eccentricAnomaly)))
+                            / ((eccentricity * Math.cos(eccentricAnomaly)) - 1));
+
+            res = meanAnomaly - finalEccentricAnomaly + (eccentricity * Math.sin(finalEccentricAnomaly));
+
+            eccentricAnomaly = finalEccentricAnomaly;
+            iteration++;
+        } while (Math.abs(res) >= Constant.PRECISON_ECCENTRIC_ANOMALY && iteration < maxIterations);
+
+        if (iteration >= maxIterations) {
+            System.err.println("Warning: getEccentricAnomaly did not converge after " + maxIterations + " iterations");
+        }
+
+        return finalEccentricAnomaly;
+    }
+
+    /**
+     * Calculates the mean anomaly at time = 0.
+     * 
+     * @param eccentricity     the eccentricity of the satellite.
+     * @param eccentricAnomaly the eccentric anomaly of the satellite (radians).
+     * @return the initial mean anomaly in radians.
+     */
     private static double initialMeanAnomaly(double eccentricAnomaly, double eccentricity) {
         return eccentricAnomaly - (eccentricity * Math.sin(eccentricAnomaly));
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the distance of the satellite from the center of the body at time
+     * = 0.
+     * 
+     * @param semiLatusRectum the semi latus rectum of the orbit (m).
+     * @param eccentricity    the eccentricity of the satellite.
+     * @param trueAnomaly     the true anomaly of the satellite in radians.
+     * 
+     * @return the initial distance in m.
+     */
     private static double initialDistance(double semiLatusRectum, double eccentricity, double trueAnomaly) {
         return semiLatusRectum / (1 + (eccentricity * Math.cos(trueAnomaly)));
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the distance of the satellite from the center of the body.
+     * 
+     * @param semiMajorAxis the semi major axis of the orbit (m).
+     * @param eccentricity  the eccentricity of the satellite.
+     * @param trueAnomaly   the true anomaly of the satellite in radians.
+     * 
+     * @return the distance in m.
+     */
     private static double distance(double semiMajorAxis, double eccentricity, double trueAnomaly) {
         return (semiMajorAxis * (1 - Math.pow(eccentricity, 2)))
                 / (1 + (eccentricity * Math.cos(trueAnomaly)));
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the speed of the satellite.
+     * 
+     * @param mu            the standard gravitational parameter (m^3*s^−2).
+     * @param distance      the distance of the satellite to the center of the body
+     *                      (m).
+     * @param semiMajorAxis the semi-major axis of the orbit (m).
+     * @return the speed of the satellite (m/s).
+     */
     private static double speed(double mu, double distance, double semiMajorAxis) {
         return Math.sqrt(mu * ((2 / distance) - (1 / semiMajorAxis)));
     }
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Calculates the excess speed of the satellite.
+     * 
+     * @param mu       the standard gravitational parameter (m^3*s^−2).
+     * @param distance the distance of the satellite to the center of the body (m).
+     * @return the excess speed of the satellite (m/s).
+     */
     private static double excessSpeed(double mu, double distance) {
         return Math.sqrt((2 * mu) / distance);
     }
 
     /**
      * Need to have the initial position and velocity vector for the satelite to
-     * call this method
+     * call this method.
      * 
-     * Adds all constant propreties of the satellite to the satellite data object
+     * Adds all constant propreties of the satellite to the satellite data object.
      * 
-     * @param celestialBody
-     * @param satellite
+     * @param celestialBody the central celestial body.
+     * @param satellite     the satellite belonging to the above celestial body.
+     * @return true if calculations were successful, false otherwise.
      */
     public static boolean getStaticInfo(Body celestialBody, Satellite satellite) {
-
         Vector3d initialPosition = satellite.readData(data -> data.initialPosition);
         Vector3d initialVelocity = satellite.readData(data -> data.initialVelocity);
 
         // Gravitational parameter of the central body.
         double mu = Constant.GRAVITATIONAL_CONSTANT * celestialBody.getMass();
-        
+
         // Initialize energy.
         double kineticEnergy = kineticEnergy(initialVelocity);
         double gravitationalPotentialEnergy = gravitationalPotentialEnergy(mu, initialPosition);
@@ -288,7 +453,7 @@ public class MathOrbits {
             data.eccentricity = eccentricity;
         });
 
-        //hill radius
+        // hill radius
         celestialBody.updateHillRadius();
         double hillRadius = celestialBody.getHillRadius() * 1000; // in meters
 
@@ -354,26 +519,27 @@ public class MathOrbits {
             data.excessSpeed = excessSpeed;
         });
 
-        //data.longitudeOfAscendingNode = longitudeOfAscendingNode(data.lineOfNodesVect);
-        //data.inclination = inclination(data.angularMomentumVect);
-        //data.argumentOfPeriapsis = argumentOfPeriapsis(data.lineOfNodesVect, data.eccentricityVect);
-
         return true;
     }
 
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    //
-    public static boolean getRelativeInfo(Satellite satellite ,boolean forceCalculation) {
-        
+    /**
+     * Fills satallite data with information that changes over time.
+     * 
+     * @param satellite        satellite to update.
+     * @param forceCalculation whether to force a recalculation for the same time.
+     * @return true if calculations were successful, false otherwise.
+     */
+    public static boolean getRelativeInfo(Satellite satellite, boolean forceCalculation) {
+
         double currentTime = satellite.readData(data -> data.currentTime);
         double lastTime = satellite.readData(data -> data.lastTime);
 
-        if(!forceCalculation){
+        if (!forceCalculation) {
             if (currentTime == lastTime) {
                 return true;
             }
         }
-        
+
         double eccentricity = satellite.readData(data -> data.eccentricity);
         double a = satellite.readData(data -> data.a);
         double mu = satellite.readData(data -> data.mu);
@@ -381,19 +547,20 @@ public class MathOrbits {
         double inclination = satellite.readData(data -> data.inclination);
         double argumentOfPeriapsis = satellite.readData(data -> data.argumentOfPeriapsis);
 
-
         // mean anomaly at t2
-        double meanAnomaly = satellite.readData(data -> data.initialMeanAnomaly) + (satellite.readData(data -> data.meanMotion) * (currentTime - satellite.readData(data -> data.time0)));
+        double meanAnomaly = satellite.readData(data -> data.initialMeanAnomaly)
+                + (satellite.readData(data -> data.meanMotion)
+                        * (currentTime - satellite.readData(data -> data.time0)));
 
         // eccentric anomaly at t2
         double eccentricAnomaly = eccentricAnomaly(meanAnomaly, eccentricity);
-        
+
         // true anomaly at t2
         double trueAnomaly = trueAnomaly(eccentricity, eccentricAnomaly);
-        
+
         // distance
         double distance = distance(a, eccentricity, trueAnomaly);
-        
+
         // Batch update anomalies and distance together to maintain consistency
         satellite.updateData(data -> {
             data.eccentricAnomaly = eccentricAnomaly;
@@ -437,8 +604,21 @@ public class MathOrbits {
         return true;
     }
 
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Builds new satellite data from initial angles.
+     * 
+     * @param satellite              the satellite whose data we want to populate.
+     * @param massOfCelestialBody    the mass of the satallite's parent body.
+     * @param distance               the distance of the satellite to the center of
+     *                               the celestial body.
+     * @param eccentricity           the eccentricity of the orbit.
+     * @param trueAnomaly            the true anomaly of the satellite (degrees).
+     * @param longitudeAscendingNode the longitude of ascending node of the orbit
+     *                               (degrees).
+     * @param inclination            the inclination of the orbit (degrees).
+     * @param argumentOfPeriapsis    the argument of periapsis of the orbit
+     *                               (degrees).
+     */
     public static void constructSatelliteUsingAngle(Satellite satellite, double massOfCelestialBody,
             double distance, double eccentricity, double trueAnomaly,
             double longitudeAscendingNode, double inclination, double argumentOfPeriapsis) {
@@ -464,37 +644,18 @@ public class MathOrbits {
         satellite.updateData(data -> data.initialVelocity = new Vector3d(velocityECI.x, velocityECI.y, velocityECI.z));
     }
 
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // Newton-Raphson Method to solve for the eccentric anomaly
-    private static double eccentricAnomaly(double meanAnomaly, double eccentricity) {
-        double finalEccentricAnomaly = 0.0;
-        double eccentricAnomaly = meanAnomaly;
-        double res = 1.0;
-        int maxIterations = 1000;
-        int iteration = 0;
-
-        do {
-            finalEccentricAnomaly = eccentricAnomaly
-                    - ((meanAnomaly - eccentricAnomaly + (eccentricity * Math.sin(eccentricAnomaly)))
-                            / ((eccentricity * Math.cos(eccentricAnomaly)) - 1));
-
-            res = meanAnomaly - finalEccentricAnomaly + (eccentricity * Math.sin(finalEccentricAnomaly));
-
-            eccentricAnomaly = finalEccentricAnomaly;
-            iteration++;
-        } while (Math.abs(res) >= Constant.PRECISON_ECCENTRIC_ANOMALY && iteration < maxIterations);
-
-        if (iteration >= maxIterations) {
-            System.err.println("Warning: getEccentricAnomaly did not converge after " + maxIterations + " iterations");
-        } else {
-            // System.out.println("iteration: "+iteration+" res "+res);
-        }
-
-        return finalEccentricAnomaly;
-    }
-
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Creates a rotation matrix that can transform perifocal coordinates to
+     * Earth-centered
+     * inertial coordinates.
+     * 
+     * @param longitudeOfAscendingNode the longitude of ascending node (radians).
+     * @param inclination              the inclination (radians).
+     * @param argumentOfPeriapsis      the argument of periapsis (radians).
+     * @return a rotation matrix that can transform perifocal coordinates to
+     *         Earth-centered
+     *         inertial coordinates
+     */
     public static Matrix3d rotationPQWtoECI(double longitudeOfAscendingNode, double inclination,
             double argumentOfPeriapsis) {
 
@@ -529,8 +690,13 @@ public class MathOrbits {
         return rotation;
     }
 
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Builds a distance vector using perifocal coordinates.
+     * 
+     * @param radius the radius (m).
+     * @param trueAnomaly the true anomaly (radians).
+     * @return a distance vector (m).
+     */
     private static Vector3d constructDistancePQWvect(double radius, double trueAnomaly) {
         double x = radius * Math.cos(trueAnomaly);
         double y = radius * Math.sin(trueAnomaly);
@@ -538,8 +704,15 @@ public class MathOrbits {
         return new Vector3d(x, y, 0);
     }
 
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    //
+    /**
+     * Builds a velocity vector using perifocal coordinates.
+     * 
+     * @param mu the standard gravitational parameter (m^3*s^−2).
+     * @param p  the semi latus rectum (m).
+     * @param eccentricity the eccentricity.
+     * @param trueAnomaly the true anomaly (radians).
+     * @return a velocity vector (m/s).
+     */
     private static Vector3d constructVelocityPQWvect(double mu, double p, double eccentricity, double trueAnomaly) {
         double x = -Math.sqrt(mu / p) * Math.sin(trueAnomaly);
         double y = Math.sqrt(mu / p) * (eccentricity + Math.cos(trueAnomaly));
