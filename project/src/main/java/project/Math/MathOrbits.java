@@ -360,14 +360,17 @@ public class MathOrbits {
 
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     //
-    public static boolean getRelativeInfo(Satellite satellite) {
+    public static boolean getRelativeInfo(Satellite satellite ,boolean forceCalculation) {
         
         double currentTime = satellite.readData(data -> data.currentTime);
         double lastTime = satellite.readData(data -> data.lastTime);
-        if (currentTime == lastTime) {
-            return true;
-        }
 
+        if(!forceCalculation){
+            if (currentTime == lastTime) {
+                return true;
+            }
+        }
+        
         double eccentricity = satellite.readData(data -> data.eccentricity);
         double a = satellite.readData(data -> data.a);
         double mu = satellite.readData(data -> data.mu);

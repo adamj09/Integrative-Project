@@ -20,6 +20,7 @@ import javafx.scene.text.Text;
 import javafx.util.Duration;
 import project.SimulationPool;
 import project.Math.Body;
+import project.Math.Utils;
 import project.Math.Satellite;
 import project.Math.SatelliteData;
 import project.Presets.PresetConfiguration.BottomPanePreset;
@@ -32,11 +33,12 @@ public class BottomPane extends VBox {
     private final Button startButton;
     private final Button stopButton;
     private final Button resetButton;
-    private boolean running = true;
+    private boolean running = true; //TODO fix this
 
     private final HBox dataGrid;
 
     private final TextField timeValueField;
+    private final Label timeValueLabelNum;
 
     // Live data view state
     private String selectedSatellite = "";
@@ -63,7 +65,7 @@ public class BottomPane extends VBox {
         Label infoLabel = new Label("Info :");
         infoLabel.getStyleClass().add("subheading");
 
-        Label timeLabel = new Label("Set specific time (s):");
+        Label timeLabel = new Label("Set specific time (min):");
         timeLabel.getStyleClass().add("body");
 
         specificTimeField = new TextField();
@@ -72,18 +74,18 @@ public class BottomPane extends VBox {
         specificTimeField.getStyleClass().add("field");
 
         specificTimeField.setOnAction(_ -> {
-            double timeScale;
+            double newTime;
             try {
-                timeScale = Double.parseDouble(specificTimeField.getText());
+                newTime = Double.parseDouble(specificTimeField.getText());
             } catch(NumberFormatException ex) {
                 return;
             }
             
-            if(timeScale <= 0) {
+            if(newTime < 0) {
                 return;
             }
 
-            pool.setTimeScale(timeScale);
+            pool.setTimeSec(newTime * 60); // Convert minutes to seconds
         });
 
         Label timescaleLabel = new Label("Time scale:");
@@ -144,7 +146,8 @@ public class BottomPane extends VBox {
             updateButtonStates();
 
             if(pool.getCurrentWorld() != null) {
-                pool.runWorld(pool.getCurrentWorld().getName());
+                //pool.runWorld(pool.getCurrentWorld().getName());
+                pool.startWorld();
             }
         });
 
@@ -159,7 +162,7 @@ public class BottomPane extends VBox {
         resetButton = new Button("RESET");
         resetButton.getStyleClass().add("reset-button");
         resetButton.setOnAction(e -> {
-            running = true;
+            running = false;
             applyPresetState(new BottomPanePreset("", "1x", false));
             pool.stopWorld();
             pool.resetWorld();
@@ -173,11 +176,15 @@ public class BottomPane extends VBox {
         Label timeValueLabel = new Label("Simulation time (minutes):");
         timeValueLabel.getStyleClass().add("body");
         timeValueField = new TextField();
+        timeValueField.setEditable(false);
         timeValueField.getStyleClass().add("field");
         timeValueField.setText("0.0");
         timeValueField.setPrefWidth(100);
+        timeValueLabelNum = new Label();
+        timeValueLabelNum.setText(Utils.getWorldTimeFormated(0));
+        timeValueLabelNum.getStyleClass().add("body");    
 
-        HBox timeValueBox = new HBox(4, timeValueLabel, timeValueField);
+        HBox timeValueBox = new HBox(4, timeValueLabel, timeValueField,timeValueLabelNum);
         timeValueBox.setPadding(new Insets(6, 10, 6, 10));
         timeValueBox.setAlignment(Pos.CENTER_LEFT);
 
@@ -357,8 +364,10 @@ public class BottomPane extends VBox {
     public void updateSatelliteData() {
         //set time simulation
         Body body = pool.getCurrentWorld().getBody();
-        double timeMinutes = (body.getTimeSeconds()/60.0);
+        double timeSeconds = body.getTimeSeconds();
+        double timeMinutes = (timeSeconds/60.0);
         timeValueField.setText(String.format("%.4f", timeMinutes));
+        timeValueLabelNum.setText(Utils.getWorldTimeFormated(timeSeconds));
 
         if (selectedSatellite.isEmpty()) {
             return;
@@ -414,4 +423,6 @@ public class BottomPane extends VBox {
     public void setWorldName(String worldName) {
         this.worldName = worldName;
     }
+
+    
 }

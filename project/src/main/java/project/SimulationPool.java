@@ -46,9 +46,16 @@ public class SimulationPool {
         World world = worlds.get(worldName);
         world.runWorld();
 
-        renderer.setWorld(world);
+        renderer.setWorld(world); 
 
         currentWorld = worldName;
+    }
+
+    public void startWorld() {
+        // If a world is currently running, stop it.
+        if (!currentWorld.isEmpty()) {
+            worlds.get(currentWorld).startWorld();
+        }
     }
 
     public void stopWorld() {
@@ -69,6 +76,13 @@ public class SimulationPool {
             return;
         }
         getCurrentWorld().getBody().setTimeScale(timeScale);
+    }
+
+    public void setTimeSec(double timeSeconds) {
+        if(getCurrentWorld() == null) {
+            return;
+        }
+        getCurrentWorld().getBody().setTime(timeSeconds);
     }
 
     public World getWorld(String name) {

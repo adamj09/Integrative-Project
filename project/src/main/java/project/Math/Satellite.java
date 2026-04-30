@@ -172,6 +172,7 @@ public class Satellite implements Runnable {
     }
 
     /**
+     * NOT USED?????
      * Initialise the satellite using Keplerian orbital elements.
      * @param satName name (and id) of the satellite
      * @param massOfSatellite mass of the satellite in kg
@@ -347,6 +348,18 @@ public class Satellite implements Runnable {
     }
 
     // ---------------------------------------------------------------------------------------------------------------------------
+    // update one time the realative info of the satellite (position, velocity, energy, etc) using the current time and the initial conditions
+    public boolean relativeInfoUpdate() {
+        boolean res = MathOrbits.getRelativeInfo(this,true);
+
+        if (!res) {
+            this.setLatestError(this.getLatestError());
+        }
+
+        return res;
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------
     //
     @Override
     public void run() {
@@ -356,7 +369,7 @@ public class Satellite implements Runnable {
                 this.setSimulationRunning(true);
             }
         
-            boolean res = MathOrbits.getRelativeInfo(this);
+            boolean res = MathOrbits.getRelativeInfo(this,false);
 
             if (!res) {
                 this.setLatestError(this.getLatestError() + " Simulation stopped for this satellite.");
