@@ -479,4 +479,11 @@ public class BottomPane extends VBox {
 
         return String.format("(%dy %dd %02dh %02dm %02ds)", years, days, hours, minutes, seconds);
     }
+
+    /**
+     * @return time scale dropdown menu.
+     */
+    public ComboBox<String> getTimescaleDropdown() {
+        return timescaleDropdown;
+    }
 }

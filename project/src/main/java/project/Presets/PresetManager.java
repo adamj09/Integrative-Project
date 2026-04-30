@@ -173,6 +173,13 @@ public class PresetManager {
                 "Current changes are not saved. Closing will discard them. Continue?");
     }
 
+    /**
+     * Saves a world's data to a file at a given path.
+     * 
+     * @param path    path to save the file to.
+     * @param world   the world whose data we'd like to save.
+     * @param sidebar the SidebarPane containing the world.
+     */
     private void saveToPath(Path path, World world, SidebarPane sidebar) {
         WorldConfiguration configuration = world.toWorldConfiguration(getUIConfig(sidebar));
 
@@ -313,9 +320,10 @@ public class PresetManager {
     }
 
     /**
+     * Builds data structures containing all the body data from a given SidebarPane.
      * 
-     * @param sidebar
-     * @return
+     * @param sidebar the SidebarPane from which the data structure will be built.
+     * @return a new list of SidebarBody data structures.
      */
     private List<WorldConfiguration.SidebarBody> buildCurrentSidebarBodies(SidebarPane sidebar) {
         PresetConfiguration presetConfig = sidebar.toPresetConfiguration();
@@ -329,6 +337,13 @@ public class PresetManager {
         return result;
     }
 
+    /**
+     * Builds data structures containing all the satellite data from a given
+     * SidebarPane.
+     * 
+     * @param sidebar the SidebarPane from which the data structure will be built.
+     * @return a new list of SidebarSatellite data structures.
+     */
     private List<WorldConfiguration.SidebarSatellite> buildCurrentSidebarSatellites(SidebarPane sidebar) {
         PresetConfiguration presetConfig = sidebar.toPresetConfiguration();
         List<WorldConfiguration.SidebarSatellite> result = new ArrayList<>();
@@ -343,6 +358,12 @@ public class PresetManager {
         return result;
     }
 
+    /**
+     * Builds a data structure containing all the UI data from a given SidebarPane.
+     * 
+     * @param sidebar the SidebarPane from which the data structure will be built.
+     * @return a new UIConfig data structures.
+     */
     private WorldConfiguration.UIConfig getUIConfig(SidebarPane sidebar) {
         var presetConfig = sidebar.toPresetConfiguration();
         var bottom = presetConfig.getBottomPanePreset();

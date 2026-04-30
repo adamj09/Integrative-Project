@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * Represents a physical celestial body with a great enough mass to have a
+ * considerable gravitational pull.
+ * 
  * @author Maxime Gauthier
  */
 public class Body extends OrbitsTime {
@@ -105,16 +108,16 @@ public class Body extends OrbitsTime {
      */
     public boolean addSatellite(Satellite sat) {
         String satName = sat.readData(data -> data.name);
-        
+
         // Check size limit first
         if (satellites.size() >= Constant.MAXIMUM_NUMBER_OF_SATELITE) {
             this.setLatestError("Maximum number of satelite reached!");
             return false;
         }
-        
+
         // Atomically add if not already present
         Satellite previous = satellites.putIfAbsent(satName, sat);
-        return previous == null;  // Returns true if added, false if already existed
+        return previous == null; // Returns true if added, false if already existed
     }
 
     /**
@@ -129,10 +132,18 @@ public class Body extends OrbitsTime {
         return this.satellites.get(name);
     }
 
+    /**
+     * Adds a satellite to this celestial body.
+     * 
+     * @param satellite satellite to add.
+     */
     public void setSatellite(Satellite satellite) {
         this.satellites.put(satellite.getData().name, satellite);
     }
 
+    /**
+     * @return all 
+     */
     public HashMap<String, Satellite> getSatellites() {
         return new HashMap<>(this.satellites);
     }
@@ -150,7 +161,7 @@ public class Body extends OrbitsTime {
         if (thread != null && thread.isAlive()) {
             thread.interrupt();
         }
-        
+
         // Remove satellite atomically
         return satellites.remove(name) != null;
     }
@@ -229,7 +240,7 @@ public class Body extends OrbitsTime {
         for (Satellite sat : satellites.values()) {
             String satName = sat.getData().name;
             Thread existingThread = satelliteThreads.get(satName);
-            
+
             // Only start if no thread exists or the existing one is dead
             if (existingThread == null || !existingThread.isAlive()) {
                 Thread thread = new Thread(sat);
@@ -269,19 +280,20 @@ public class Body extends OrbitsTime {
     public void startSatellite(String name) {
         Satellite sat = satellites.get(name);
         if (sat == null) {
-            return;  // Satellite doesn't exist
+            return; // Satellite doesn't exist
         }
-        
+
         Thread existingThread = satelliteThreads.get(name);
         if (existingThread != null && existingThread.isAlive()) {
-            return;  // Already running
+            return; // Already running
         }
-        
+
         // Create and start new thread
         Thread thread = new Thread(sat);
         Thread previous = satelliteThreads.putIfAbsent(name, thread);
-        
-        // Only start if we successfully added it (or if the existing thread is dead, replace it)
+
+        // Only start if we successfully added it (or if the existing thread is dead,
+        // replace it)
         if (previous == null || !previous.isAlive()) {
             thread.start();
         }
@@ -289,15 +301,15 @@ public class Body extends OrbitsTime {
 
     // ---------------------------------------------------------------------------------------------------------------------------
     //
-    public void sateliteUpdateInfo(){
+    public void sateliteUpdateInfo() {
         for (Satellite sat : satellites.values()) {
             sat.relativeInfoUpdate();
-        }  
+        }
     }
 
     // ---------------------------------------------------------------------------------------------------------------------------
     //
-    public boolean isAllSatelliteSimulationRunnig(){
+    public boolean isAllSatelliteSimulationRunnig() {
         for (Satellite sat : satellites.values()) {
             if (!sat.getSimulationRunning()) {
                 this.setLatestError("Maximum number of satelite reached!");
@@ -311,7 +323,7 @@ public class Body extends OrbitsTime {
     //
     public boolean getSatelliteSimulationRunning(String name) {
         Satellite sat = satellites.get(name);
-        if(sat != null) {
+        if (sat != null) {
             return sat.getSimulationRunning();
         }
         this.setLatestError("Satellite not found! Name: " + name);
@@ -322,7 +334,7 @@ public class Body extends OrbitsTime {
     //
     public String getSatelliteLatestError(String name) {
         Satellite sat = satellites.get(name);
-        if(sat != null) {
+        if (sat != null) {
             return sat.getLatestError();
         }
         return "Satellite not found! Name: " + name;
