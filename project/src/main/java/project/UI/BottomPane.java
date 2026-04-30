@@ -63,7 +63,7 @@ public class BottomPane extends VBox {
      * Labels for UI
      */
     private Label timescaleLabel = new Label("Time scale:"), infoLabel = new Label("Info: "),
-            timeLabel = new Label("Set specific time (s):");
+            timeLabel = new Label("Set specific time (min):");
 
     /**
      * HBox containing the simulation's controls and live data feed.
@@ -74,6 +74,8 @@ public class BottomPane extends VBox {
      * Text field used to display the simulation's current time.
      */
     private TextField timeValueField;
+
+    private Label timeValueLabelNum;
 
     /**
      * Pane that contains
@@ -146,22 +148,18 @@ public class BottomPane extends VBox {
         specificTimeField.getStyleClass().add("field");
 
         specificTimeField.setOnAction(_ -> {
-            // TODO: this should perhaps be used to set the simulation to a certain time in
-            // the
-            // future, not for setting the time scale as is implemented.
-
-            double timeScale;
+            double newTime;
             try {
-                timeScale = Double.parseDouble(specificTimeField.getText());
-            } catch (NumberFormatException ex) {
+                newTime = Double.parseDouble(specificTimeField.getText());
+            } catch(NumberFormatException ex) {
+                return;
+            }
+            
+            if(newTime < 0) {
                 return;
             }
 
-            if (timeScale <= 0) {
-                return;
-            }
-
-            pool.setTimeScale(timeScale);
+            pool.setTimeSec(newTime * 60); // Convert minutes to seconds
         });
 
         timescaleLabel.getStyleClass().add("body");
@@ -258,13 +256,17 @@ public class BottomPane extends VBox {
         Label timeValueLabel = new Label("Simulation time (minutes):");
         timeValueLabel.getStyleClass().add("body");
         timeValueField = new TextField();
+        timeValueField.setEditable(false);
         timeValueField.getStyleClass().add("field");
         timeValueField.setText("0.0");
         timeValueField.setPrefWidth(100);
-
-        HBox timeValueBox = new HBox(4, timeValueLabel, timeValueField);
+        timeValueLabelNum = new Label();
+        timeValueLabelNum.setText(getWorldTimeFormated(0));
+        timeValueLabelNum.getStyleClass().add("body");
+    
+        HBox timeValueBox = new HBox(4, timeValueLabel, timeValueField,timeValueLabelNum);
         timeValueBox.setPadding(new Insets(6, 10, 6, 10));
-        timeValueBox.setAlignment(Pos.CENTER_LEFT);
+        timeValueBox.setAlignment(Pos.CENTER_LEFT); 
 
         HBox controlsRow = new HBox(10,
                 infoLabel, timeLabel, specificTimeField,
@@ -410,8 +412,10 @@ public class BottomPane extends VBox {
     public void updateSatelliteData() {
         // Update display of simulation time.
         Body body = pool.getCurrentWorld().getBody();
+        double timeSeconds = body.getTimeSeconds();
         double timeMinutes = (body.getTimeSeconds() / 60.0);
         timeValueField.setText(String.format("%.4f", timeMinutes));
+        timeValueLabelNum.setText(getWorldTimeFormated(timeSeconds));
 
         if (selectedSatellite.isEmpty()) {
             return;
@@ -467,5 +471,18 @@ public class BottomPane extends VBox {
     private void updateButtonStates() {
         startButton.setDisable(running);
         stopButton.setDisable(!running);
+    }
+
+    private String getWorldTimeFormated(double timeSeconds) {
+        int secondsPerDay = 24 * 3600;
+        int secondsPerYear = 365 * secondsPerDay;
+
+        int years = (int) (timeSeconds / secondsPerYear);
+        int days = (int) ((timeSeconds % secondsPerYear) / secondsPerDay);
+        int hours = (int) ((timeSeconds % secondsPerDay) / 3600);
+        int minutes = (int) ((timeSeconds % 3600) / 60);
+        int seconds = (int) (timeSeconds % 60);
+
+        return String.format("(%dy %dd %02dh %02dm %02ds)", years, days, hours, minutes, seconds);
     }
 }

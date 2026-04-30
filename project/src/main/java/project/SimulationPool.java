@@ -11,8 +11,6 @@ import project.Renderer.World.World;
 /**
  * Class used to store and perform operations on all currently loaded worlds.
  * 
- * Class used to store and perform operations on all currently loaded worlds.
- * 
  * @author Adam Johnston
  */
 public class SimulationPool {
@@ -123,6 +121,13 @@ public class SimulationPool {
             return;
         }
         getCurrentWorld().getBody().setTimeScale(timeScale);
+    }
+
+    public void setTimeSec(double timeSeconds) {
+        if(getCurrentWorld() == null) {
+            return;
+        }
+        getCurrentWorld().getBody().setTime(timeSeconds);
     }
 
     /**
