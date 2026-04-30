@@ -441,7 +441,6 @@ public class SidebarPane extends VBox {
     }
 
     public void applyPresetConfiguration(PresetConfiguration configuration) {
-
         bottom.applyPresetState(configuration.getBottomPanePreset());
 
         BodyPreset body = configuration.getBody();

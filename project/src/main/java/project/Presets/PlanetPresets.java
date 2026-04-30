@@ -9,13 +9,17 @@ import javafx.scene.paint.Color;
 import project.Math.Body;
 import project.SimulationPool;
 import project.UI.SidebarPane;
+import project.UI.Popups.UnsavedChangesPopup;
 
 /**
- * Planet preset configuration with accurate values from the NASA Planetary Fact Sheet.
+ * Planet preset configuration with accurate values from the NASA Planetary Fact
+ * Sheet.
  * Each method creates a world for the given planet and adds it to the sidebar.
  *
  * Data sources (NASA Planetary Fact Sheet):
- *   Mass (kg), Diameter (km), Semi-major axis (10^6 km), Orbital eccentricity
+ * Mass (kg), Diameter (km), Semi-major axis (10^6 km), Orbital eccentricity
+ * 
+ * @author Ryan Lau
  */
 public class PlanetPresets {
 
@@ -25,17 +29,29 @@ public class PlanetPresets {
             Vector3f renderColor, Color uiColor) {
 
         Body body = new Body(name, mass, diameter / 2.0, semiMajorAxisKm, eccentricity);
+
+        // Stop the current world before adding preset
+        pool.stopWorld();
+
+        // Remove the body (to overwrite) if it already exists.
+        if (sidebar.getBodyEntries().containsKey(body.getName())) {
+            if (!UnsavedChangesPopup.confirm(
+                    "A preset with this name is already loaded! Continue and overwrite that preset's data with this one?")) {
+                return;
+            }
+
+            sidebar.removeBody(body.getName());
+        }
+
+        sidebar.applyPresetConfiguration(
+                new PresetConfiguration(
+                        new PresetConfiguration.BodyPreset(name, uiColor, true, mass, diameter / 2.0),
+                        new HashMap<>(),
+                        new PresetConfiguration.BottomPanePreset("", "1x", false)));
+        sidebar.selectBody(name);
+
         pool.createWorld(name, body, renderColor);
         pool.runWorld(name);
-
-        Platform.runLater(() -> {
-            sidebar.applyPresetConfiguration(
-                    new PresetConfiguration(
-                            new PresetConfiguration.BodyPreset(name, uiColor, true, mass, diameter / 2.0),
-                            new HashMap<>(),
-                            new PresetConfiguration.BottomPanePreset("", "1x", false)));
-            sidebar.selectBody(name);
-        });
     }
 
     public static void loadMercury(SimulationPool pool, SidebarPane sidebar) {
