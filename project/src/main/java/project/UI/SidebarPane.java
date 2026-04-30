@@ -104,6 +104,9 @@ public class SidebarPane extends VBox {
     private Button selectedBodyFocus = null;
     private VBox selectedBodyCard = null;
 
+    private final HashMap<String, Button> bodyToggleButtons = new HashMap<>();
+
+
     /**
      * Creates a new SidebarPane.
      * 
@@ -449,6 +452,7 @@ public class SidebarPane extends VBox {
         focusButton.setOnAction(e -> pool.getRenderer().setFocusObject(name));
 
         toggleButton.setOnAction(e -> removeSatellite(name));
+        bodyToggleButtons.put(name, toggleButton);
 
         HBox buttonRow = new HBox(6, toggleButton, focusButton, viewDataButton);
         buttonRow.setAlignment(Pos.CENTER_LEFT);
@@ -528,6 +532,11 @@ public class SidebarPane extends VBox {
         toggleButton.getStyleClass().set(0, "card-button-select");
         focusButton.setDisable(true);
         nameLabel.setOpacity(0.5);
+    }
+
+    public void selectBody(String name) {
+        Button toggle = bodyToggleButtons.get(name);
+        if (toggle != null) toggle.fire();
     }
 
     /**
