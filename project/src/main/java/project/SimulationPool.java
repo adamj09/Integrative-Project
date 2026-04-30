@@ -123,8 +123,13 @@ public class SimulationPool {
         getCurrentWorld().getBody().setTimeScale(timeScale);
     }
 
-    public void setTimeSec(double timeSeconds) {
-        if(getCurrentWorld() == null) {
+    /**
+     * Sets the elapsed time of the simulation to the desired time.
+     * 
+     * @param timeSeconds desired time in seconds.
+     */
+    public void setTime(double timeSeconds) {
+        if (getCurrentWorld() == null) {
             return;
         }
         getCurrentWorld().getBody().setTime(timeSeconds);

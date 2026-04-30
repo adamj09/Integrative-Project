@@ -104,6 +104,9 @@ public class SidebarPane extends VBox {
     private Button selectedBodyFocus = null;
     private VBox selectedBodyCard = null;
 
+    /**
+     * HashMap containing every body's toggle button, keyed by body name.
+     */
     private final HashMap<String, Button> bodyToggleButtons = new HashMap<>();
 
 
@@ -534,6 +537,11 @@ public class SidebarPane extends VBox {
         nameLabel.setOpacity(0.5);
     }
 
+    /**
+     * Selects a body with the given name if it exists.
+     * 
+     * @param name the name of the body to select.
+     */
     public void selectBody(String name) {
         Button toggle = bodyToggleButtons.get(name);
         if (toggle != null) toggle.fire();

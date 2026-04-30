@@ -6,6 +6,9 @@ package project;
  * @author Ryan Lau
  */
 public enum UiTheme {
+    /**
+     * Midnight theme (default).
+     */
     MIDNIGHT(
         "Midnight",
         "#1a1a2e",
@@ -22,6 +25,10 @@ public enum UiTheme {
         "#555577",
         "#ff6666"
     ),
+
+    /**
+     * Forest theme.
+     */
     FOREST(
         "Forest",
         "#15211c",
@@ -38,6 +45,10 @@ public enum UiTheme {
         "#4a6d5e",
         "#ff7f6e"
     ),
+
+    /**
+     * Sunset theme.
+     */
     SUNSET(
         "Sunset",
         "#2c1a1a",
@@ -54,6 +65,10 @@ public enum UiTheme {
         "#91604f",
         "#ff7262"
     ),
+
+    /**
+     * Iceberg theme.
+     */
     ICEBERG(
         "Iceberg",
         "#13202a",
@@ -70,153 +85,6 @@ public enum UiTheme {
         "#5f899f",
         "#ff7b7b"
     );
-
-    // These are commented out as they're not being used.
-    /*MERCURY(
-        "Mercury",
-        "#6E6E6E", // main
-        "#808080",
-        "#9A9A9A",
-        "#555555",
-        "#707070",
-        "#B0B0B0",
-        "#C8C8C8",
-        "#404040",
-        "#D0D0D0",
-        "#888888",
-        "#B8B8B8",
-        "#707070",
-        "#CC3333"
-    ),
-    VENUS(
-        "Venus",
-        "#6B3608", // main
-        "#A85A0A",
-        "#CC9900",
-        "#7A3A05",
-        "#CC8800",
-        "#CC9966",
-        "#E8C880",
-        "#7A3A00",
-        "#EDD890",
-        "#BB8800",
-        "#CC9933",
-        "#CC6600",
-        "#CC3333"
-    ),
-    EARTH(
-        "Earth",
-        "#1A4A8A", // main — ocean blue
-        "#2E6BBB", // mid blue
-        "#4A8C6A", // ocean-land mix
-        "#133870", // deep ocean
-        "#3A88CC", // sky blue
-        "#4A7A55", // landmass green
-        "#7AAD6A", // lighter green
-        "#0A2240", // deep sea
-        "#A8C8A0", // pale green highlight
-        "#2A6E3A", // forest green
-        "#6A9A70", // muted green
-        "#2A7ACC", // bright ocean
-        "#CC4444"  // accent
-    ),
-    MARS(
-        "Mars",
-        "#8A2800", // main
-        "#B03A10",
-        "#CC5520",
-        "#6E2200",
-        "#CC5533",
-        "#CC8855",
-        "#E8C0A0",
-        "#601800",
-        "#E8C090",
-        "#CC4422",
-        "#BB6644",
-        "#CC3311",
-        "#CC3333"
-    ),
-    JUPITER(
-        "Jupiter",
-        "#7A6A40", // main
-        "#AA9060",
-        "#C8B880",
-        "#666040",
-        "#997755",
-        "#CCB880",
-        "#DDD0A0",
-        "#554A20",
-        "#EEE0A0",
-        "#888844",
-        "#BBAA44",
-        "#AAAA44",
-        "#CC2222"
-    ),
-    SATURN(
-        "Saturn",
-        "#8A7A55", // main
-        "#AAAA66",
-        "#C8B880",
-        "#706050",
-        "#AA9966",
-        "#CCB880",
-        "#DDD0A0",
-        "#665040",
-        "#EEE0A0",
-        "#997755",
-        "#BBAA44",
-        "#AAAA44",
-        "#CC2222"
-    ),
-    URANUS(
-        "Uranus",
-        "#007799", // main
-        "#4499AA",
-        "#88CCCC",
-        "#006688",
-        "#22AAAA",
-        "#44AAAA",
-        "#66BBBB",
-        "#005566",
-        "#99DDDD",
-        "#007788",
-        "#449999",
-        "#22AAAA",
-        "#CC4433"
-    ),
-    NEPTUNE(
-        "Neptune",
-        "#1A3A80", // main
-        "#2A5599",
-        "#5577AA",
-        "#112860",
-        "#3355AA",
-        "#446688",
-        "#6688AA",
-        "#112860",
-        "#88AACC",
-        "#224488",
-        "#445577",
-        "#2255AA",
-        "#CC2222"
-    ),
-    PLUTO(
-        "Pluto",
-        "#666666", // main
-        "#888888",
-        "#AAAAAA",
-        "#555555",
-        "#777777",
-        "#BBBBBB",
-        "#CCCCCC",
-        "#444444",
-        "#C8C8C8",
-        "#888888",
-        "#BBBBBB",
-        "#777777",
-        "#CC2222"
-    );
-    */
 
     /**
      * Name of the theme.

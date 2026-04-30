@@ -159,7 +159,7 @@ public class BottomPane extends VBox {
                 return;
             }
 
-            pool.setTimeSec(newTime * 60); // Convert minutes to seconds
+            pool.setTime(newTime * 60); // Convert minutes to seconds
         });
 
         timescaleLabel.getStyleClass().add("body");

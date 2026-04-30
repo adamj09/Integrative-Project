@@ -51,7 +51,10 @@ public class PlanetPresets {
         sidebar.selectBody(name);
 
         pool.createWorld(name, body, renderColor);
-        pool.runWorld(name);
+
+        if(sidebar.getBodyEntries().size() == 1) {
+            pool.runWorld(name);
+        }
     }
 
     public static void loadMercury(SimulationPool pool, SidebarPane sidebar) {
