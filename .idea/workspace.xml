@@ -6,10 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="96e9fe87-5b9c-4305-b9d1-3739627656e6" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/src/main/java/project/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/main/java/project/App.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/src/main/java/project/UI/MainMenuBar.java" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/main/java/project/UI/MainMenuBar.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/src/main/java/project/UiTheme.java" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/main/java/project/UiTheme.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/src/main/java/project/resources/css/MainStyle.css" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/main/java/project/resources/css/MainStyle.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,15 +36,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feature/theme-selector&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "release-alpha-0.0.1",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Programming/CEGEP/Integrative-Project",
+    "settings.editor.selected.configurable": "reference.settings.ide.settings.uml",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="96e9fe87-5b9c-4305-b9d1-3739627656e6" name="Changes" comment="" />
@@ -56,8 +58,13 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1773333615034</updated>
+      <workItem from="1777527541526" duration="9000" />
+      <workItem from="1777528009414" duration="1991000" />
     </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -69,5 +76,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>
