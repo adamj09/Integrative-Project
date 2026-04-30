@@ -3,9 +3,12 @@ package oms.Renderer;
 import static org.lwjgl.opengl.GL41.*;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Scanner;
 
 /**
  * Represents an OpenGL shader.
@@ -27,25 +30,19 @@ public class Shader {
      * Creates a new shader from the specified file path and shader type (loads and
      * compiles the shader).
      * 
-     * @param filepath   The file path to the shader source code.
+     * @param filename   The name of the file containing the shader source code.
      * @param shaderType The OpenGL shader type.
      */
-    public Shader(String filepath, int shaderType) {
-        // Create new file for shader and check if exists.
-        File file = new File(filepath);
-        if (!file.exists()) {
-            System.err.println("Shader specified at " + filepath + " could not be found!");
-            System.exit(1);
-        }
+    public Shader(String filename, int shaderType) {
+        InputStream stream = getClass().getResourceAsStream("/shaders/" + filename);
+        Scanner scanner = new Scanner(stream).useDelimiter("\\A");
 
-        // Read shader file.
         String source = "";
-        try {
-            source = Files.readString(Path.of(file.getPath()));
-        } catch (IOException ex) {
-            System.err.println(ex.getMessage());
-            System.exit(1);
+
+        while(scanner.hasNext()) {
+            source += scanner.next();
         }
+        scanner.close();
 
         // Create and compile shaders.
         shader = glCreateShader(shaderType);
@@ -54,7 +51,7 @@ public class Shader {
 
         // Check for failed compilation, print errors, and exit.
         if (glGetShaderi(shader, GL_COMPILE_STATUS) == 0) {
-            System.err.println("Shader compilation failed: " + glGetShaderInfoLog(shader) + "(" + filepath + ")");
+            System.err.println("Shader compilation failed: " + glGetShaderInfoLog(shader) + "(" + filename + ")");
             System.exit(1);
         }
 

@@ -398,7 +398,7 @@ public class BottomPane extends VBox {
 
     /**
      * Runs a JavaFx animation that updates the data of the selected satellite every
-     * 0.5 seconds.
+     * 0.1 seconds.
      */
     public void updateLoop() {
         Timeline updateLoop = new Timeline();
@@ -495,6 +495,16 @@ public class BottomPane extends VBox {
         stopButton.setDisable(!running);
     }
 
+    /**
+     * Creates a formatted time String from a given time in seconds.
+     * 
+     * The following format is used:
+     * 
+     * year day hour minute second
+     * 
+     * @param timeSeconds the time in seconds to format.
+     * @return a String with the given time in the above format.
+     */
     private String getWorldTimeFormated(double timeSeconds) {
         int secondsPerDay = 24 * 3600;
         int secondsPerYear = 365 * secondsPerDay;

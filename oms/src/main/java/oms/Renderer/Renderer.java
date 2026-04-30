@@ -76,8 +76,6 @@ public class Renderer {
      */
     private String currentFocusedObject = "";
 
-    private static final String SHADER_DIR = "../shaders/";
-
     /**
      * Constructor for the Renderer class, initializes OpenGL and sets up render
      * event handlers.
@@ -205,23 +203,23 @@ public class Renderer {
         // We check if each and every one of these needs to be created because these are
         // fairly expensive operations.
         if (mainVertShader == null) {
-            mainVertShader = new Shader(SHADER_DIR + "main.vert", GL_VERTEX_SHADER);
+            mainVertShader = new Shader("main.vert", GL_VERTEX_SHADER);
         }
 
         if (orbitVertShader == null) {
-            orbitVertShader = new Shader(SHADER_DIR + "orbit.vert", GL_VERTEX_SHADER);
+            orbitVertShader = new Shader("orbit.vert", GL_VERTEX_SHADER);
         }
 
         if (bodyFragShader == null) {
-            bodyFragShader = new Shader(SHADER_DIR + "body.frag", GL_FRAGMENT_SHADER);
+            bodyFragShader = new Shader("body.frag", GL_FRAGMENT_SHADER);
         }
 
         if (lightFragShader == null) {
-            lightFragShader = new Shader(SHADER_DIR + "light_source.frag", GL_FRAGMENT_SHADER);
+            lightFragShader = new Shader("light_source.frag", GL_FRAGMENT_SHADER);
         }
 
         if (orbitFragShader == null) {
-            orbitFragShader = new Shader(SHADER_DIR + "orbit.frag", GL_FRAGMENT_SHADER);
+            orbitFragShader = new Shader("orbit.frag", GL_FRAGMENT_SHADER);
         }
 
         // Create shader programs if necessary.

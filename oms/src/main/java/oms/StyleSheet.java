@@ -6,5 +6,5 @@ package oms;
  * @author Adam Johnston
  */
 public class StyleSheet {
-    public String styleSheet = getClass().getResource("resources/css/MainStyle.css").toExternalForm();
+    public String styleSheet = getClass().getResource("/css/MainStyle.css").toExternalForm();
 }
