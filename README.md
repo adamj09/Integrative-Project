@@ -1,6 +1,9 @@
-Need Java 25 or higher. 
+Requires Java 25 or higher to run.
+See releases for instructions on running the standalone JAR.
 
-The JavaFX SDK (version 25.0.2) is required to run the project. 
+The JavaFX SDK (version 25.0.2) is required to run the project.
+
+# Compiling and Running from Source
 Install the SDK at any location (not in the project) and set the module-path in the below VM arguments to the lib folder of the SDK. Note that the entire SDK is needed (only having the contents of the lib folder will not work).
 This program does not use Java 8+ modules. To run, add the following VM arguments:
 
@@ -33,3 +36,5 @@ Example launch.json file for VSCode:
     ]
 }
 ```
+# Important Known Issue
+The application may (rarely) crash during the creation of an OpenGL context, i.e. any time a new viewport with something rendered in 3D is opened. This is due to compatibility issues with JavaFX and OpenGL. The only way to avoid this would be to use JavaFX's 3D capabilities, and drop OpenGL, or drop JavaFX and keep using OpenGL. The latter option is preferred, therefore IF this project sees continued work, a rewrite of the UI using a different API would be in order.
