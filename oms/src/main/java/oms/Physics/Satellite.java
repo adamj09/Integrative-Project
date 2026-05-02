@@ -1,4 +1,4 @@
-package oms.Math;
+package oms.Physics;
 
 import org.joml.Vector3d;
 import java.util.function.Consumer;

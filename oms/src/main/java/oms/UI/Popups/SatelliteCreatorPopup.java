@@ -24,16 +24,15 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.animation.AnimationTimer;
-
-import oms.Math.Body;
-import oms.Math.Utils;
-import oms.Math.Satellite;
-import oms.Math.SatelliteData;
 import oms.Renderer.Renderer;
 import oms.Renderer.World.World;
 import oms.UI.SidebarPane;
 import oms.SimulationPool;
 import oms.StyleSheet;
+import oms.Physics.Body;
+import oms.Physics.Satellite;
+import oms.Physics.SatelliteData;
+import oms.Physics.Utils;
 
 /**
  * A pop-up window for creating new satellites.

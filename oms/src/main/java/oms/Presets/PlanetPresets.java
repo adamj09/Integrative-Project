@@ -3,9 +3,9 @@ package oms.Presets;
 import org.joml.Vector3f;
 
 import javafx.scene.paint.Color;
-import oms.Math.Body;
 import oms.Renderer.World.World;
 import oms.SimulationPool;
+import oms.Physics.Body;
 import oms.UI.SidebarPane;
 import oms.UI.Popups.UnsavedChangesPopup;
 

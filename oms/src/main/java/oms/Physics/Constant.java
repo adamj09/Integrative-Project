@@ -1,4 +1,4 @@
-package oms.Math;
+package oms.Physics;
 
 /**
  * A list of physical constants used for physics calculations.

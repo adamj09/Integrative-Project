@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 import org.joml.Vector3f;
 
-import oms.Math.Body;
+import oms.Physics.Body;
 import oms.Renderer.Renderer;
 import oms.Renderer.World.World;
 

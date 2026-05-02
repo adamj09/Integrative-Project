@@ -9,10 +9,10 @@ import java.util.Map;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
-import oms.Math.Body;
-import oms.Math.Constant;
-import oms.Math.Satellite;
-import oms.Math.SatelliteData;
+import oms.Physics.Body;
+import oms.Physics.Constant;
+import oms.Physics.Satellite;
+import oms.Physics.SatelliteData;
 import oms.Presets.WorldConfiguration;
 import oms.Renderer.Camera.Camera;
 import oms.Renderer.Mesh.Mesh;

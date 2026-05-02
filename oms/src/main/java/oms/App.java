@@ -6,8 +6,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-
-import oms.Math.Body;
+import oms.Physics.Body;
 import oms.Presets.PlanetPresets;
 import oms.Presets.PresetManager;
 import oms.Renderer.Renderer;

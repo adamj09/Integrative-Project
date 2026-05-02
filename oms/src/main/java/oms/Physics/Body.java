@@ -1,4 +1,4 @@
-package oms.Math;
+package oms.Physics;
 
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;

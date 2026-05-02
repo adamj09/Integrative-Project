@@ -1,4 +1,4 @@
-package oms.Math;
+package oms.Physics;
 
 /**
  * Class that controls orbital simulation time.

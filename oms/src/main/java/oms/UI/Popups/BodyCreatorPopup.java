@@ -23,8 +23,8 @@ import javafx.stage.Stage;
 
 import oms.SimulationPool;
 import oms.StyleSheet;
-import oms.Math.Body;
-import oms.Math.Constant;
+import oms.Physics.Body;
+import oms.Physics.Constant;
 import oms.Renderer.Renderer;
 import oms.Renderer.World.World;
 import oms.UI.SidebarPane;

@@ -4,4 +4,4 @@
  * @see oms.Renderer for a renderer fit for this simulator.
  * 
  */
-package oms.Math;
+package oms.Physics;

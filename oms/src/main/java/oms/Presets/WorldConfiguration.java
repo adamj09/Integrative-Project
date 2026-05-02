@@ -305,7 +305,7 @@ public class WorldConfiguration {
      * @param color Color of the satellite.
      * @return a new SatelliteConfig object with the given data.
      */
-    public static SatelliteConfig fromSatelliteData(oms.Math.SatelliteData data, Vector3f color) {
+    public static SatelliteConfig fromSatelliteData(oms.Physics.SatelliteData data, Vector3f color) {
         SatelliteConfig config = new SatelliteConfig();
         config.name = data.name;
         config.mass = data.mass;
@@ -356,7 +356,7 @@ public class WorldConfiguration {
      * @param config SatelliteConfig data (input).
      * @param data   SatelliteData data (output).
      */
-    public void applyToSatelliteData(SatelliteConfig config, oms.Math.SatelliteData data) {
+    public void applyToSatelliteData(SatelliteConfig config, oms.Physics.SatelliteData data) {
         data.name = config.name;
         data.mass = config.mass;
         data.altitude = config.altitude;

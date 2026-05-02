@@ -15,9 +15,9 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import oms.SimulationPool;
-import oms.Math.Body;
-import oms.Math.Satellite;
-import oms.Math.SatelliteData;
+import oms.Physics.Body;
+import oms.Physics.Satellite;
+import oms.Physics.SatelliteData;
 import oms.Presets.PresetConfiguration.BottomPanePreset;
 import oms.Renderer.World.World;
 

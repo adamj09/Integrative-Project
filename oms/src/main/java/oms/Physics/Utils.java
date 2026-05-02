@@ -1,4 +1,4 @@
-package oms.Math;
+package oms.Physics;
 
 /**
  * General math utilities (conversions, etc.).

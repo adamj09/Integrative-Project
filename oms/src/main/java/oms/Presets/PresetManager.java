@@ -11,13 +11,13 @@ import java.util.Map;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import oms.Physics.Body;
 import oms.Presets.PresetConfiguration.BodyPreset;
 import oms.Presets.PresetConfiguration.SatellitePreset;
 import oms.Presets.WorldConfiguration.BodyConfig;
 import oms.Renderer.World.World;
 import oms.UI.Popups.UnsavedChangesPopup;
 import oms.UI.Popups.WarningPopup;
-import oms.Math.Body;
 import oms.UI.SidebarPane;
 
 /**
