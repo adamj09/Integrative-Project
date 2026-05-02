@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
@@ -95,6 +97,8 @@ public class World {
      * Meshes for rendering the bodies and orbits.
      */
     private Mesh bodyMesh, orbitMesh, lightSourceMesh;
+
+    private Lock updateLock = new ReentrantLock();
 
     /**
      * Creates a new world with the given central body. The world is initialized
@@ -199,30 +203,31 @@ public class World {
      * Updates the positions of all satellites in the world.
      */
     public void updateSatellitePositions() {
-        for (Map.Entry<String, Satellite> item : body.getSatellites().entrySet()) {
-            SatelliteData data = item.getValue().getData();
+        synchronized (updateLock) {
+            for (Map.Entry<String, Satellite> item : body.getSatellites().entrySet()) {
+                SatelliteData data = item.getValue().getData();
 
-            if (data.currentPosition == null) {
-                System.err.println("current position null");
-                return;
+                if (data.currentPosition == null) {
+                    return;
+                }
+
+                WorldObject object = bodyObjects.get(item.getKey());
+
+                Vector3f scale = object.getScale();
+
+                object.resetTransforms();
+
+                object.translate(new Vector3f(
+                        (float) (data.currentPosition.y / 1000.d / Constant.AU * UNIT_SCALE),
+                        (float) (data.currentPosition.z / 1000.d / Constant.AU * UNIT_SCALE),
+                        (float) (data.currentPosition.x / 1000.d / Constant.AU * UNIT_SCALE)));
+
+                object.scale(new Vector3f(scale.x, scale.y, scale.z));
             }
 
-            WorldObject object = bodyObjects.get(item.getKey());
-
-            Vector3f scale = object.getScale();
-
-            object.resetTransforms();
-
-            object.translate(new Vector3f(
-                    (float) (data.currentPosition.y / 1000.d / Constant.AU * UNIT_SCALE),
-                    (float) (data.currentPosition.z / 1000.d / Constant.AU * UNIT_SCALE),
-                    (float) (data.currentPosition.x / 1000.d / Constant.AU * UNIT_SCALE)));
-
-            object.scale(new Vector3f(scale.x, scale.y, scale.z));
+            bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
+            orbitMatrixBuffer = updateMatrixBuffer(orbits);
         }
-
-        bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
-        orbitMatrixBuffer = updateMatrixBuffer(orbits);
     }
 
     /**
@@ -305,35 +310,37 @@ public class World {
      * @param color     the color to render the satellite with.
      */
     public void addSatellite(Satellite satellite, Vector3f color) {
-        body.addSatellite(satellite);
+        synchronized (updateLock) {
+            body.addSatellite(satellite);
 
-        SatelliteData data = satellite.getData();
+            SatelliteData data = satellite.getData();
 
-        // Satellite has already been added, do nothing.
-        if (bodyObjects.containsKey(data.name)) {
-            return;
+            // Satellite has already been added, do nothing.
+            if (bodyObjects.containsKey(data.name)) {
+                return;
+            }
+
+            // Add satellite object.
+            WorldObject satelliteObject = new WorldObject(data.name, bodyMesh, color);
+
+            // Y -> X, Z -> Y, X -> Z due to different coordinate systems used in the
+            // simulation math and rendering.
+            satelliteObject.translate(new Vector3f(
+                    (float) (data.initialPosition.y / 1000.d / Constant.AU * UNIT_SCALE),
+                    (float) (data.initialPosition.z / 1000.d / Constant.AU * UNIT_SCALE),
+                    (float) (data.initialPosition.x / 1000.d / Constant.AU * UNIT_SCALE)));
+
+            float satelliteRadius = (float) (body.getRadius() / Constant.AU * UNIT_SCALE / 50.f);
+
+            satelliteObject.scale(new Vector3f(satelliteRadius, satelliteRadius, satelliteRadius));
+
+            bodyObjects.put(satelliteObject.getName(), satelliteObject);
+
+            addOrbit(satellite);
+
+            bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
+            colorsBuffer = updateColorBuffer(bodyObjects);
         }
-
-        // Add satellite object.
-        WorldObject satelliteObject = new WorldObject(data.name, bodyMesh, color);
-
-        // Y -> X, Z -> Y, X -> Z due to different coordinate systems used in the
-        // simulation math and rendering.
-        satelliteObject.translate(new Vector3f(
-                (float) (data.initialPosition.y / 1000.d / Constant.AU * UNIT_SCALE),
-                (float) (data.initialPosition.z / 1000.d / Constant.AU * UNIT_SCALE),
-                (float) (data.initialPosition.x / 1000.d / Constant.AU * UNIT_SCALE)));
-
-        float satelliteRadius = (float) (body.getRadius() / Constant.AU * UNIT_SCALE / 50.f);
-
-        satelliteObject.scale(new Vector3f(satelliteRadius, satelliteRadius, satelliteRadius));
-
-        bodyObjects.put(satelliteObject.getName(), satelliteObject);
-
-        addOrbit(satellite);
-
-        bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
-        colorsBuffer = updateColorBuffer(bodyObjects);
     }
 
     /**
@@ -353,7 +360,6 @@ public class World {
 
     private void transformOrbit(String orbitName) {
         if (!orbits.containsKey(orbitName) || !body.getSatellites().containsKey(orbitName)) {
-            System.err.println("Failed to transform orbit: " + orbitName + ". Orbit or satellite not found.");
             return;
         }
 
@@ -411,19 +417,21 @@ public class World {
      * @param name the name of the satellite to be removed.
      */
     public void removeSatellite(String name) {
-        // Remove the satellite from the central body and from the World.
-        if (name != body.getName()) {
-            bodyObjects.remove(name);
-            body.removeSatellite(name);
+        synchronized (updateLock) {
+            // Remove the satellite from the central body and from the World.
+            if (!name.equals(body.getName())) {
+                bodyObjects.remove(name);
+                body.removeSatellite(name);
+            }
+
+            // Remove orbit associated with the satellite.
+            orbits.remove(name);
+
+            // Update buffers after removal.
+            bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
+            orbitMatrixBuffer = updateMatrixBuffer(orbits);
+            colorsBuffer = updateColorBuffer(bodyObjects);
         }
-
-        // Remove orbit associated with the satellite.
-        orbits.remove(name);
-
-        // Update buffers after removal.
-        bodyMatrixBuffer = updateMatrixBuffer(bodyObjects);
-        orbitMatrixBuffer = updateMatrixBuffer(orbits);
-        colorsBuffer = updateColorBuffer(bodyObjects);
     }
 
     /**
