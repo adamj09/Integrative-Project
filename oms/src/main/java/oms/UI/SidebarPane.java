@@ -300,10 +300,9 @@ public class SidebarPane extends VBox {
         // First body to be added; auto-select it.
         if (selectedBody.isEmpty()) {
             createSatelliteList(name);
+
             celestialTab.fire();
             toggleButton.fire();
-
-            pool.runWorld(name);
 
             return card;
         }
@@ -367,10 +366,9 @@ public class SidebarPane extends VBox {
 
         // Run the newly selected celestial body.
         pool.runWorld(nameLabel.getText());
-        if(pool.getCurrentWorld() != null) {
-            bottom.getTimescaleDropdown().setValue((int) pool.getCurrentWorld().getBody().getTimeScale() + "x");
-        }
         bottom.setViewData(false);
+        System.out.println(pool.getWorld(nameLabel.getText()).getBody().getTimeScale());
+        bottom.getTimescaleDropdown().setValue((int) pool.getWorld(nameLabel.getText()).getBody().getTimeScale() + "x");
     }
 
     /**
