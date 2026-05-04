@@ -27,7 +27,7 @@ public class SimulationPool {
     /**
      * World that is currently running.
      */
-    private String currentWorld;
+    private String selectedWorld;
 
     /**
      * Creates a simulation pool with a given Renderer.
@@ -35,7 +35,7 @@ public class SimulationPool {
      * @param renderer the renderer used to display the simulation pool's worlds.
      */
     public SimulationPool(Renderer renderer) {
-        this.currentWorld = "";
+        this.selectedWorld = "";
         this.renderer = renderer;
     }
 
@@ -75,9 +75,7 @@ public class SimulationPool {
         }
 
         // Stop currently running world.
-        if (!currentWorld.isEmpty()) {
-            worlds.get(currentWorld).stopWorld();
-        }
+        stopWorld(worldName);
 
         // Start running next world.
         World world = worlds.get(worldName);
@@ -85,17 +83,17 @@ public class SimulationPool {
 
         renderer.setWorld(world);
 
-        currentWorld = worldName;
+        selectedWorld = worldName;
     }
 
     /**
      * Stops the currently running world, if there is a currently running world.
      * Note that currentWorld remains the name of the world that was last run.
      */
-    public void stopWorld() {
+    public void stopWorld(String worldName) {
         // If a world is currently running, stop it.
-        if (!currentWorld.isEmpty()) {
-            worlds.get(currentWorld).stopWorld();
+        if (worlds.containsKey(worldName)) {
+            worlds.get(worldName).stopWorld();
         }
     }
 
@@ -104,8 +102,8 @@ public class SimulationPool {
      */
     public void startWorld() {
         // If a world is currently running, stop it.
-        if (!currentWorld.isEmpty()) {
-            worlds.get(currentWorld).startWorld();
+        if (!selectedWorld.isEmpty()) {
+            worlds.get(selectedWorld).startWorld();
         }
     }
 
@@ -114,8 +112,8 @@ public class SimulationPool {
      * is a currently running world.
      */
     public void resetWorld() {
-        if (!currentWorld.isEmpty()) {
-            worlds.get(currentWorld).getBody().resetTime();
+        if (!selectedWorld.isEmpty()) {
+            worlds.get(selectedWorld).getBody().resetTime();
         }
     }
 
@@ -127,10 +125,10 @@ public class SimulationPool {
      *                  twice as fast.
      */
     public void setTimeScale(double timeScale) {
-        if (getCurrentWorld() == null) {
+        if (getSelectedWorld() == null) {
             return;
         }
-        getCurrentWorld().getBody().setTimeScale(timeScale);
+        getSelectedWorld().getBody().setTimeScale(timeScale);
     }
 
     /**
@@ -139,10 +137,10 @@ public class SimulationPool {
      * @param timeSeconds desired time in seconds.
      */
     public void setTime(double timeSeconds) {
-        if (getCurrentWorld() == null) {
+        if (getSelectedWorld() == null) {
             return;
         }
-        getCurrentWorld().getBody().setTime(timeSeconds);
+        getSelectedWorld().getBody().setTime(timeSeconds);
     }
 
     /**
@@ -162,11 +160,17 @@ public class SimulationPool {
     /**
      * @return the currentWorld String, or null if currentWorld is empty.
      */
-    public World getCurrentWorld() {
-        if (currentWorld.isEmpty()) {
+    public World getSelectedWorld() {
+        if (selectedWorld.isEmpty()) {
             return null;
         }
-        return worlds.get(currentWorld);
+        return worlds.get(selectedWorld);
+    }
+
+    public void selectWorld(String name) {
+        if(worlds.containsKey(name)) {
+            selectedWorld = name;
+        }
     }
 
     /**

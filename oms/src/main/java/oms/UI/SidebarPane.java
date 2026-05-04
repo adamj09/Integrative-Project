@@ -29,7 +29,8 @@ import oms.UI.Popups.BodyCreatorPopup;
 import oms.UI.Popups.SatelliteCreatorPopup;
 
 /**
- * Class that handles lists of loaded celestial bodies and satellites within the user interface.
+ * Class that handles lists of loaded celestial bodies and satellites within the
+ * user interface.
  * 
  * @author Ryan Lau
  * @author Adam Johnston
@@ -55,11 +56,12 @@ public class SidebarPane extends VBox {
     /**
      * The lists of satellites, keyed by body name.
      * Contains VBoxes as JavaFX children:
+     * 
      * @see satelliteListVBoxes
      */
     private HashMap<String, VBox> satelliteLists = new HashMap<>();
 
-        /**
+    /**
      * The VBoxes each containing a list of satellites for each Body.
      * The key is the Body's name, the VBox is the list itself (analogous to the
      * single bodyListVBox variable).
@@ -117,12 +119,11 @@ public class SidebarPane extends VBox {
      */
     private final HashMap<String, Button> bodyToggleButtons = new HashMap<>();
 
-
     /**
      * Creates a new SidebarPane.
      * 
      * @param bottom the BottomPane this SidebarPane will modify.
-     * @param pool the SimulationPool this SidebarPane will command.
+     * @param pool   the SimulationPool this SidebarPane will command.
      */
     public SidebarPane(BottomPane bottom, SimulationPool pool) {
         this.pool = pool;
@@ -365,10 +366,18 @@ public class SidebarPane extends VBox {
         celestialTab.fire();
 
         // Run the newly selected celestial body.
+        pool.selectWorld(nameLabel.getText());
         pool.runWorld(nameLabel.getText());
         bottom.setViewData(false);
-        System.out.println(pool.getWorld(nameLabel.getText()).getBody().getTimeScale());
-        bottom.getTimescaleDropdown().setValue((int) pool.getWorld(nameLabel.getText()).getBody().getTimeScale() + "x");
+        System.out.println((int) pool.getWorld(nameLabel.getText()).getBody().getTimeScale());
+
+        int timeScale = (int) pool.getWorld(nameLabel.getText()).getBody().getTimeScale();
+
+        // Note that this only works for whole numbers, which is sufficient for current
+        // intended functionality, but will need to be changed for future use.
+        String timeScaleString = String.format("%,d", timeScale);
+
+        bottom.getTimescaleDropdown().setValue(timeScaleString + "x");
     }
 
     /**
@@ -497,7 +506,7 @@ public class SidebarPane extends VBox {
 
         pool.getRenderer().setFocusObject(selectedBody);
 
-        pool.getCurrentWorld().removeSatellite(name);
+        pool.getSelectedWorld().removeSatellite(name);
     }
 
     /**
@@ -512,7 +521,7 @@ public class SidebarPane extends VBox {
         if (bodyName.equals(selectedBody)) {
             selectedBody = "";
 
-            pool.stopWorld();
+            pool.stopWorld(pool.getSelectedWorld().getName());
         }
 
         bodyEntries.remove(bodyName);
@@ -559,7 +568,8 @@ public class SidebarPane extends VBox {
      */
     public void selectBody(String name) {
         Button toggle = bodyToggleButtons.get(name);
-        if (toggle != null) toggle.fire();
+        if (toggle != null)
+            toggle.fire();
     }
 
     /**

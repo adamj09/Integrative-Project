@@ -31,7 +31,7 @@ public class OrbitsTime implements Runnable {
     /**
      * Sets a time multiplier.
      * 
-     * Results in 1 second of real-time being equal to x seconds of simulation time,
+     * Results in 1 second of real time being equal to x seconds of simulation time,
      * where x is the timeScale.
      * 
      * @param timeScale the multiplier to set.

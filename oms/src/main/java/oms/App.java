@@ -144,8 +144,8 @@ public class App extends Application {
         menuBar.getNewBodyButton().setOnAction(_ -> openBodyBuilder(stage, menuBar, sidebar));
         menuBar.getNewSatelliteButton().setOnAction(_ -> openSatelliteBuilder(stage, pool, menuBar, sidebar));
         menuBar.getSaveAsMenuItem()
-                .setOnAction(_ -> presetManager.savePresetAs(stage, pool.getCurrentWorld(), sidebar));
-        menuBar.getSaveMenuItem().setOnAction(_ -> presetManager.savePreset(stage, pool.getCurrentWorld(), sidebar));
+                .setOnAction(_ -> presetManager.savePresetAs(stage, pool.getSelectedWorld(), sidebar));
+        menuBar.getSaveMenuItem().setOnAction(_ -> presetManager.savePreset(stage, pool.getSelectedWorld(), sidebar));
         menuBar.getLoadMenuItem().setOnAction(_ -> loadWorld(stage, pool.getRenderer(), pool, sidebar, presetManager));
         menuBar.getInfoButton().setOnAction(_ -> showInfo(menuBar));
     }
@@ -180,10 +180,10 @@ public class App extends Application {
      */
     private void openSatelliteBuilder(Stage stage, SimulationPool pool, MainMenuBar menuBar,
             SidebarPane sidebar) {
-        if (pool.getCurrentWorld() == null)
+        if (pool.getSelectedWorld() == null)
             return;
 
-        Body body = pool.getCurrentWorld().getBody();
+        Body body = pool.getSelectedWorld().getBody();
         // TODO: this check for whether a body can actually have a satellite orbiting it
         // (sufficient mass) is probably not great, but is good enough for now.
         if (body.getHillRadius() > body.getRadius()) {
@@ -216,7 +216,7 @@ public class App extends Application {
         if (pool.getWorlds().size() == 1) {
             pool.runWorld(newWorld.getName());
 
-            mainRenderer.setWorld(pool.getCurrentWorld());
+            mainRenderer.setWorld(pool.getSelectedWorld());
         }
     }
 

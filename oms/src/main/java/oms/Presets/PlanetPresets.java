@@ -43,14 +43,14 @@ public class PlanetPresets {
 
         Body body = new Body(name, mass, diameter / 2.0, semiMajorAxisKm, eccentricity);
         
-        World currentWorld = pool.getCurrentWorld();
+        World currentWorld = pool.getSelectedWorld();
         boolean wasWorldRunning = false;
         if (currentWorld != null) {
             wasWorldRunning = currentWorld.isWorldRunning();
         }
 
         // Stop the current world before adding preset
-        pool.stopWorld();
+        pool.stopWorld(pool.getSelectedWorld().getName());
 
         // Remove the body (to overwrite) if it already exists.
         if (sidebar.getBodyEntries().containsKey(body.getName())) {

@@ -92,7 +92,7 @@ public class SatelliteCreatorPopup extends Stage {
      */
     public SatelliteCreatorPopup(Stage owner, SidebarPane sidebar, String themeStyle, SimulationPool pool) {
         this.sideBar = sidebar;
-        this.currentWorld = pool.getCurrentWorld();
+        this.currentWorld = pool.getSelectedWorld();
         this.bodyMass = currentWorld.getBody().getMass();
         this.bodyRadius = currentWorld.getBody().getRadius();
 

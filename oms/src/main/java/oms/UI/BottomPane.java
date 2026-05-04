@@ -153,11 +153,11 @@ public class BottomPane extends VBox {
             double newTime;
             try {
                 newTime = Double.parseDouble(specificTimeField.getText());
-            } catch(NumberFormatException ex) {
+            } catch (NumberFormatException ex) {
                 return;
             }
-            
-            if(newTime < 0) {
+
+            if (newTime < 0) {
                 return;
             }
 
@@ -182,35 +182,10 @@ public class BottomPane extends VBox {
             } catch (NumberFormatException ex) {
             }
 
-            switch (timescaleDropdown.getValue()) {
-                case "1x":
-                    pool.setTimeScale(1);
-                    break;
-                case "2x":
-                    pool.setTimeScale(2);
-                    break;
-                case "5x":
-                    pool.setTimeScale(5);
-                    break;
-                case "10x":
-                    pool.setTimeScale(10);
-                    break;
-                case "100x":
-                    pool.setTimeScale(100);
-                    break;
-                case "1,000x":
-                    pool.setTimeScale(1000);
-                    break;
-                case "10,000x":
-                    pool.setTimeScale(10_000);
-                    break;
-                case "100,000x":
-                    pool.setTimeScale(100_000);
-                    break;
-                default:
-                    pool.setTimeScale(1);
-                    break;
-            }
+            double timescaleValue = Double.parseDouble(timescaleDropdown.getValue()
+                    .substring(0, timescaleDropdown.getValue().length() - 1).replaceAll(",", ""));
+            System.out.println("actual value: " + timescaleValue);
+            pool.setTimeScale(timescaleValue);
         });
     }
 
@@ -221,32 +196,45 @@ public class BottomPane extends VBox {
         startButton = new Button("START");
         startButton.getStyleClass().add("start-button");
         startButton.setOnAction(e -> {
-            running = true;
-            updateButtonStates();
-
-            if (pool.getCurrentWorld() != null) {
+            if (pool.getSelectedWorld() != null) {
+                if (pool.getSelectedWorld().getBody().getSatellites().size() == 0) {
+                    return;
+                }
                 pool.startWorld();
             }
+
+            running = true;
+            updateButtonStates();
         });
 
         stopButton = new Button("STOP");
         stopButton.getStyleClass().add("stop-button");
         stopButton.setOnAction(e -> {
+            if (pool.getSelectedWorld() != null) {
+                if (pool.getSelectedWorld().getBody().getSatellites().size() == 0) {
+                    return;
+                }
+                pool.stopWorld(pool.getSelectedWorld().getName());
+            }
+
             running = false;
             updateButtonStates();
-            pool.stopWorld();
         });
 
         resetButton = new Button("RESET");
         resetButton.getStyleClass().add("reset-button");
         resetButton.setOnAction(e -> {
+            if (pool.getSelectedWorld() != null) {
+                if (pool.getSelectedWorld().getBody().getSatellites().size() != 0) {
+                    return;
+                }
+
+                pool.stopWorld(pool.getSelectedWorld().getName());
+                pool.resetWorld();
+            }
+
             running = true;
             applyPresetState(new BottomPanePreset("", "1x", false));
-            pool.stopWorld();
-            pool.resetWorld();
-            // removed because should not automatically start after reset, user should click
-            // start
-            // pool.runWorld(pool.getCurrentWorld().getName());
             updateButtonStates();
         });
     }
@@ -265,10 +253,10 @@ public class BottomPane extends VBox {
         timeValueLabelNum = new Label();
         timeValueLabelNum.setText(getWorldTimeFormated(0));
         timeValueLabelNum.getStyleClass().add("body");
-    
-        HBox timeValueBox = new HBox(4, timeValueLabel, timeValueField,timeValueLabelNum);
+
+        HBox timeValueBox = new HBox(4, timeValueLabel, timeValueField, timeValueLabelNum);
         timeValueBox.setPadding(new Insets(6, 10, 6, 10));
-        timeValueBox.setAlignment(Pos.CENTER_LEFT); 
+        timeValueBox.setAlignment(Pos.CENTER_LEFT);
 
         HBox controlsRow = new HBox(10,
                 infoLabel, timeLabel, specificTimeField,
@@ -375,21 +363,22 @@ public class BottomPane extends VBox {
         if (name.isEmpty()) {
             dataRoot.getChildren().set(1, noDataLabel);
             viewData = false;
-            //selectedSatellite = "";
+            // selectedSatellite = "";
             return;
         }
-        if(selectedSatellite.equals(name)) {
+        if (selectedSatellite.equals(name)) {
             viewData = !viewData;
-            
-        }else{
+
+        } else {
             viewData = true;
             selectedSatellite = name;
         }
-        
+
     }
 
     /**
      * Sets the state of the live data view.
+     * 
      * @param viewData
      */
     public void setViewData(boolean viewData) {
@@ -408,7 +397,7 @@ public class BottomPane extends VBox {
                 _ -> {
                     // If a world is running or has run in the past, update the satellite's data
                     // view.
-                    if (pool.getCurrentWorld() != null) {
+                    if (pool.getSelectedWorld() != null) {
                         updateSatelliteData();
                     }
                 });
@@ -423,27 +412,27 @@ public class BottomPane extends VBox {
      */
     public void updateSatelliteData() {
         // Update display of simulation time.
-        World currentWorld = pool.getCurrentWorld();
+        World currentWorld = pool.getSelectedWorld();
         Body body = currentWorld.getBody();
         double timeSeconds = body.getTimeSeconds();
         double timeMinutes = (body.getTimeSeconds() / 60.0);
         timeValueField.setText(String.format("%.4f", timeMinutes));
         timeValueLabelNum.setText(getWorldTimeFormated(timeSeconds));
-        
-        if(running != currentWorld.isWorldRunning()) {
+
+        if (running != currentWorld.isWorldRunning()) {
             running = currentWorld.isWorldRunning();
             updateButtonStates();
         }
 
-        if(!viewData){
+        if (!viewData) {
             dataRoot.getChildren().set(1, noDataLabel);
         }
-             
+
         if (selectedSatellite.isEmpty() || !viewData) {
             return;
         }
 
-        Satellite satellite = pool.getCurrentWorld().getBody().getSatellite(selectedSatellite);
+        Satellite satellite = pool.getSelectedWorld().getBody().getSatellite(selectedSatellite);
 
         // If the satellite we are trying to update does not exist, do nothing.
         if (satellite == null) {
