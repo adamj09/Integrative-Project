@@ -196,12 +196,18 @@ public class BottomPane extends VBox {
         startButton = new Button("START");
         startButton.getStyleClass().add("start-button");
         startButton.setOnAction(e -> {
-            if (pool.getSelectedWorld() != null) {
-                if (pool.getSelectedWorld().getBody().getSatellites().size() == 0) {
-                    return;
-                }
-                pool.startWorld();
+
+            // Abort if the selected world is null.
+            if (pool.getSelectedWorld() == null) {
+                return;
             }
+
+            // If the world has no satellites, can't start.
+            if (pool.getSelectedWorld().getBody().getSatellites().size() == 0) {
+                return;
+            }
+
+            pool.startWorld();
 
             running = true;
             updateButtonStates();
@@ -210,12 +216,17 @@ public class BottomPane extends VBox {
         stopButton = new Button("STOP");
         stopButton.getStyleClass().add("stop-button");
         stopButton.setOnAction(e -> {
-            if (pool.getSelectedWorld() != null) {
-                if (pool.getSelectedWorld().getBody().getSatellites().size() == 0) {
-                    return;
-                }
-                pool.stopWorld(pool.getSelectedWorld().getName());
+            // Abort if the selected world is null.
+            if (pool.getSelectedWorld() == null) {
+                return;
             }
+
+            // If the world has no satellites, can't stop (because can't run the world in
+            // the first place).
+            if (pool.getSelectedWorld().getBody().getSatellites().size() == 0) {
+                return;
+            }
+            pool.stopWorld(pool.getSelectedWorld().getName());
 
             running = false;
             updateButtonStates();
@@ -224,14 +235,19 @@ public class BottomPane extends VBox {
         resetButton = new Button("RESET");
         resetButton.getStyleClass().add("reset-button");
         resetButton.setOnAction(e -> {
-            if (pool.getSelectedWorld() != null) {
-                if (pool.getSelectedWorld().getBody().getSatellites().size() != 0) {
-                    return;
-                }
-
-                pool.stopWorld(pool.getSelectedWorld().getName());
-                pool.resetWorld();
+            // Abort if the selected world is null.
+            if (pool.getSelectedWorld() == null) {
+                return;
             }
+
+            // If the world has no satellites, can't reset (because can't run the world in
+            // the first place).
+            if (pool.getSelectedWorld().getBody().getSatellites().size() != 0) {
+                return;
+            }
+
+            pool.stopWorld(pool.getSelectedWorld().getName());
+            pool.resetWorld();
 
             running = true;
             applyPresetState(new BottomPanePreset("", "1x", false));
