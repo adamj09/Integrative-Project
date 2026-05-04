@@ -628,6 +628,10 @@ public class MathOrbits {
         double p = distance * (1 + eccentricity * Math.cos(trueAnomaly));
         double mu = Constant.GRAVITATIONAL_CONSTANT * massOfCelestialBody;
 
+        longitudeAscendingNode = ((longitudeAscendingNode % 360) + 360) % 360; // Normalize to [0, 360)
+        inclination = ((inclination % 180) + 180) % 180; // Normalize to [0, 180)
+        argumentOfPeriapsis = ((argumentOfPeriapsis % 360) + 360) % 360; // Normalize to [0, 360)
+
         double longitudeOfAscendingNodeRad = Math.toRadians(longitudeAscendingNode);
         double inclinationRad = Math.toRadians(inclination);
         double argumentOfPeriapsisRad = Math.toRadians(argumentOfPeriapsis);
