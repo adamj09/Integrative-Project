@@ -493,6 +493,10 @@ public class SidebarPane extends VBox {
      * @param name name of the satellite to remove.
      */
     public void removeSatellite(String name) {
+        if(satelliteEntries.get(selectedBody).size() == 1) {
+            pool.stopWorld(selectedBody);
+            pool.resetWorld();
+        }
         satelliteEntries.get(selectedBody).remove(name);
 
         // Remove the satellite card.
