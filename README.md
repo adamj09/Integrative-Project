@@ -21,7 +21,7 @@ This program does not use Java 8+ modules. To run, add the following VM argument
 --enable-native-access=javafx.graphics
 ```
 
-Example launch.json file for VSCode:
+Example launch configuration (in launch.json) for VSCode:
 (note that vmArgs is a string all on one line containing the above arguments separated by spaces)
 ```{
     "version": "0.2.0",
