@@ -184,7 +184,6 @@ public class BottomPane extends VBox {
 
             double timescaleValue = Double.parseDouble(timescaleDropdown.getValue()
                     .substring(0, timescaleDropdown.getValue().length() - 1).replaceAll(",", ""));
-            System.out.println("actual value: " + timescaleValue);
             pool.setTimeScale(timescaleValue);
         });
     }

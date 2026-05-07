@@ -369,7 +369,6 @@ public class SidebarPane extends VBox {
         pool.selectWorld(nameLabel.getText());
         pool.runWorld(nameLabel.getText());
         bottom.setViewData(false);
-        System.out.println((int) pool.getWorld(nameLabel.getText()).getBody().getTimeScale());
 
         int timeScale = (int) pool.getWorld(nameLabel.getText()).getBody().getTimeScale();
 
