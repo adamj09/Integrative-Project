@@ -129,6 +129,9 @@ public class BodyCreatorPopup extends Stage {
         randomizeRadius();
         randomizeColor();
 
+        updatePreviewColor();
+        updatePreviewRadius();
+
         setScene(scene);
         Platform.runLater(() -> root.requestFocus());
 
